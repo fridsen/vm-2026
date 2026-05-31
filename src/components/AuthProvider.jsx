@@ -6,6 +6,7 @@ import {
   getSession,
   onAuthStateChange,
   signInWithEmail,
+  signInWithGoogle,
   signOut,
   upsertProfile,
 } from '../services/authService.js';
@@ -65,6 +66,7 @@ export default function AuthProvider({ children }) {
       profile,
       loading,
       signInWithEmail,
+      signInWithGoogle,
       signOut,
       saveDisplayName: async (name) => {
         if (!user) return null;
