@@ -1,0 +1,859 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply text-neutral-900 antialiased;
+    background-color: #edeef6;
+    color-scheme: light;
+  }
+  html,
+  body {
+    @apply overflow-x-hidden;
+  }
+  body {
+    @apply min-h-screen w-full font-sans;
+    background-color: #edeef6;
+    color: #1a1b2e;
+  }
+  #root {
+    @apply w-full min-w-0;
+  }
+
+  /* ─── PHONE-FRAME PREVIEW ─────────────────────────────────── */
+  .phone-frame-host {
+    @apply flex min-h-screen w-full items-center justify-center p-5;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(180, 185, 220, 0.5) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 85% 90%, rgba(200, 205, 230, 0.3) 0%, transparent 65%),
+      #d8dbe8;
+  }
+  .phone-bezel {
+    position: relative;
+    width: 390px;
+    height: min(844px, calc(100vh - 40px));
+    border-radius: 50px;
+    background: #c8cad8;
+    padding: 10px;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.06),
+      0 40px 100px rgba(0, 0, 0, 0.22),
+      0 8px 32px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+  }
+  .phone-bezel::before {
+    /* Dynamic Island */
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 35px;
+    background: #0c0c14;
+    border-radius: 20px;
+    z-index: 100;
+  }
+  .phone-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 40px;
+    overflow: hidden;
+    background: #edeef6;
+    display: flex;
+    flex-direction: column;
+    /* Make this the containing block for fixed-positioned descendants
+       so MobileBottomNav stays inside the bezel. */
+    transform: translateZ(0);
+  }
+  /* Drop the bezel on small viewports — render edge-to-edge instead. */
+  @media (max-width: 480px) {
+    .phone-frame-host {
+      padding: 0;
+      background: transparent;
+    }
+    .phone-bezel {
+      width: 100%;
+      height: 100vh;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+    }
+    .phone-bezel::before {
+      display: none;
+    }
+    .phone-screen {
+      border-radius: 0;
+    }
+  }
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  /* ─── SHADOWS ─────────────────────────────────────────────── */
+  .shadow-card {
+    box-shadow:
+      0 2px 14px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .shadow-float {
+    box-shadow:
+      0 24px 48px -18px rgba(0, 0, 0, 0.12),
+      0 12px 24px -12px rgba(0, 0, 0, 0.06);
+  }
+  .shadow-nav {
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.12),
+      0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+  .card-hover-lift {
+    transition:
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
+  }
+  .card-hover-lift:hover {
+    box-shadow:
+      0 24px 48px -18px rgba(0, 0, 0, 0.12),
+      0 12px 24px -12px rgba(0, 0, 0, 0.06);
+  }
+
+  /* ─── CARDS / BUTTONS ─────────────────────────────────────── */
+  .card {
+    @apply rounded-3xl border border-black/5 bg-surface text-neutral-900;
+    box-shadow:
+      0 2px 14px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .card-elevated {
+    @apply rounded-3xl border border-black/5 bg-surface text-neutral-900;
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .card-accent {
+    @apply rounded-3xl border-0 bg-accent text-accent-foreground;
+    box-shadow: 0 4px 20px rgba(12, 12, 20, 0.18);
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    @apply bg-accent text-accent-foreground hover:opacity-90;
+    box-shadow: 0 4px 16px rgba(12, 12, 20, 0.18);
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    @apply bg-pitch-50 text-neutral-700 hover:bg-pitch-100;
+  }
+  .divider {
+    @apply border-black/5;
+  }
+
+  /* ─── PAGE LAYOUT ─────────────────────────────────────────── */
+  .page-title {
+    @apply font-display text-[26px] font-normal uppercase tracking-[0.06em] text-neutral-900;
+  }
+  .page-subtitle {
+    @apply mt-0.5 text-xs font-medium text-neutral-500;
+  }
+  .section-label {
+    @apply px-1 pb-2 pt-4 font-display text-[11px] font-bold uppercase tracking-[0.12em] text-neutral-500;
+  }
+
+  /* ─── PILL TOGGLE ─────────────────────────────────────────── */
+  .pill-wrap {
+    @apply inline-flex gap-0.5 rounded-2xl bg-black/5 p-0.5;
+  }
+  .pill {
+    @apply cursor-pointer rounded-xl px-3 py-1.5 text-xs font-bold text-neutral-500 transition-colors;
+  }
+  .pill.active {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  /* View-switch (small pill, used in dashboard header) */
+  .view-switch {
+    @apply inline-flex gap-0 rounded-xl border border-black/5 bg-black/5 p-0.5;
+  }
+  .vs-btn {
+    @apply cursor-pointer rounded-lg px-2.5 py-1 text-[11px] font-semibold text-neutral-500 transition-colors;
+  }
+  .vs-btn.active {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  /* ─── GAME ROW (Skorio-style) ─────────────────────────────── */
+  .game-row {
+    @apply mb-1.5 cursor-pointer overflow-hidden rounded-2xl border border-black/5 bg-surface transition-shadow;
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.05),
+      0 1px 3px rgba(0, 0, 0, 0.03);
+  }
+  .game-row:active {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+  .gr-body {
+    @apply flex items-center gap-2.5 px-3.5 py-3;
+  }
+  .gr-teams {
+    @apply flex min-w-0 flex-1 flex-col gap-2.5;
+  }
+  .gr-team-row {
+    @apply flex items-center gap-2;
+  }
+  .gr-flag {
+    @apply w-7 shrink-0 text-center text-xl;
+  }
+  .gr-team-name {
+    @apply truncate text-[13px] font-semibold text-neutral-900;
+  }
+  .gr-team-name.loser {
+    @apply text-neutral-400;
+  }
+  .gr-right {
+    @apply flex shrink-0 flex-col items-end gap-1;
+  }
+  .gr-scores {
+    @apply flex flex-col items-end gap-2.5;
+  }
+  .gr-score-num {
+    @apply w-5 text-center font-display text-[22px] leading-none text-neutral-900;
+  }
+  .gr-score-num.loser {
+    @apply text-neutral-300;
+  }
+  .gr-status-badge {
+    @apply self-end rounded bg-black/5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-neutral-500;
+  }
+  .gr-status-badge.upcoming {
+    @apply bg-pitch-50 text-neutral-700;
+  }
+  .gr-status-badge.live {
+    @apply bg-red-100 text-red-600;
+  }
+  .gr-time-col {
+    @apply flex flex-col items-end gap-px;
+  }
+  .gr-time-main {
+    @apply font-display text-[21px] leading-none text-neutral-500;
+  }
+  .gr-time-date {
+    @apply text-[10px] font-semibold text-neutral-400;
+  }
+  .gr-pred-btn {
+    @apply mt-0.5 cursor-pointer whitespace-nowrap rounded-lg border-0 bg-accent px-3 py-1 text-[11px] font-bold text-accent-foreground transition-opacity;
+  }
+  .gr-pred-btn:hover {
+    @apply opacity-90;
+  }
+  .gr-predict-strip {
+    @apply flex items-center justify-between border-t border-black/5 bg-black/[0.02] px-3.5 py-1.5;
+  }
+  .gr-prediction-label {
+    @apply text-[10px] font-semibold text-neutral-400;
+  }
+  .gr-my-pred {
+    @apply text-[11px] font-bold text-pitch-600;
+  }
+
+  /* ─── GROUP SECTION HEADER ────────────────────────────────── */
+  .group-section-title {
+    @apply flex items-center gap-2 px-1 pb-1.5 pt-3.5 font-display text-base font-normal uppercase tracking-widest text-neutral-500;
+  }
+  .group-section-title::before {
+    content: '';
+    @apply inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-accent;
+  }
+
+  /* ─── DATE TICKER ─────────────────────────────────────────── */
+  .date-ticker {
+    @apply -mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 md:-mx-8 md:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+  }
+  .date-chip {
+    @apply flex shrink-0 cursor-pointer flex-col items-center gap-0.5 rounded-2xl border border-black/5 bg-black/5 px-3 py-2 transition-colors;
+  }
+  .date-chip:hover {
+    @apply bg-black/[0.08];
+  }
+  .date-chip.today {
+    @apply border-accent bg-accent;
+  }
+  .date-chip .d-day {
+    @apply font-display text-base font-bold text-neutral-900;
+  }
+  .date-chip.today .d-day {
+    @apply text-accent-foreground;
+  }
+  .date-chip .d-label {
+    @apply text-[10px] font-semibold uppercase tracking-wider text-neutral-500;
+  }
+  .date-chip.today .d-label {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* ─── PREDICT BANNER (rectangle CTA) ──────────────────────── */
+  .predict-banner {
+    @apply relative flex cursor-pointer items-center justify-between overflow-hidden rounded-3xl border-0 bg-accent px-5 py-4 text-accent-foreground;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  }
+  .pb-eyebrow {
+    @apply mb-0.5 text-[10px] font-bold uppercase tracking-[0.12em];
+    color: rgba(255, 255, 255, 0.45);
+  }
+  .pb-headline {
+    @apply font-display text-[22px] font-normal uppercase tracking-[0.05em] text-white;
+  }
+  .pb-count {
+    @apply mt-0.5 text-xs font-medium;
+    color: rgba(255, 255, 255, 0.45);
+  }
+  .pb-cta {
+    @apply whitespace-nowrap rounded-xl bg-white px-4 py-2 text-xs font-bold text-accent;
+  }
+
+  /* ─── STAT CARDS ──────────────────────────────────────────── */
+  .stats-grid {
+    @apply grid grid-cols-2 gap-2.5;
+  }
+  .stat-card {
+    @apply relative overflow-hidden rounded-2xl border border-black/5 bg-surface px-3.5 pb-3 pt-3.5;
+    box-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .stat-card.full-width {
+    @apply col-span-2;
+  }
+  .sc-label {
+    @apply mb-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500;
+  }
+  .sc-value {
+    @apply font-display text-[42px] leading-none text-neutral-900;
+  }
+  .sc-sub {
+    @apply mt-1 text-[11px] text-neutral-500;
+  }
+  .sc-badge {
+    @apply absolute right-3 top-3 rounded-md px-2 py-0.5 text-[11px] font-bold;
+  }
+  .badge-up {
+    @apply bg-emerald-100/60 text-emerald-700;
+  }
+  .badge-down {
+    @apply bg-rose-100/60 text-rose-600;
+  }
+  .badge-neu {
+    @apply bg-black/5 text-neutral-500;
+  }
+
+  /* ─── SPARKLINE CARD ──────────────────────────────────────── */
+  .sparkline-card {
+    @apply rounded-2xl border border-black/5 bg-surface p-3.5;
+    box-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .sk-title {
+    @apply text-[10px] font-bold uppercase tracking-wider text-neutral-500;
+  }
+  .sk-rank {
+    @apply font-display text-xl text-pitch-600;
+  }
+  .sk-labels {
+    @apply mt-1.5 flex justify-between text-[10px] font-semibold text-neutral-400;
+  }
+
+  /* ─── HEAT STRIP ──────────────────────────────────────────── */
+  .heat-strip-card {
+    @apply rounded-2xl border border-black/5 bg-surface p-3.5;
+    box-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .hs-label {
+    @apply mb-2.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500;
+  }
+  .heat-strip {
+    @apply flex gap-1.5;
+  }
+  .heat-cell {
+    @apply flex h-9 flex-1 items-center justify-center rounded-lg border font-display text-xs font-bold;
+  }
+  .heat-cell.win {
+    @apply border-emerald-500/20 bg-emerald-500/10 text-emerald-700;
+  }
+  .heat-cell.draw {
+    @apply border-black/5 bg-black/5 text-neutral-500;
+  }
+  .heat-cell.lose {
+    @apply border-rose-500/20 bg-rose-500/10 text-rose-600;
+  }
+
+  /* ─── COUNTDOWN HERO ──────────────────────────────────────── */
+  .countdown-hero {
+    @apply relative overflow-hidden rounded-3xl border border-black/5 px-5 py-6 text-center;
+    background: #eaecf8;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+  }
+  .cd-eyebrow {
+    @apply mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500;
+  }
+  .cd-units {
+    @apply mt-4 flex justify-center gap-4;
+  }
+  .cd-unit {
+    @apply flex flex-col items-center;
+  }
+  .cd-unit-val {
+    @apply font-display text-[28px] leading-none text-neutral-900;
+  }
+  .cd-unit-label {
+    @apply mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-neutral-500;
+  }
+  .cd-sep {
+    @apply pt-0.5 font-display text-2xl text-neutral-300;
+  }
+  .cd-date {
+    @apply mt-3 inline-block rounded-lg border border-black/[0.08] bg-black/5 px-3.5 py-1 text-xs font-semibold text-neutral-600;
+  }
+
+  /* ─── PREDICTION PROGRESS HERO ────────────────────────────── */
+  .pred-progress-card {
+    @apply relative overflow-hidden rounded-[26px] border border-black/5 bg-surface p-5;
+    box-shadow:
+      0 2px 14px rgba(0, 0, 0, 0.07),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .pred-prog-title {
+    @apply font-display text-[30px] uppercase tracking-[0.06em] text-neutral-900;
+  }
+  .pred-prog-sub {
+    @apply mt-1 text-xs text-neutral-500;
+  }
+  .pred-prog-counts {
+    @apply mt-1.5 flex justify-between text-[11px] font-semibold text-neutral-400;
+  }
+  .pred-prog-counts .done {
+    @apply text-neutral-900;
+  }
+  .pred-prog-bar-wrap {
+    @apply mb-3.5 mt-2 h-1.5 overflow-hidden rounded-full bg-black/[0.07];
+  }
+  .pred-prog-bar {
+    @apply h-full rounded-full bg-accent transition-[width] duration-1000;
+  }
+  .pred-prog-cta {
+    @apply block w-full cursor-pointer rounded-2xl bg-accent px-5 py-3.5 text-center text-[15px] font-bold tracking-wide text-accent-foreground transition-transform;
+    box-shadow: 0 4px 16px rgba(12, 12, 20, 0.18);
+  }
+  .pred-prog-cta:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+  .ring-track {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.07);
+    stroke-width: 8;
+  }
+  .ring-fill {
+    fill: none;
+    stroke: #0c0c14;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease;
+  }
+
+  /* ─── PRE-WC PREDICTION ROWS ──────────────────────────────── */
+  .prewc-group-header {
+    @apply flex items-center justify-between pb-1.5 pt-3.5;
+  }
+  .prewc-group-name {
+    @apply flex items-center gap-2 font-display text-base uppercase tracking-widest text-neutral-500;
+  }
+  .prewc-group-name::before {
+    content: '';
+    @apply inline-block h-1.5 w-1.5 rounded-full bg-accent;
+  }
+  .prewc-group-prog {
+    @apply text-[11px] font-semibold text-neutral-400;
+  }
+  .prewc-group-prog.all-done {
+    @apply text-emerald-600;
+  }
+  .prewc-game {
+    @apply mb-1.5 flex cursor-pointer items-center gap-2.5 rounded-2xl border border-black/5 bg-surface px-3.5 py-2.5 transition-shadow;
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.05),
+      0 1px 3px rgba(0, 0, 0, 0.03);
+  }
+  .prewc-game.predicted {
+    @apply border-emerald-500/20 bg-emerald-500/[0.03];
+  }
+  .prewc-game:active {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+  .prewc-teams {
+    @apply flex flex-1 items-center gap-1.5;
+  }
+  .prewc-flag {
+    @apply text-lg;
+  }
+  .prewc-team-name {
+    @apply text-xs font-semibold text-neutral-900;
+  }
+  .prewc-vs {
+    @apply px-0.5 text-[10px] font-bold text-neutral-300;
+  }
+  .prewc-date {
+    @apply mr-1.5 whitespace-nowrap text-[10px] font-medium text-neutral-400;
+  }
+  .prewc-predict-btn {
+    @apply cursor-pointer whitespace-nowrap rounded-lg border-0 bg-accent px-3 py-1 text-[11px] font-bold text-accent-foreground transition-opacity;
+  }
+  .prewc-predict-btn:hover {
+    @apply opacity-90;
+  }
+  .prewc-done-badge {
+    @apply flex items-center gap-1 rounded-lg border border-emerald-500/15 bg-emerald-500/[0.08] px-2.5 py-1 text-[11px] font-bold text-emerald-700;
+  }
+
+  /* ─── GROUP TABLE (standings) ─────────────────────────────── */
+  .group-table-card {
+    @apply mb-3 overflow-hidden rounded-3xl border border-black/5 bg-surface;
+    box-shadow:
+      0 2px 14px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .gt-header {
+    @apply flex items-center justify-between border-b border-black/[0.06] bg-black/[0.03] px-3.5 py-3;
+  }
+  .gt-group-name {
+    @apply font-display text-[17px] uppercase tracking-[0.08em] text-neutral-900;
+  }
+  .gt-col-headers {
+    @apply flex items-center border-b border-black/5 px-3.5 py-1.5;
+  }
+  .gt-col-headers .col-team {
+    @apply flex-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400;
+  }
+  .gt-col-headers .col-num {
+    @apply w-7 text-center text-[10px] font-bold uppercase tracking-wider text-neutral-400;
+  }
+  .gt-col-headers .col-pts {
+    @apply w-7 text-center text-[10px] font-bold uppercase tracking-wider text-pitch-600;
+  }
+  .gt-row {
+    @apply relative flex items-center border-b border-black/[0.04] px-3.5 py-2 last:border-b-0;
+  }
+  .gt-row.qualify-1st {
+    @apply border-l-[3px] border-l-pitch-600 pl-[11px];
+  }
+  .gt-row.qualify-2nd {
+    @apply border-l-[3px] border-l-pitch-400 pl-[11px];
+  }
+  .gt-pos {
+    @apply w-4 text-[11px] font-bold text-neutral-400;
+  }
+  .gt-flag {
+    @apply mr-1.5 text-lg;
+  }
+  .gt-team-name {
+    @apply flex-1 text-xs font-bold text-neutral-900;
+  }
+  .gt-num {
+    @apply w-7 text-center text-xs font-semibold text-neutral-500;
+  }
+  .gt-pts {
+    @apply w-7 text-center font-display text-sm tracking-wide text-neutral-900;
+  }
+
+  /* ─── PLAYOFFS BRACKET ────────────────────────────────────── */
+  .round-label {
+    @apply mb-2.5 text-center font-display text-[11px] font-bold uppercase tracking-[0.12em] text-neutral-400;
+  }
+  .bracket-row {
+    @apply mb-1.5 flex justify-center gap-2;
+  }
+  .bracket-match {
+    @apply max-w-[170px] flex-1 overflow-hidden rounded-xl border border-black/[0.06] bg-surface;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  }
+  .bracket-team {
+    @apply flex items-center gap-1.5 px-2.5 py-2 first:border-b first:border-black/5;
+  }
+  .bracket-team.winner {
+    @apply bg-black/[0.03];
+  }
+  .bracket-team.tbd {
+    @apply opacity-60;
+  }
+  .bt-flag {
+    @apply text-sm;
+  }
+  .bt-name {
+    @apply flex-1 truncate text-[11px] font-bold text-neutral-500;
+  }
+  .bracket-team.winner .bt-name {
+    @apply text-neutral-900;
+  }
+  .bracket-team.tbd .bt-name {
+    @apply text-neutral-300;
+  }
+  .bt-score {
+    @apply font-display text-[15px] text-neutral-300;
+  }
+  .bracket-team.winner .bt-score {
+    @apply text-pitch-600;
+  }
+
+  .final-card {
+    @apply mx-auto max-w-[280px] overflow-hidden rounded-xl border border-black/[0.08] bg-surface;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  .final-label {
+    @apply pt-2 text-center font-display text-[11px] font-bold uppercase tracking-[0.14em] text-pitch-600;
+  }
+  .champion-card {
+    @apply mx-auto mt-3 max-w-[260px] rounded-xl border border-amber-300/40 px-3 py-3.5 text-center;
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.12) 0%, rgba(251, 191, 36, 0.07) 100%);
+    box-shadow: 0 2px 12px rgba(251, 191, 36, 0.08);
+  }
+  .champion-trophy {
+    @apply mb-1 text-3xl;
+  }
+  .champion-label {
+    @apply text-[10px] font-bold uppercase tracking-[0.12em];
+    color: rgba(180, 120, 0, 0.7);
+  }
+  .champion-team {
+    @apply mt-0.5 font-display text-xl uppercase tracking-[0.08em] text-neutral-900;
+  }
+
+  /* ─── PLAYER STATS ROWS ───────────────────────────────────── */
+  .player-row {
+    @apply relative mb-1.5 flex items-center gap-2.5 overflow-hidden rounded-2xl border border-black/5 bg-surface px-3 py-2.5;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+  .player-row::before {
+    content: '';
+    @apply absolute bottom-0 left-0 top-0 w-[3px] bg-transparent;
+  }
+  .player-row:nth-child(1)::before {
+    background: #f59e0b;
+  }
+  .player-row:nth-child(2)::before {
+    background: #94a3b8;
+  }
+  .player-row:nth-child(3)::before {
+    background: #92400e;
+  }
+  .pr-rank {
+    @apply w-5 shrink-0 text-center font-display text-lg text-neutral-300;
+  }
+  .pr-flag {
+    @apply shrink-0 text-[22px];
+  }
+  .pr-info {
+    @apply min-w-0 flex-1;
+  }
+  .pr-name {
+    @apply truncate text-[13px] font-bold text-neutral-900;
+  }
+  .pr-country {
+    @apply mt-px text-[11px] font-medium text-neutral-500;
+  }
+  .pr-count {
+    @apply font-display text-[32px] leading-none text-neutral-900;
+  }
+  .pr-bar-wrap {
+    @apply absolute bottom-0 left-0 right-0 h-0.5 bg-black/5;
+  }
+  .pr-bar {
+    @apply h-full rounded-full bg-accent transition-[width] duration-700;
+  }
+
+  /* ─── LEADERBOARD ─────────────────────────────────────────── */
+  .lb-pinned {
+    @apply flex items-center gap-3 rounded-3xl border-0 bg-accent p-3.5;
+    box-shadow: 0 4px 20px rgba(12, 12, 20, 0.18);
+  }
+  .lb-pinned-label {
+    @apply mb-1.5 text-[10px] font-bold uppercase tracking-[0.10em];
+    color: rgba(255, 255, 255, 0.45);
+  }
+  .lb-avatar {
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-lg font-bold text-white;
+  }
+  .lb-pinned-name {
+    @apply font-display text-[19px] uppercase tracking-[0.06em] text-white;
+  }
+  .lb-pinned-sub {
+    @apply mt-px text-[11px];
+    color: rgba(255, 255, 255, 0.4);
+  }
+  .lb-pinned-pts {
+    @apply text-right font-display text-[38px] leading-none text-white;
+  }
+  .lb-pinned-ptslabel {
+    @apply -mt-0.5 text-right text-[10px];
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .lb-row {
+    @apply mb-1.5 flex cursor-pointer items-center gap-2.5 rounded-2xl border border-black/5 bg-surface px-3 py-2.5 transition-shadow;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+  .lb-pos {
+    @apply w-6 shrink-0 text-center font-display text-base text-neutral-300;
+  }
+  .lb-pos.top {
+    @apply text-amber-500;
+  }
+  .lb-sm-avatar {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-sm font-bold text-white;
+  }
+  .lb-row-info {
+    @apply min-w-0 flex-1;
+  }
+  .lb-row-name {
+    @apply truncate text-[13px] font-bold text-neutral-900;
+  }
+  .lb-row-sub {
+    @apply mt-px text-[11px] text-neutral-500;
+  }
+  .lb-row-pts {
+    @apply font-display text-2xl text-neutral-900;
+  }
+  .lb-move {
+    @apply w-8 shrink-0 text-right text-[11px] font-bold;
+  }
+  .lb-move.up {
+    @apply text-emerald-600;
+  }
+  .lb-move.down {
+    @apply text-rose-600;
+  }
+  .lb-move.same {
+    @apply text-neutral-300;
+  }
+
+  /* ─── AI ANALYSIS CARD (in prediction sheet) ─────────────── */
+  .ai-card {
+    @apply relative mb-4 overflow-hidden rounded-2xl border border-black/5 bg-surface-2 p-4;
+  }
+  .ai-card-header {
+    @apply mb-2.5 flex items-center gap-2;
+  }
+  .ai-dot {
+    @apply h-1.5 w-1.5 shrink-0 rounded-full bg-accent;
+    animation: aiPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes aiPulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.3;
+      transform: scale(0.7);
+    }
+  }
+  .ai-label {
+    @apply text-[10px] font-bold uppercase tracking-[0.14em] text-pitch-600;
+  }
+  .ai-text {
+    @apply min-h-[42px] text-[13px] font-normal leading-[1.6] text-neutral-500;
+  }
+  .ai-odds {
+    @apply mt-3.5 flex gap-2;
+  }
+  .ai-odd-chip {
+    @apply flex-1 rounded-xl border border-black/[0.07] bg-surface px-2 py-2.5 text-center;
+  }
+  .ai-odd-chip.highlight {
+    @apply border-accent bg-accent;
+  }
+  .ai-odd-label {
+    @apply truncate text-[11px] font-bold uppercase tracking-wider text-neutral-500;
+  }
+  .ai-odd-chip.highlight .ai-odd-label {
+    @apply text-accent-foreground;
+  }
+
+  /* ─── BOTTOM SHEET ANIMATIONS ────────────────────────────── */
+  @keyframes sheetSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes sheetFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .sheet-slide-up {
+    animation: sheetSlideUp 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+  .sheet-fade-in {
+    animation: sheetFadeIn 0.2s ease both;
+  }
+
+  /* ─── STAGGER ANIMATION ──────────────────────────────────── */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .stagger-child {
+    animation: fadeUp 0.35s ease both;
+  }
+  .stagger-child:nth-child(1) {
+    animation-delay: 0.04s;
+  }
+  .stagger-child:nth-child(2) {
+    animation-delay: 0.08s;
+  }
+  .stagger-child:nth-child(3) {
+    animation-delay: 0.12s;
+  }
+  .stagger-child:nth-child(4) {
+    animation-delay: 0.16s;
+  }
+  .stagger-child:nth-child(5) {
+    animation-delay: 0.2s;
+  }
+  .stagger-child:nth-child(6) {
+    animation-delay: 0.24s;
+  }
+  .stagger-child:nth-child(7) {
+    animation-delay: 0.28s;
+  }
+  .stagger-child:nth-child(8) {
+    animation-delay: 0.32s;
+  }
+}
