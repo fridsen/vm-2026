@@ -44,8 +44,17 @@ export function usePayments() {
 
   const togglePaid = useCallback(
     async (targetUserId, paid) => {
-      await setPaid(targetUserId, paid, { amountSek: ENTRY_FEE_SEK || null });
-      await refresh();
+      // Optimistically flip the local map so the UI updates on click, then
+      // reconcile with the server (and revert on failure).
+      setPayments((prev) => ({
+        ...prev,
+        [targetUserId]: { ...(prev[targetUserId] || { user_id: targetUserId }), paid },
+      }));
+      try {
+        await setPaid(targetUserId, paid, { amountSek: ENTRY_FEE_SEK || null });
+      } finally {
+        await refresh();
+      }
     },
     [refresh],
   );

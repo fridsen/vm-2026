@@ -43,9 +43,13 @@ function PaidBadge({ paid }) {
 export default function LeaderboardPage() {
   const { entries, loading } = useLeaderboard();
   const { user } = useAuth();
-  const { isAdmin, togglePaid } = usePayments();
+  const { isAdmin, togglePaid, payments } = usePayments();
   const myUserId = user?.id;
   const [mode, setMode] = useState('all');
+
+  // Prefer the live payments map (updates on toggle) over the leaderboard
+  // view's `paid` snapshot, which is only refreshed on a full reload.
+  const paidFor = (entry) => payments[entry.userId]?.paid ?? entry.paid;
 
   const sorted = useMemo(() => {
     if (mode === 'all') return [...entries].sort((a, b) => b.points - a.points);
@@ -84,7 +88,7 @@ export default function LeaderboardPage() {
               </div>
               <div>
                 <div className="lb-pinned-name">
-                  {me.name} <PaidBadge paid={me.paid} />
+                  {me.name} <PaidBadge paid={paidFor(me)} />
                 </div>
                 <div className="lb-pinned-sub">
                   #{myPos} · {sorted.length} deltagare
@@ -98,10 +102,10 @@ export default function LeaderboardPage() {
             {isAdmin ? (
               <button
                 type="button"
-                className={clsx('lb-paid-toggle', me.paid && 'is-paid')}
-                onClick={() => togglePaid(me.userId, !me.paid)}
+                className={clsx('lb-paid-toggle', paidFor(me) && 'is-paid')}
+                onClick={() => togglePaid(me.userId, !paidFor(me))}
               >
-                {me.paid ? 'Markera obetald' : 'Markera betald'}
+                {paidFor(me) ? 'Markera obetald' : 'Markera betald'}
               </button>
             ) : null}
           </div>
@@ -126,7 +130,7 @@ export default function LeaderboardPage() {
               </div>
               <div className="lb-row-info">
                 <div className="lb-row-name">
-                  {entry.name} <PaidBadge paid={entry.paid} />
+                  {entry.name} <PaidBadge paid={paidFor(entry)} />
                 </div>
                 <div className="lb-row-sub">
                   Match {entry.matchPoints}p · Grupp {entry.groupPoints}p · Slutspel{' '}
@@ -136,10 +140,10 @@ export default function LeaderboardPage() {
               {isAdmin ? (
                 <button
                   type="button"
-                  className={clsx('lb-paid-toggle', entry.paid && 'is-paid')}
-                  onClick={() => togglePaid(entry.userId, !entry.paid)}
+                  className={clsx('lb-paid-toggle', paidFor(entry) && 'is-paid')}
+                  onClick={() => togglePaid(entry.userId, !paidFor(entry))}
                 >
-                  {entry.paid ? 'Markera obetald' : 'Markera betald'}
+                  {paidFor(entry) ? 'Markera obetald' : 'Markera betald'}
                 </button>
               ) : null}
               <div className="lb-row-pts">{points}</div>

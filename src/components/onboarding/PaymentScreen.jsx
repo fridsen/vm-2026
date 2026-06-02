@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
 import { ENTRY_FEE_SEK, SWISH_NUMBER } from '../../services/paymentsService.js';
-import { OnboardingCard } from './OnboardingShell.jsx';
 import OnboardingButton from './OnboardingButton.jsx';
 
 // Design fallbacks so the screen reads sensibly when the env vars are unset.
@@ -62,7 +61,7 @@ export default function PaymentScreen() {
   };
 
   return (
-    <OnboardingCard>
+    <>
       <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="font-display text-[32px] leading-[32px] tracking-[-0.32px] text-lime">
           Betala insatsen
@@ -92,6 +91,6 @@ export default function PaymentScreen() {
           {acking ? 'Ett ögonblick…' : 'Jag har betalat'}
         </OnboardingButton>
       </div>
-    </OnboardingCard>
+    </>
   );
 }

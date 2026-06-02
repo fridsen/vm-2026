@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
-import { OnboardingCard } from './OnboardingShell.jsx';
 import Field from './Field.jsx';
 import OnboardingButton from './OnboardingButton.jsx';
 
@@ -29,7 +28,7 @@ export default function CompleteProfileScreen() {
   };
 
   return (
-    <OnboardingCard>
+    <>
       <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="font-display text-[32px] leading-[32px] tracking-[-0.32px] text-lime">
           Välkommen!
@@ -66,6 +65,6 @@ export default function CompleteProfileScreen() {
           </OnboardingButton>
         </div>
       </form>
-    </OnboardingCard>
+    </>
   );
 }

@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
-import { OnboardingCard } from './OnboardingShell.jsx';
 import Field from './Field.jsx';
 import OnboardingButton, { GoogleButton } from './OnboardingButton.jsx';
 
 export default function SignupScreen({ onGoToLogin }) {
   const { signUpWithPassword, signInWithGoogle } = useAuth();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('idle'); // idle | submitting | google | sent
@@ -15,14 +13,22 @@ export default function SignupScreen({ onGoToLogin }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    // Split the single name field into first + last; require at least two parts.
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length < 2) {
+      setError('Ange både förnamn och efternamn.');
+      return;
+    }
+    const firstName = parts[0];
+    const lastName = parts.slice(1).join(' ');
     setStatus('submitting');
     setError(null);
     try {
       const { hasSession } = await signUpWithPassword({
         email,
         password,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
+        firstName,
+        lastName,
       });
       // With a session, AuthProvider picks up the user and AuthGate advances.
       // Without one, Supabase requires email confirmation first.
@@ -46,24 +52,22 @@ export default function SignupScreen({ onGoToLogin }) {
 
   if (status === 'sent') {
     return (
-      <OnboardingCard>
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-          <h1 className="font-display text-[32px] leading-[32px] tracking-[-0.32px] text-lime">
-            Kolla din mejl
-          </h1>
-          <p className="font-barlow text-base text-white/80">
-            Vi har skickat en bekräftelselänk till {email}. Klicka på den för att
-            aktivera ditt konto.
-          </p>
-        </div>
-      </OnboardingCard>
+      <div className="flex flex-col items-center justify-center gap-3 py-6 text-center">
+        <h1 className="font-display text-[32px] leading-[32px] tracking-[-0.32px] text-lime">
+          Kolla din mejl
+        </h1>
+        <p className="font-barlow text-base text-white/80">
+          Vi har skickat en bekräftelselänk till {email}. Klicka på den för att
+          aktivera ditt konto.
+        </p>
+      </div>
     );
   }
 
   const busy = status !== 'idle';
 
   return (
-    <OnboardingCard>
+    <>
       <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="font-display text-[32px] leading-[32px] tracking-[-0.32px] text-lime">
           Skapa nytt konto
@@ -74,27 +78,23 @@ export default function SignupScreen({ onGoToLogin }) {
       <form onSubmit={submit} className="flex flex-col gap-6">
         <GoogleButton onClick={google} disabled={busy} />
 
-        <div className="h-px w-full bg-lime/30" />
+        <div className="flex w-full items-center gap-2">
+          <div className="h-px flex-1 bg-white/20" />
+          <span className="font-barlow text-xs font-medium text-white/40">
+            eller registrera dig med
+          </span>
+          <div className="h-px flex-1 bg-white/20" />
+        </div>
 
         <div className="flex flex-col gap-4">
-          <div className="flex gap-4">
-            <Field
-              label="Förnamn"
-              required
-              autoComplete="given-name"
-              placeholder="Namn"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-            <Field
-              label="Efternamn"
-              required
-              autoComplete="family-name"
-              placeholder="Namnsson"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-          </div>
+          <Field
+            label="Förnamn och efternamn"
+            required
+            autoComplete="name"
+            placeholder="Förnamn & efternamn"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
           <Field
             label="Email"
             type="email"
@@ -131,6 +131,6 @@ export default function SignupScreen({ onGoToLogin }) {
           </button>
         </div>
       </form>
-    </OnboardingCard>
+    </>
   );
 }

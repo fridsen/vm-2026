@@ -884,6 +884,30 @@
     animation: sheetFadeIn 0.2s ease backwards;
   }
 
+  /* ─── ONBOARDING TRANSITIONS ─────────────────────────────── */
+  /* Persistent logo morphs between its hero pose (big, centred) and its pinned
+     pose (small, top) as the phase changes. */
+  .onb-logo {
+    transition:
+      top 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+      height 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Black card slides up from / down to the bottom edge of the screen. */
+  .onb-card {
+    transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  /* Generic fade for the landing buttons and the back arrow. */
+  .onb-fade {
+    transition: opacity 0.35s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .onb-logo,
+    .onb-card,
+    .onb-fade {
+      transition: none;
+    }
+  }
+
   /* ─── STAGGER ANIMATION ──────────────────────────────────── */
   @keyframes fadeUp {
     from {

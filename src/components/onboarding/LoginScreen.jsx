@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
-import { OnboardingCard } from './OnboardingShell.jsx';
 import Field from './Field.jsx';
 import OnboardingButton, { GoogleButton } from './OnboardingButton.jsx';
 
-export default function LoginScreen({ onGoToSignup }) {
+export default function LoginScreen() {
   const { signInWithPassword, signInWithGoogle, sendPasswordReset } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,7 +51,7 @@ export default function LoginScreen({ onGoToSignup }) {
   const busy = status === 'submitting' || status === 'google';
 
   return (
-    <OnboardingCard>
+    <>
       <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="font-display text-[32px] leading-[32px] tracking-[-0.32px] text-lime">
           Logga in
@@ -63,7 +62,13 @@ export default function LoginScreen({ onGoToSignup }) {
       <form onSubmit={submit} className="flex flex-col gap-6">
         <GoogleButton onClick={google} disabled={busy} />
 
-        <div className="h-px w-full bg-lime/30" />
+        <div className="flex w-full items-center gap-2">
+          <div className="h-px flex-1 bg-white/20" />
+          <span className="font-barlow text-xs font-medium text-white/40">
+            eller logga in med
+          </span>
+          <div className="h-px flex-1 bg-white/20" />
+        </div>
 
         <div className="flex flex-col gap-4">
           <Field
@@ -106,14 +111,6 @@ export default function LoginScreen({ onGoToSignup }) {
           </button>
         </div>
       </form>
-
-      <button
-        type="button"
-        onClick={onGoToSignup}
-        className="font-barlow text-sm font-medium text-white/60"
-      >
-        Inget konto? Skapa ett här
-      </button>
-    </OnboardingCard>
+    </>
   );
 }

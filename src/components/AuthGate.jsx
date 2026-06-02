@@ -1,43 +1,29 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
-import SplashScreen from './onboarding/SplashScreen.jsx';
-import LandingScreen from './onboarding/LandingScreen.jsx';
-import SignupScreen from './onboarding/SignupScreen.jsx';
-import LoginScreen from './onboarding/LoginScreen.jsx';
-import CompleteProfileScreen from './onboarding/CompleteProfileScreen.jsx';
-import PaymentScreen from './onboarding/PaymentScreen.jsx';
+import OnboardingScene from './onboarding/OnboardingScene.jsx';
 
-// Orchestrates the onboarding flow before the app renders:
-//   loading            → Splash
-//   not signed in      → Landing ⇄ Signup ⇄ Login
-//   no profile yet     → CompleteProfile (rare: Google with no name claim)
-//   payment not acked  → Payment (shown once after signup)
+// Orchestrates the onboarding flow before the app renders. A single phase is
+// derived from auth state (plus the local landing/signup/login choice) and
+// handed to OnboardingScene, which keeps the lime backdrop, logo and card
+// mounted throughout so they can animate between phases:
+//   loading            → splash (hero logo)
+//   not signed in      → landing ⇄ signup ⇄ login
+//   no profile yet     → complete (rare: Google with no name claim)
+//   payment not acked  → payment (shown once after signup)
 //   otherwise          → the app
 export default function AuthGate({ children }) {
   const { user, profile, loading } = useAuth();
   // Which unauthenticated screen to show (no router available out here).
   const [screen, setScreen] = useState('landing');
 
-  if (loading) return <SplashScreen />;
+  let phase;
+  if (loading) phase = 'splash';
+  else if (!user) phase = screen; // landing | signup | login
+  else if (!profile) phase = 'complete';
+  else if (!profile.payment_ack) phase = 'payment';
+  else phase = 'app';
 
-  if (!user) {
-    if (screen === 'signup') {
-      return <SignupScreen onGoToLogin={() => setScreen('login')} />;
-    }
-    if (screen === 'login') {
-      return <LoginScreen onGoToSignup={() => setScreen('signup')} />;
-    }
-    return (
-      <LandingScreen
-        onSignup={() => setScreen('signup')}
-        onLogin={() => setScreen('login')}
-      />
-    );
-  }
+  if (phase === 'app') return children;
 
-  if (!profile) return <CompleteProfileScreen />;
-
-  if (!profile.payment_ack) return <PaymentScreen />;
-
-  return children;
+  return <OnboardingScene phase={phase} onSetScreen={setScreen} />;
 }

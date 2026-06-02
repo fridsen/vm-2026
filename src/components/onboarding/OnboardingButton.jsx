@@ -54,13 +54,13 @@ export function GoogleButton({ children = 'Fortsätt med Google', className, ...
     <button
       type="button"
       className={clsx(
-        'flex h-11 w-full items-center justify-center gap-[15px] rounded-[10px] bg-white shadow-[0px_0px_1.5px_rgba(0,0,0,0.08),0px_2px_1.5px_rgba(0,0,0,0.17)] transition-opacity hover:opacity-90 disabled:opacity-50',
+        'flex h-12 w-full items-center justify-center gap-[15px] rounded-full bg-white transition-opacity hover:opacity-90 disabled:opacity-50',
         className,
       )}
       {...props}
     >
       <GoogleIcon />
-      <span className="font-barlow text-base font-medium text-black/60">{children}</span>
+      <span className="font-barlow text-base font-medium text-black/[0.54]">{children}</span>
     </button>
   );
 }

@@ -1,14 +1,16 @@
 import clsx from 'clsx';
 
-// White text input with a faint Barlow label, matching the onboarding forms.
+// White pill text input matching the onboarding forms — placeholder-only (the
+// label is exposed to assistive tech via aria-label).
 export default function Field({ label, className, ...props }) {
   return (
-    <label className={clsx('flex w-full flex-col gap-2', className)}>
-      <span className="font-barlow text-xs font-medium text-white/40">{label}</span>
-      <input
-        className="h-11 w-full rounded-[10px] bg-white px-4 font-barlow text-base text-black outline-none placeholder:text-black/40"
-        {...props}
-      />
-    </label>
+    <input
+      aria-label={label}
+      className={clsx(
+        'h-12 w-full rounded-full bg-white px-5 font-barlow text-base font-medium text-[#0C162A] outline-none placeholder:text-[#0C162A]/[0.54]',
+        className,
+      )}
+      {...props}
+    />
   );
 }

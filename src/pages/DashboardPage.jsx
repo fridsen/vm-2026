@@ -19,8 +19,6 @@ import {
 import PageHeader from '../components/PageHeader.jsx';
 import GameRow from '../components/GameRow.jsx';
 import PredictionSheet from '../components/PredictionSheet.jsx';
-import PaymentCard from '../components/PaymentCard.jsx';
-
 const TOTAL_GROUP_MATCHES = 72;
 
 function CountdownHero({ deadlineMs }) {
@@ -426,7 +424,6 @@ export default function DashboardPage() {
       {view === 'prewc' && (
         <>
           <CountdownHero deadlineMs={deadlineMs} />
-          <PaymentCard displayName={myName} />
           <PredProgressCard
             predicted={predicted}
             total={TOTAL_GROUP_MATCHES}
