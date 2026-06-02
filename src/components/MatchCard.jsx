@@ -3,9 +3,10 @@ import { sv } from 'date-fns/locale';
 import ScoreInput from './ScoreInput.jsx';
 import LockBadge from './LockBadge.jsx';
 import { STATE } from '../utils/lockRules.js';
-import { getTeamById } from '../data/teams.js';
+import { useTeams } from '../hooks/useTeams.js';
 
 function TeamBlock({ teamId, align = 'left' }) {
+  const { getTeamById } = useTeams();
   const team = getTeamById(teamId);
   if (!team) {
     return (

@@ -8,7 +8,8 @@ import { useLockState } from '../hooks/useLockState.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import { usePredictions } from '../hooks/usePredictions.js';
 import { useAuth } from '../hooks/useAuth.js';
-import { getTeamById, GROUPS, getTeamsByGroup } from '../data/teams.js';
+import { useTeams } from '../hooks/useTeams.js';
+import { GROUPS } from '../data/teams.js';
 import {
   MATCH_STATE,
   getMatchState,
@@ -18,6 +19,7 @@ import {
 import PageHeader from '../components/PageHeader.jsx';
 import GameRow from '../components/GameRow.jsx';
 import PredictionSheet from '../components/PredictionSheet.jsx';
+import PaymentCard from '../components/PaymentCard.jsx';
 
 const TOTAL_GROUP_MATCHES = 72;
 
@@ -117,6 +119,7 @@ function PredProgressCard({ predicted, total, onContinue, hasNext }) {
 }
 
 function PreWcView({ matches, predictions, onPredict }) {
+  const { getTeamById } = useTeams();
   const matchesByGroup = useMemo(() => {
     const map = {};
     for (const g of GROUPS) map[g] = [];
@@ -340,7 +343,7 @@ export default function DashboardPage() {
   const { now, globalDeadline, groupLocked } = useLockState();
   const { entries } = useLeaderboard();
   const { predictions, updateMatch } = usePredictions();
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const myUserId = user?.id;
   const myName = profile?.display_name || user?.email || 'Jimmy';
   const [predictMatch, setPredictMatch] = useState(null);
@@ -404,12 +407,18 @@ export default function DashboardPage() {
                 Live
               </button>
             </div>
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-full font-display text-base tracking-wider text-white"
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Logga ut?')) signOut();
+              }}
+              title="Logga ut"
+              aria-label="Logga ut"
+              className="flex h-9 w-9 items-center justify-center rounded-full font-display text-base tracking-wider text-white transition-opacity hover:opacity-80"
               style={{ background: 'linear-gradient(135deg, #6D28D9, #DB2777)' }}
             >
               {myName?.[0] ?? 'J'}
-            </div>
+            </button>
           </div>
         }
       />
@@ -417,6 +426,7 @@ export default function DashboardPage() {
       {view === 'prewc' && (
         <>
           <CountdownHero deadlineMs={deadlineMs} />
+          <PaymentCard displayName={myName} />
           <PredProgressCard
             predicted={predicted}
             total={TOTAL_GROUP_MATCHES}

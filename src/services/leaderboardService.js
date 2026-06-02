@@ -13,6 +13,7 @@ function rowToEntry(r) {
     groupPoints: r.group_points,
     knockoutPoints: r.knockout_points,
     topScorerPoints: r.top_scorer_points,
+    paid: r.paid ?? false,
   };
 }
 

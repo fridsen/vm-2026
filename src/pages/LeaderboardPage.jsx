@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import { useAuth } from '../hooks/useAuth.js';
+import { usePayments } from '../hooks/usePayments.js';
 import PageHeader from '../components/PageHeader.jsx';
 import PillToggle from '../components/PillToggle.jsx';
 
@@ -31,9 +32,18 @@ const MODES = [
   { value: 'week', label: 'Denna vecka' },
 ];
 
+function PaidBadge({ paid }) {
+  return (
+    <span className={clsx('lb-paid', paid ? 'is-paid' : 'is-unpaid')}>
+      {paid ? 'Betald' : 'Ej betald'}
+    </span>
+  );
+}
+
 export default function LeaderboardPage() {
   const { entries, loading } = useLeaderboard();
   const { user } = useAuth();
+  const { isAdmin, togglePaid } = usePayments();
   const myUserId = user?.id;
   const [mode, setMode] = useState('all');
 
@@ -73,7 +83,9 @@ export default function LeaderboardPage() {
                 {initial(me.name)}
               </div>
               <div>
-                <div className="lb-pinned-name">{me.name}</div>
+                <div className="lb-pinned-name">
+                  {me.name} <PaidBadge paid={me.paid} />
+                </div>
                 <div className="lb-pinned-sub">
                   #{myPos} · {sorted.length} deltagare
                 </div>
@@ -83,6 +95,15 @@ export default function LeaderboardPage() {
           <div>
             <div className="lb-pinned-pts">{myPoints}</div>
             <div className="lb-pinned-ptslabel">poäng</div>
+            {isAdmin ? (
+              <button
+                type="button"
+                className={clsx('lb-paid-toggle', me.paid && 'is-paid')}
+                onClick={() => togglePaid(me.userId, !me.paid)}
+              >
+                {me.paid ? 'Markera obetald' : 'Markera betald'}
+              </button>
+            ) : null}
           </div>
         </div>
       )}
@@ -104,12 +125,23 @@ export default function LeaderboardPage() {
                 {initial(entry.name)}
               </div>
               <div className="lb-row-info">
-                <div className="lb-row-name">{entry.name}</div>
+                <div className="lb-row-name">
+                  {entry.name} <PaidBadge paid={entry.paid} />
+                </div>
                 <div className="lb-row-sub">
                   Match {entry.matchPoints}p · Grupp {entry.groupPoints}p · Slutspel{' '}
                   {entry.knockoutPoints}p
                 </div>
               </div>
+              {isAdmin ? (
+                <button
+                  type="button"
+                  className={clsx('lb-paid-toggle', entry.paid && 'is-paid')}
+                  onClick={() => togglePaid(entry.userId, !entry.paid)}
+                >
+                  {entry.paid ? 'Markera obetald' : 'Markera betald'}
+                </button>
+              ) : null}
               <div className="lb-row-pts">{points}</div>
               <div className="lb-move same">—</div>
             </div>

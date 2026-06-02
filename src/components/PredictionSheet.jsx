@@ -1,69 +1,262 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import clsx from 'clsx';
-import { getTeamById } from '../data/teams.js';
+import { useTeams } from '../hooks/useTeams.js';
 import { useMatchOdds } from '../hooks/useMatchOdds.js';
+import { emblemForCode } from '../data/emblems.js';
+import { haptics } from '../utils/haptics.js';
 
-function Stepper({ value, onChange, disabled }) {
-  const stepperBtnClass =
-    'flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.07] bg-pitch-50 text-lg text-neutral-600 transition-colors active:border-accent active:bg-accent active:text-accent-foreground disabled:opacity-30';
+const SHEET_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const noop = () => {};
+
+function ArrowLeftIcon({ className }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <button
-        type="button"
-        disabled={disabled || value >= 99}
-        onClick={() => onChange(value + 1)}
-        className={stepperBtnClass}
-        aria-label="Plus"
-      >
-        +
-      </button>
-      <div className="min-w-[36px] text-center font-display text-5xl leading-none text-neutral-900">
-        {value}
-      </div>
+    <svg viewBox="0 0 16 16" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M6.5 2.5 1 8l5.5 5.5M1 8h14"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function TeamEmblem({ team }) {
+  const url = team ? emblemForCode(team.code) : null;
+  return (
+    <div className="flex h-[70px] w-[70px] items-center justify-center">
+      {url ? (
+        <img
+          src={url}
+          alt={team?.code || ''}
+          className="h-full w-full object-contain"
+        />
+      ) : (
+        <span className="text-[46px] leading-none">{team?.flag}</span>
+      )}
+    </div>
+  );
+}
+
+// Team name that shrinks its font size to fit the fixed-width box on one
+// line instead of truncating. Steps down from 22px to a 12px floor, and
+// re-measures once the Bebas Neue webfont has loaded (metrics change).
+function TeamName({ children }) {
+  const ref = useRef(null);
+  const [size, setSize] = useState(22);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const MAX = 22;
+    const MIN = 12;
+    const fit = () => {
+      let s = MAX;
+      el.style.fontSize = `${s}px`;
+      while (s > MIN && el.scrollWidth > el.clientWidth) {
+        s -= 1;
+        el.style.fontSize = `${s}px`;
+      }
+      setSize(s);
+    };
+
+    fit();
+
+    let cancelled = false;
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        if (!cancelled) fit();
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [children]);
+
+  return (
+    <span
+      ref={ref}
+      style={{ fontSize: `${size}px` }}
+      className="block w-[120px] overflow-hidden whitespace-nowrap text-center font-display uppercase leading-tight tracking-[0.88px] text-ink"
+    >
+      {children}
+    </span>
+  );
+}
+
+function ScoreStepper({ value, onChange, disabled }) {
+  const btn =
+    'flex h-10 w-10 items-center justify-center rounded-lg bg-surface text-2xl leading-none transition-colors disabled:opacity-30';
+  return (
+    <div className="flex items-center gap-3 drop-shadow-[0px_4px_8px_rgba(57,61,73,0.08)]">
       <button
         type="button"
         disabled={disabled}
-        onClick={() => onChange(Math.max(0, value - 1))}
-        className={stepperBtnClass}
+        onClick={() => {
+          haptics.selection();
+          onChange(Math.max(0, value - 1));
+        }}
+        className={clsx(btn, 'text-ink-faint')}
         aria-label="Minus"
       >
         −
+      </button>
+      <button
+        type="button"
+        disabled={disabled || value >= 99}
+        onClick={() => {
+          haptics.selection();
+          onChange(value + 1);
+        }}
+        className={clsx(btn, 'text-ink')}
+        aria-label="Plus"
+      >
+        +
       </button>
     </div>
   );
 }
 
-function OutcomeButton({ symbol, label, selected, onClick }) {
+function MarketButton({ symbol, label, selected, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={clsx(
-        'flex flex-1 cursor-pointer flex-col items-center gap-1 rounded-2xl border px-2 py-3.5 transition-colors',
-        selected
-          ? 'border-accent bg-accent'
-          : 'border-black/[0.06] bg-pitch-50 hover:bg-pitch-100'
+        'flex h-[74px] flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl px-1 py-3 transition-colors',
+        selected ? 'bg-black' : 'bg-surface'
       )}
     >
       <span
         className={clsx(
-          'font-display text-[26px] leading-none tracking-wide',
-          selected ? 'text-accent-foreground' : 'text-neutral-500'
+          'font-display text-[30px] leading-[30px]',
+          selected ? 'text-white' : 'text-ink'
         )}
       >
         {symbol}
       </span>
       <span
         className={clsx(
-          'text-[10px] font-semibold uppercase tracking-wider',
-          selected ? 'text-white/55' : 'text-neutral-400'
+          'w-full truncate font-barlow text-xs',
+          selected ? 'text-white/70' : 'text-ink/50'
         )}
       >
         {label}
       </span>
     </button>
+  );
+}
+
+// The match-specific content (title, score + steppers, 1/X/2 market, analysis).
+// Pure-ish: renders from the passed values/handlers, computes its own teams +
+// analysis. Reused for the live editable panel and the two static carousel
+// panels during a prev/next slide.
+function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, disabled }) {
+  const { getTeamById } = useTeams();
+  const homeTeam = getTeamById(match.homeTeamId);
+  const awayTeam = getTeamById(match.awayTeamId);
+  const ai = useMatchOdds(homeTeam, awayTeam, {
+    group: match.group,
+    round: match.round,
+  });
+  const kickoff = new Date(match.kickoff);
+  const heading = match.group ? `Grupp ${match.group}` : match.round || '';
+
+  return (
+    <div className="flex flex-col gap-5">
+      {/* ── Prediction card ───────────────────────────────── */}
+      <div className="flex flex-col rounded-[20px] bg-sheet">
+        {/* Title */}
+        <div className="flex items-center justify-between border-b-[0.5px] border-[rgba(12,22,42,0.08)] px-4 pb-2.5 pt-3">
+          <span className="font-barlow text-xs font-semibold uppercase tracking-[0.72px] text-ink-muted">
+            {heading}
+          </span>
+          <span className="font-barlow text-sm text-ink-muted">
+            {format(kickoff, 'd MMMM・HH:mm', { locale: sv })}
+          </span>
+        </div>
+
+        {/* Score */}
+        <div className="px-2 pb-4 pt-5">
+          <div className="flex items-start justify-center gap-2.5">
+            {/* Home team */}
+            <div className="flex w-[120px] flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-3">
+                <TeamEmblem team={homeTeam} />
+                <TeamName>{homeTeam?.name}</TeamName>
+              </div>
+              <ScoreStepper value={home} onChange={onHome} disabled={disabled} />
+            </div>
+
+            {/* Center score */}
+            <div className="flex gap-2 py-[29px] font-display text-[60px] leading-[60px] text-ink">
+              <span>{home}</span>
+              <span>-</span>
+              <span>{away}</span>
+            </div>
+
+            {/* Away team */}
+            <div className="flex w-[120px] flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-3">
+                <TeamEmblem team={awayTeam} />
+                <TeamName>{awayTeam?.name}</TeamName>
+              </div>
+              <ScoreStepper value={away} onChange={onAway} disabled={disabled} />
+            </div>
+          </div>
+        </div>
+
+        {/* Match result market */}
+        <div className="py-3">
+          <div className="flex gap-2 px-4 drop-shadow-[0px_4px_8px_rgba(57,61,73,0.08)]">
+            <MarketButton
+              symbol="1"
+              label={homeTeam?.name || 'Hemma'}
+              selected={outcome === '1'}
+              onClick={() => onOutcome('1')}
+            />
+            <MarketButton
+              symbol="X"
+              label="Oavgjort"
+              selected={outcome === 'X'}
+              onClick={() => onOutcome('X')}
+            />
+            <MarketButton
+              symbol="2"
+              label={awayTeam?.name || 'Borta'}
+              selected={outcome === '2'}
+              onClick={() => onOutcome('2')}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Analysis card ─────────────────────────────────── */}
+      {ai.blurb && (
+        <div className="flex flex-col rounded-[20px] bg-sheet">
+          <div className="flex items-center gap-2 border-b-[0.5px] border-[rgba(12,22,42,0.08)] px-4 pb-2.5 pt-3">
+            <span className="font-barlow text-xs font-semibold uppercase tracking-[0.72px] text-ink-muted">
+              Analys
+            </span>
+            {ai.analysisLoading && <div className="ai-dot" />}
+          </div>
+          <div className="px-4 py-3">
+            <p
+              className={clsx(
+                'font-barlow text-sm leading-[22px] text-ink transition-opacity duration-300',
+                ai.analysisLoading && 'opacity-60'
+              )}
+            >
+              {ai.blurb}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -83,20 +276,115 @@ export default function PredictionSheet({
   const [home, setHome] = useState(prediction?.home ?? 0);
   const [away, setAway] = useState(prediction?.away ?? 0);
   // Outcome (1/X/2) is its own independent state — picking it does NOT
-  // change the score steppers and changing the score does NOT change the
-  // pick. If the user hasn't picked anything, the outcome chip is still
-  // derived from the score (visual hint only).
+  // change the score steppers and changing the score does NOT change the pick.
   const [outcomePick, setOutcomePick] = useState(prediction?.outcome ?? null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [saved, setSaved] = useState(false);
+  // Drag-to-dismiss: phase + live offset.
+  const [phase, setPhase] = useState('idle'); // idle | dragging | settling | closing
+  const [dragY, setDragY] = useState(0);
+  // Carousel transition between games: { dir, outgoing, incoming } | null.
+  const [trans, setTrans] = useState(null);
 
+  const tooltipTimer = useRef(null);
+  const savedTimer = useRef(null);
+  const closeTimer = useRef(null);
+  const overlayRef = useRef(null);
+  const sheetRef = useRef(null);
+  const viewportRef = useRef(null);
+  const trackRef = useRef(null);
+  const outPanelRef = useRef(null);
+  const inPanelRef = useRef(null);
+  const prevProps = useRef(null); // last shown { match, home, away, outcome }
+  const navDirRef = useRef('next');
+  const drag = useRef({ id: null, startY: 0, lastY: 0, lastT: 0, v: 0, dragging: false });
+  const movedRef = useRef(false);
+
+  // Reset per-match state when navigating to a different match. Keyed on the
+  // match id (not the prediction identity) so saving — which changes the
+  // prediction prop in place — doesn't wipe the transient "saved" message.
   useEffect(() => {
     setHome(prediction?.home ?? 0);
     setAway(prediction?.away ?? 0);
     setOutcomePick(prediction?.outcome ?? null);
-  }, [prediction, match?.id]);
+    setShowTooltip(false);
+    setSaved(false);
+    setPhase('idle');
+    setDragY(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [match?.id]);
+
+  useEffect(
+    () => () => {
+      clearTimeout(tooltipTimer.current);
+      clearTimeout(savedTimer.current);
+      clearTimeout(closeTimer.current);
+    },
+    []
+  );
+
+  // ── Carousel: detect a match change and capture both panels ──
+  useLayoutEffect(() => {
+    if (!match) {
+      prevProps.current = null;
+      return;
+    }
+    const prev = prevProps.current;
+    const snapshot = {
+      match,
+      home: prediction?.home ?? 0,
+      away: prediction?.away ?? 0,
+      outcome: prediction?.outcome ?? null,
+    };
+    prevProps.current = snapshot;
+    if (!prev || prev.match.id === match.id) return;
+    setTrans({ dir: navDirRef.current, outgoing: prev, incoming: snapshot });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [match?.id]);
+
+  // ── Carousel: run the slide + height tween, then collapse ────
+  useLayoutEffect(() => {
+    if (!trans) return;
+    const vp = viewportRef.current;
+    const track = trackRef.current;
+    const outEl = outPanelRef.current;
+    const inEl = inPanelRef.current;
+    if (!vp || !track || !outEl || !inEl) {
+      setTrans(null);
+      return;
+    }
+    const outH = outEl.offsetHeight;
+    const inH = inEl.offsetHeight;
+    // For 'next' the track shows [outgoing, incoming] and moves left;
+    // for 'prev' it shows [incoming, outgoing] and moves right.
+    const startX = trans.dir === 'prev' ? -50 : 0;
+    const endX = trans.dir === 'prev' ? 0 : -50;
+    track.style.transition = 'none';
+    track.style.transform = `translateX(${startX}%)`;
+    vp.style.height = `${outH}px`;
+    void track.offsetWidth; // reflow so the next change animates
+    const raf = requestAnimationFrame(() => {
+      track.style.transition = `transform 0.3s ${SHEET_EASE}`;
+      vp.style.transition = `height 0.3s ${SHEET_EASE}`;
+      track.style.transform = `translateX(${endX}%)`;
+      vp.style.height = `${inH}px`;
+    });
+    const t = setTimeout(() => {
+      vp.style.transition = '';
+      vp.style.height = 'auto';
+      setTrans(null);
+    }, 340);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
+  }, [trans]);
 
   // Auto-save the current pick before navigating to the prev/next match —
   // only if the user has actually picked a tecken (the required field).
   const navigate = (direction) => {
+    haptics.light();
+    navDirRef.current = direction;
     if (!disabled && outcomePick) {
       onSave?.({ home, away, outcome: outcomePick });
     }
@@ -104,153 +392,282 @@ export default function PredictionSheet({
     else onNext?.();
   };
 
-  // Lock body scroll while sheet is open
+  const flashTooltip = () => {
+    setShowTooltip(true);
+    clearTimeout(tooltipTimer.current);
+    tooltipTimer.current = setTimeout(() => setShowTooltip(false), 3000);
+  };
+
+  const handleSubmit = () => {
+    if (disabled) return;
+    if (!outcomePick) {
+      haptics.error();
+      flashTooltip();
+      return;
+    }
+    haptics.success();
+    onSave?.({ home, away, outcome: outcomePick });
+    // Keep the sheet open so the user can keep navigating; briefly confirm
+    // the save, then fall back to the "edit" copy (prediction now exists).
+    setSaved(true);
+    clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSaved(false), 1200);
+  };
+
+  // ── Background scroll lock ──────────────────────────────────
+  // The scrollable element is the page's <main> (phone-frame mode) or the
+  // window/body (desktop). Lock the real scroll container, not just body.
   useEffect(() => {
     if (!match) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const findScrollable = (node) => {
+      let el = node?.parentElement;
+      while (el) {
+        const oy = getComputedStyle(el).overflowY;
+        if (/(auto|scroll)/.test(oy) && el.scrollHeight > el.clientHeight) return el;
+        el = el.parentElement;
+      }
+      return null;
+    };
+    const scroller =
+      findScrollable(overlayRef.current) ||
+      overlayRef.current?.closest('main') ||
+      null;
+    const targets = [document.body, scroller].filter(Boolean);
+    const prev = targets.map((el) => el.style.overflow);
+    targets.forEach((el) => {
+      el.style.overflow = 'hidden';
+    });
     return () => {
-      document.body.style.overflow = prev;
+      targets.forEach((el, i) => {
+        el.style.overflow = prev[i];
+      });
     };
   }, [match]);
 
-  const homeTeam = match ? getTeamById(match.homeTeamId) : null;
-  const awayTeam = match ? getTeamById(match.awayTeamId) : null;
-  const ai = useMatchOdds(homeTeam, awayTeam, {
-    group: match?.group,
-    round: match?.round,
-  });
+  // ── Drag-to-dismiss (pointer events) ────────────────────────
+  const onPointerDown = (e) => {
+    if (e.button != null && e.button !== 0) return;
+    drag.current = {
+      id: e.pointerId,
+      startY: e.clientY,
+      lastY: e.clientY,
+      lastT: performance.now(),
+      v: 0,
+      dragging: false,
+    };
+  };
+
+  const onPointerMove = (e) => {
+    const d = drag.current;
+    if (d.id === null || e.pointerId !== d.id) return;
+    const dy = e.clientY - d.startY;
+    const now = performance.now();
+    const dt = now - d.lastT;
+    if (dt > 0) d.v = (e.clientY - d.lastY) / dt;
+    d.lastY = e.clientY;
+    d.lastT = now;
+    if (!d.dragging) {
+      if (dy > 8) {
+        d.dragging = true;
+        try {
+          sheetRef.current?.setPointerCapture(d.id);
+        } catch {
+          /* ignore */
+        }
+        setPhase('dragging');
+      } else {
+        return;
+      }
+    }
+    setDragY(Math.max(0, dy));
+  };
+
+  const endDrag = (e) => {
+    const d = drag.current;
+    if (d.id === null || e.pointerId !== d.id) return;
+    const wasDragging = d.dragging;
+    const dy = Math.max(0, e.clientY - d.startY);
+    const v = d.v;
+    drag.current = { id: null, startY: 0, lastY: 0, lastT: 0, v: 0, dragging: false };
+    if (!wasDragging) return; // it was a tap, let the click through
+    movedRef.current = true; // swallow the click that follows a real drag
+    if (dy > 120 || v > 0.6) {
+      haptics.medium();
+      setPhase('closing');
+      clearTimeout(closeTimer.current);
+      closeTimer.current = setTimeout(() => onClose?.(), 280);
+    } else {
+      setPhase('settling');
+      setDragY(0);
+      clearTimeout(closeTimer.current);
+      closeTimer.current = setTimeout(() => setPhase('idle'), 280);
+    }
+  };
+
+  const onClickCapture = (e) => {
+    if (movedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      movedRef.current = false;
+    }
+  };
 
   if (!match) return null;
 
-  const kickoff = new Date(match.kickoff);
+  const canSave = !disabled && !!outcomePick;
+  const isPredicted = !!prediction;
+  const submitLabel = saved
+    ? 'Tippning sparad!'
+    : isPredicted
+      ? 'Ändra din tippning'
+      : 'Spara tippning';
 
-  // Tecken is a required, explicit pick — nothing is selected until the
-  // user taps one. It is never derived from the score; the two inputs are
-  // fully independent (e.g. score 2-2 with tecken "1" is allowed).
-  const outcome = outcomePick;
-  // Tap an unselected pick to choose it; tap the current pick to clear it.
   const setOutcome = (next) => {
+    haptics.selection();
     setOutcomePick((prev) => (prev === next ? null : next));
+    setShowTooltip(false);
   };
+
+  const sheetStyle = { touchAction: 'none' };
+  if (phase === 'closing') {
+    sheetStyle.transform = 'translateY(110%)';
+    sheetStyle.transition = `transform 0.28s ${SHEET_EASE}`;
+  } else if (phase === 'dragging') {
+    sheetStyle.transform = `translateY(${dragY}px)`;
+    sheetStyle.transition = 'none';
+  } else if (phase === 'settling') {
+    sheetStyle.transform = `translateY(${dragY}px)`;
+    sheetStyle.transition = `transform 0.25s ${SHEET_EASE}`;
+  }
+
+  const backdropOpacity =
+    phase === 'closing'
+      ? 0
+      : phase === 'dragging' || phase === 'settling'
+        ? Math.max(0, 1 - dragY / 500)
+        : 1;
+
+  // Carousel panel ordering for the active transition.
+  const transPanels = trans
+    ? trans.dir === 'prev'
+      ? [
+          { key: 'in', snap: trans.incoming, ref: inPanelRef },
+          { key: 'out', snap: trans.outgoing, ref: outPanelRef },
+        ]
+      : [
+          { key: 'out', snap: trans.outgoing, ref: outPanelRef },
+          { key: 'in', snap: trans.incoming, ref: inPanelRef },
+        ]
+    : [];
 
   return (
     <div
-      className="sheet-fade-in fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex items-end justify-center"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
+      {/* Dimmed backdrop on its own layer so dragging only fades the backdrop,
+          never the sheet (CSS opacity would otherwise cascade to children). */}
       <div
-        className="sheet-slide-up relative w-full max-w-[420px] overflow-hidden rounded-t-[28px] border-t border-black/[0.06] bg-surface px-6 pb-10 pt-6 shadow-[0_-4px_40px_rgba(0,0,0,0.12)]"
+        className="sheet-fade-in absolute inset-0 bg-black/60 backdrop-blur-sm"
+        style={{ opacity: backdropOpacity, transition: 'opacity 0.28s ease' }}
+      />
+      <div
+        ref={sheetRef}
+        className="sheet-slide-up relative flex w-full max-w-[420px] flex-col rounded-t-[32px] bg-surface px-4 pb-2 shadow-[0_0_20px_rgba(0,0,0,0.15)]"
+        style={sheetStyle}
         onClick={(e) => e.stopPropagation()}
+        onClickCapture={onClickCapture}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
       >
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/10" />
-
-        <div className="mb-4 flex items-center justify-between">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-            Grupp {match.group} · Rund {match.round}
-          </div>
-          <div className="text-[11px] font-semibold text-neutral-500">
-            {format(kickoff, "d MMM 'kl.' HH:mm", { locale: sv })}
-          </div>
+        {/* Handlebar */}
+        <div className="flex justify-center pb-3 pt-2">
+          <div className="h-1 w-10 rounded-full bg-sheet" />
         </div>
 
-        <div className="mb-5 flex items-center gap-2.5">
-          <div className="flex min-w-0 flex-col items-center gap-1">
-            <div className="text-[38px] leading-none">{homeTeam?.flag}</div>
-            <div className="whitespace-nowrap text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-              {homeTeam?.code}
+        {/* Match content — single live panel, or a 2-panel slide on nav */}
+        <div ref={viewportRef} className={clsx('relative', trans && 'overflow-hidden')}>
+          {trans ? (
+            <div ref={trackRef} className="flex w-[200%]">
+              {transPanels.map(({ key, snap, ref }) => (
+                <div key={key} ref={ref} className="w-1/2 shrink-0 pointer-events-none">
+                  <MatchContent
+                    match={snap.match}
+                    home={snap.home}
+                    away={snap.away}
+                    outcome={snap.outcome}
+                    onHome={noop}
+                    onAway={noop}
+                    onOutcome={noop}
+                    disabled={false}
+                  />
+                </div>
+              ))}
             </div>
-          </div>
-          <div className="flex flex-1 items-center justify-center gap-2.5">
-            <Stepper value={home} onChange={setHome} disabled={disabled} />
-            <span className="font-display text-2xl tracking-wide text-neutral-300">:</span>
-            <Stepper value={away} onChange={setAway} disabled={disabled} />
-          </div>
-          <div className="flex min-w-0 flex-col items-center gap-1">
-            <div className="text-[38px] leading-none">{awayTeam?.flag}</div>
-            <div className="whitespace-nowrap text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-              {awayTeam?.code}
+          ) : (
+            <div key={match.id}>
+              <MatchContent
+                match={match}
+                home={home}
+                away={away}
+                outcome={outcomePick}
+                onHome={setHome}
+                onAway={setAway}
+                onOutcome={setOutcome}
+                disabled={disabled}
+              />
             </div>
-          </div>
+          )}
         </div>
 
-        <div className="mb-4">
-          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-500">
-            Tecken
-          </div>
-          <div className="flex gap-2.5">
-            <OutcomeButton
-              symbol="1"
-              label={homeTeam?.code || 'Hemma'}
-              selected={outcome === '1'}
-              onClick={() => setOutcome('1')}
-            />
-            <OutcomeButton
-              symbol="X"
-              label="Oavgjort"
-              selected={outcome === 'X'}
-              onClick={() => setOutcome('X')}
-            />
-            <OutcomeButton
-              symbol="2"
-              label={awayTeam?.code || 'Borta'}
-              selected={outcome === '2'}
-              onClick={() => setOutcome('2')}
-            />
-          </div>
-        </div>
-
-        {ai.blurb && (
-          <div className="ai-card">
-            {ai.analysisLoading && (
-              <div className="ai-card-header">
-                <div className="ai-dot" />
-                <div className="ai-label">AI analyserar matchen…</div>
-              </div>
-            )}
-            <div
-              className={clsx(
-                'ai-text transition-opacity duration-300',
-                ai.analysisLoading && 'opacity-60',
-              )}
-            >
-              {ai.blurb}
-            </div>
-          </div>
-        )}
-
-        <div className="flex items-center gap-3">
+        {/* ── Submit + navigation (persistent) ────────────────── */}
+        <div className="flex items-center gap-3 py-10">
           <button
             type="button"
             onClick={() => navigate('prev')}
             disabled={!hasPrev}
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-black/[0.07] bg-pitch-50 text-xl text-neutral-600 transition-colors active:bg-accent active:text-accent-foreground disabled:cursor-default disabled:opacity-25"
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[rgba(25,55,93,0.05)] bg-sheet text-ink transition-colors disabled:cursor-default disabled:opacity-30"
             aria-label="Föregående match"
           >
-            ←
+            <ArrowLeftIcon className="h-4 w-4" />
           </button>
-          <button
-            type="button"
-            disabled={disabled || !outcomePick}
-            onClick={() => {
-              onSave?.({ home, away, outcome: outcomePick });
-              onClose?.();
-            }}
-            className="flex-1 rounded-2xl bg-accent px-4 py-4 font-display text-lg uppercase tracking-[0.10em] text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-            style={{ boxShadow: '0 4px 20px rgba(12,12,20,0.20)' }}
-          >
-            Spara tippning
-          </button>
+
+          <div className="relative flex flex-1 self-stretch">
+            {showTooltip && (
+              <div className="absolute bottom-full left-1/2 mb-3 w-[199px] -translate-x-1/2">
+                <div className="rounded-xl bg-ink px-3 py-2 text-center font-barlow text-sm leading-[18px] text-white">
+                  Du måste välja ett tecken innan du kan spara ditt tips
+                </div>
+                <div className="absolute left-1/2 top-full h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[1px] bg-ink" />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className={clsx(
+                'flex h-14 w-full items-center justify-center rounded-2xl px-4 font-barlow text-lg font-semibold text-white transition-colors',
+                canSave
+                  ? 'bg-black hover:opacity-90'
+                  : 'cursor-not-allowed bg-submit-disabled'
+              )}
+            >
+              {submitLabel}
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={() => navigate('next')}
             disabled={!hasNext}
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-black/[0.07] bg-pitch-50 text-xl text-neutral-600 transition-colors active:bg-accent active:text-accent-foreground disabled:cursor-default disabled:opacity-25"
+            className="flex h-14 w-14 shrink-0 rotate-180 items-center justify-center rounded-2xl border border-[rgba(25,55,93,0.05)] bg-sheet text-ink transition-colors disabled:cursor-default disabled:opacity-30"
             aria-label="Nästa match"
           >
-            →
+            <ArrowLeftIcon className="h-4 w-4" />
           </button>
         </div>
       </div>

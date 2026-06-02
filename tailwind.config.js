@@ -34,11 +34,24 @@ export default {
           600: '#0C0C14',
           700: '#06060B',
         },
+
+        // Prediction-sheet design tokens (scoped to the redesigned sheet).
+        ink: {
+          DEFAULT: '#0C162A', // text/primary
+          muted: '#60748D', // text/secondary
+          faint: '#A9B5C4', // text/tertiary
+        },
+        sheet: '#F0F5F9', // bg/container
+        'submit-disabled': '#9E9EA1',
+
+        // Onboarding flow accent (signup/login/payment screens).
+        lime: '#C7FF2E',
       },
       fontFamily: {
         sans: ['DM Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         display: ['Bebas Neue', 'DM Sans', 'Inter', 'system-ui', 'sans-serif'],
         bebas: ['Bebas Neue', 'system-ui', 'sans-serif'],
+        barlow: ['Barlow', 'DM Sans', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         '4xl': '2rem',

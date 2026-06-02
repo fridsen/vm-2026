@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
 import { useKnockoutMatches } from '../hooks/useMatches.js';
-import { getTeamById } from '../data/teams.js';
+import { useTeams } from '../hooks/useTeams.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 const ROUND_LABELS = {
@@ -16,6 +16,7 @@ const ROUND_LABELS = {
 const ROUNDS_TO_SHOW = ['R32', 'R16', 'QF', 'SF'];
 
 function BracketTeam({ teamId, score, winner, tbd }) {
+  const { getTeamById } = useTeams();
   const team = teamId ? getTeamById(teamId) : null;
   return (
     <div className={clsx('bracket-team', winner && 'winner', tbd && 'tbd')}>

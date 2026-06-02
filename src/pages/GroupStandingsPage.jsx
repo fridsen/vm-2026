@@ -1,12 +1,17 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
 import { useAllMatches } from '../hooks/useMatches.js';
-import { GROUPS, getTeamsByGroup } from '../data/teams.js';
+import { useTeams } from '../hooks/useTeams.js';
+import { GROUPS } from '../data/teams.js';
 import { computeGroupStandings } from '../utils/matchSchedule.js';
 import PageHeader from '../components/PageHeader.jsx';
 
 function GroupTable({ group, matches }) {
-  const teams = getTeamsByGroup(group);
+  const { getTeamsInGroup } = useTeams();
+  const teams = useMemo(
+    () => getTeamsInGroup(group, matches),
+    [getTeamsInGroup, group, matches],
+  );
   const standings = useMemo(
     () =>
       computeGroupStandings(

@@ -1,10 +1,11 @@
 import clsx from 'clsx';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { getTeamById } from '../data/teams.js';
+import { useTeams } from '../hooks/useTeams.js';
 import { MATCH_STATE, getMatchState } from '../utils/matchSchedule.js';
 
 function TeamRow({ teamId, loser }) {
+  const { getTeamById } = useTeams();
   const team = getTeamById(teamId);
   return (
     <div className="gr-team-row">

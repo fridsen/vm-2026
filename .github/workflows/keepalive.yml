@@ -1,0 +1,39 @@
+name: Keep Supabase awake
+
+# Free Supabase projects pause after 7 days with no activity. Internal pg_cron
+# traffic doesn't reliably count, so this makes a real EXTERNAL request to the
+# REST API once a day, which keeps the database (and therefore the app) live.
+#
+# Setup (one time): add two repo secrets under
+# Settings -> Secrets and variables -> Actions:
+#   SUPABASE_URL       = https://<project-ref>.supabase.co
+#   SUPABASE_ANON_KEY  = your anon/public key (same one the client uses)
+#
+# Note: GitHub disables scheduled workflows after 60 days of no repo commits.
+# That's fine pre-launch (you're committing regularly); revisit after launch.
+
+on:
+  schedule:
+    # Daily at 06:17 UTC. Off the hour to avoid GitHub's busy scheduling slots.
+    - cron: '17 6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Missing SUPABASE_URL or SUPABASE_ANON_KEY repo secrets." >&2
+            exit 1
+          fi
+          # A trivial read against an anon-readable reference table wakes the DB.
+          # -f makes the job fail on any non-2xx so a broken project is visible.
+          curl -fsS -o /dev/null -w 'HTTP %{http_code}\n' \
+            "$SUPABASE_URL/rest/v1/matches?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY"

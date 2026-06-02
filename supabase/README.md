@@ -5,6 +5,19 @@ production version of VM-2026. The plan in
 `/Users/jimmy/.cursor/plans/vm-2026_go_live_b43f959a.plan.md` describes the
 full cutover. This file is the operational checklist.
 
+## Auth providers
+
+The onboarding flow (signup / login / payment) supports email+password and
+Google. Configure both in the Dashboard (Authentication → Providers):
+
+- Enable the Google provider; set its Authorized redirect URI to
+  `https://<ref>.supabase.co/auth/v1/callback` and add your site origins under
+  Authentication → URL Configuration.
+- For email signup to drop the user straight into the app (the design has no
+  "confirm your email" step), turn OFF "Confirm email" under
+  Authentication → Providers → Email. If it stays ON, signup instead shows a
+  "kolla din mejl" message and the user must confirm before the session exists.
+
 ## One-time setup
 
 1. Create the Supabase project (free tier is enough).
@@ -62,20 +75,49 @@ described in the plan only existed during the cutover and has been removed.
 5. **Schedule the cron.** Apply `20260601000002_sync_cron.sql`. The function
    now runs every 10 minutes.
 
+## Entry-fee / payment tracking (Level 2, manual Swish)
+
+Migration `20260601000003_payments.sql` adds a `payments` table, an `admins`
+email allowlist, and an `is_admin()` function. Players pay the entry fee
+manually in Swish; an admin marks them as paid from the Topplista page. The
+status is informational only — it never blocks tipping.
+
+Setup:
+
+1. Apply the migration (`npm run supabase:push`).
+2. Add yourself as an admin — Table Editor → `admins` → insert a row with the
+   email you sign in with:
+   ```sql
+   insert into public.admins (email) values ('you@example.com');
+   ```
+3. Set the pay-in instructions shown to players (not secret) in the client
+   env — `.env.local` locally and the host's env vars in production:
+   ```env
+   VITE_SWISH_NUMBER=123 456 78 90
+   VITE_ENTRY_FEE_SEK=100
+   ```
+
+Admins see "Markera betald" toggles on the Topplista page; everyone sees a
+paid/unpaid badge. No in-app UI manages the allowlist — edit the `admins`
+table directly.
+
+## Match analysis (hardcoded)
+
+The prediction sheet's match previews are curated, hardcoded Swedish text in
+`src/data/matchAnalysis.js`, matched to each fixture by the two team codes.
+There is no AI/LLM call and no backend involved. The earlier shared-cache
+table (`match_analysis`) was dropped in
+`20260601000006_drop_match_analysis.sql`.
+
 ## Deferred follow-up
 
 The UI still imports a handful of synchronous helpers
 (`getTeamById`, `GROUPS`, `getTeamsByGroup`) directly from
-`src/data/teams.js`, plus team-context strings from
-`src/data/teamProfiles.js`. Those two files are kept as static
-metadata bundles for now — the mock fixtures, players, leaderboard, and
-predictions have all been removed. Fully eliminating `src/data/` requires:
-
-- A small client-side teams cache (one `fetchTeams()` on app boot,
-  shared via context) so the four UI sites can keep their synchronous
-  `getTeamById`-style call shape.
-- Moving `teamProfiles` either into the `teams` table as a `style` /
-  `identity` column pair or into the LLM service as static config.
+`src/data/teams.js`. That file is kept as a static metadata bundle for now —
+the mock fixtures, players, leaderboard, and predictions have all been
+removed. Fully eliminating `src/data/teams.js` requires a small client-side
+teams cache (one `fetchTeams()` on app boot, shared via context) so the four
+UI sites can keep their synchronous `getTeamById`-style call shape.
 
 ## Manual sync
 

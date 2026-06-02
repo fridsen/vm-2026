@@ -749,6 +749,70 @@
   .lb-move.same {
     @apply text-neutral-300;
   }
+  .lb-paid {
+    @apply ml-1.5 inline-block rounded-full px-2 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide;
+  }
+  .lb-paid.is-paid {
+    @apply bg-emerald-100 text-emerald-700;
+  }
+  .lb-paid.is-unpaid {
+    @apply bg-neutral-100 text-neutral-400;
+  }
+  .lb-paid-toggle {
+    @apply mt-1 shrink-0 rounded-full border border-neutral-200 px-2.5 py-1 text-[11px] font-semibold text-neutral-600 transition-colors;
+  }
+  .lb-paid-toggle:hover {
+    @apply border-neutral-300 bg-neutral-50;
+  }
+  .lb-paid-toggle.is-paid {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+  }
+
+  /* ─── PAYMENT CARD (dashboard) ───────────────────────────── */
+  .pay-card {
+    @apply relative overflow-hidden rounded-2xl border border-black/5 bg-surface p-4 pl-5;
+    box-shadow:
+      0 2px 14px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  /* Slim accent bar carries the state instead of a full colour wash. */
+  .pay-card::before {
+    content: '';
+    @apply absolute inset-y-0 left-0 w-1.5;
+  }
+  .pay-card.is-paid::before {
+    background: linear-gradient(180deg, #34D399, #10B981);
+  }
+  .pay-card.is-unpaid::before {
+    background: linear-gradient(180deg, #F6C964, #E8A53D);
+  }
+  .pay-card-row {
+    @apply flex items-center justify-between;
+  }
+  .pay-card-title {
+    @apply font-display text-lg tracking-wide text-neutral-900;
+  }
+  .pay-card-sub {
+    @apply mt-1 text-sm text-neutral-600;
+  }
+  .pay-card-details {
+    @apply mt-3 overflow-hidden rounded-xl bg-surface-2;
+  }
+  .pay-card-details > div {
+    @apply flex items-center justify-between gap-3 px-3 py-2 text-sm;
+  }
+  .pay-card-details > div + div {
+    @apply border-t border-black/[0.04];
+  }
+  .pay-card-details dt {
+    @apply shrink-0 text-neutral-500;
+  }
+  .pay-card-details dd {
+    @apply text-right font-semibold text-neutral-900;
+  }
+  .pay-card-foot {
+    @apply mt-2.5 text-xs text-neutral-400;
+  }
 
   /* ─── AI ANALYSIS CARD (in prediction sheet) ─────────────── */
   .ai-card {
@@ -811,11 +875,13 @@
       opacity: 1;
     }
   }
+  /* fill-mode `backwards` (not `both`) so the finished animation doesn't keep
+     overriding the inline transform/opacity used by the drag-to-dismiss gesture. */
   .sheet-slide-up {
-    animation: sheetSlideUp 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
+    animation: sheetSlideUp 0.32s cubic-bezier(0.32, 0.72, 0, 1) backwards;
   }
   .sheet-fade-in {
-    animation: sheetFadeIn 0.2s ease both;
+    animation: sheetFadeIn 0.2s ease backwards;
   }
 
   /* ─── STAGGER ANIMATION ──────────────────────────────────── */

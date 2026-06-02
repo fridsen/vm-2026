@@ -1,0 +1,62 @@
+import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from './useAuth.js';
+import {
+  ENTRY_FEE_SEK,
+  fetchAllPayments,
+  fetchIsAdmin,
+  fetchMyPayment,
+  setPaid,
+} from '../services/paymentsService.js';
+
+// usePayments — exposes the signed-in user's own payment status, whether they
+// are an admin, the full payment map (for the leaderboard), and an admin-only
+// toggle. Informational only: nothing here gates tipping.
+export function usePayments() {
+  const { user } = useAuth();
+  const userId = user?.id;
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [myPayment, setMyPayment] = useState(null);
+  const [payments, setPayments] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    if (!userId) {
+      setIsAdmin(false);
+      setMyPayment(null);
+      setPayments({});
+      setLoading(false);
+      return;
+    }
+    const [admin, mine, all] = await Promise.all([
+      fetchIsAdmin(),
+      fetchMyPayment(userId),
+      fetchAllPayments(),
+    ]);
+    setIsAdmin(admin);
+    setMyPayment(mine);
+    setPayments(all);
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const togglePaid = useCallback(
+    async (targetUserId, paid) => {
+      await setPaid(targetUserId, paid, { amountSek: ENTRY_FEE_SEK || null });
+      await refresh();
+    },
+    [refresh],
+  );
+
+  return {
+    isAdmin,
+    myPayment,
+    payments,
+    loading,
+    refresh,
+    togglePaid,
+    entryFee: ENTRY_FEE_SEK,
+  };
+}

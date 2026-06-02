@@ -19,29 +19,30 @@ plats med migrationerna i `supabase/migrations/` applicerade — utan
 giltiga `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` startar inte
 klienten.
 
-### Live odds + LLM-analys (frivilligt)
+### Match-analys + live odds (frivilligt)
 
-Tippnings-bottomsheeten visar en AI-analys av matchen. Som standard är den
-deterministiskt genererad från lag-IDn (mock). Två oberoende API-nycklar
-uppgraderar UI:t progressivt:
+Tippnings-bottomsheeten visar en kort svensk analys av matchen. Texten är
+handskriven och hårdkodad i `src/data/matchAnalysis.js`, matchad mot varje
+fixtur via lagens koder — ingen AI och ingen backend inblandad. Matcher som
+saknar en kuraterad text faller tillbaka på en deterministisk mall.
+
+En valfri API-nyckel uppgraderar dessutom sannolikheterna:
 
 | Nyckel | Vad den ger | Tier |
 |---|---|---|
 | `VITE_ODDS_API_KEY` ([the-odds-api.com](https://the-odds-api.com/)) | Riktiga 1X2-sannolikheter från bookmakers (margin borträknad) | Gratis 500 anrop/mån |
-| `VITE_OPENAI_API_KEY` ([platform.openai.com](https://platform.openai.com/api-keys)) | Riktig svensk prosa-analys per match (gpt-4o-mini) | ~$0.05 / full turnering |
 
 ```bash
 cp .env.example .env.local
-# Fyll i en eller båda nycklarna
+# Fyll i nyckeln om du vill ha riktiga odds
 ```
 
-**Caching:** WC-odds-payloaden cachas en timme i `localStorage`; LLM-analyser
-per matchup cachas 24 timmar. Båda har graceful fallback till mock-data om
-nyckel saknas eller anropet misslyckas.
+**Caching:** WC-odds-payloaden cachas en timme i `localStorage`, med graceful
+fallback till mock-sannolikheter om nyckel saknas eller anropet misslyckas.
 
-> ⚠️ Vite bundlar in `VITE_*`-variabler i klient-buildet — nycklarna blir
-> synliga för alla som inspekterar JS:en. För publik produktion: lägg en
-> proxy-server framför som håller nycklarna serverside.
+> ⚠️ Vite bundlar in `VITE_*`-variabler i klient-buildet — nyckeln blir
+> synlig för alla som inspekterar JS:en. För publik produktion: lägg en
+> proxy-server framför som håller nyckeln serverside.
 
 ## Arkitektur
 

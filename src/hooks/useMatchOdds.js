@@ -4,34 +4,57 @@ import {
   findOddsForMatch,
   isLiveOddsEnabled,
 } from '../services/oddsApi.js';
-import { fetchLlmAnalysis, isLlmEnabled } from '../services/llmAnalysis.js';
 import { mockProbabilities, pickFromProbs, buildAnalysis } from '../utils/aiAnalysis.js';
+import { getMatchAnalysis } from '../data/matchAnalysis.js';
 
 /**
  * `useMatchOdds(homeTeam, awayTeam, context)` — returns 1X2 probabilities and
- * an analysis blurb for a matchup, with progressive enhancement:
+ * an analysis blurb for a matchup.
  *
- * 1. Renders the templated mock instantly (no flash of empty card).
- * 2. If `VITE_ODDS_API_KEY` is set, replaces probabilities with live
- *    bookmaker-implied probs (margin removed) — `source: 'live'`.
- * 3. If `VITE_OPENAI_API_KEY` is set, replaces the templated blurb with
- *    a real LLM-generated Swedish analysis — `analysisSource: 'llm'`.
+ * Analysis: a hardcoded, curated Swedish text (from `data/matchAnalysis.js`),
+ * matched by the two team codes. If the matchup isn't listed (e.g. knockout
+ * ties), it falls back to the deterministic templated `buildAnalysis`.
  *
- * `analysisLoading` indicates the LLM call is in flight; the existing
- * templated `blurb` is what gets displayed in the meantime.
+ * Probabilities: rendered instantly from the templated mock, then upgraded to
+ * live bookmaker-implied probs (margin removed) if `VITE_ODDS_API_KEY` is set
+ * — `source: 'live'`. The curated analysis text never changes with the odds;
+ * only the templated fallback tracks them.
  */
-export function useMatchOdds(homeTeam, awayTeam, context = {}) {
-  const [state, setState] = useState({
-    loading: false,
-    probs: null,
-    pick: null,
-    blurb: '',
+// Synchronous seed: probabilities + analysis blurb are deterministic, so we
+// can compute them during render. This keeps the analysis card present on the
+// very first paint (no async pop-in), which matters for height measurement in
+// the prediction-sheet carousel. Only the live-odds upgrade is async.
+function seedState(homeTeam, awayTeam) {
+  if (!homeTeam || !awayTeam) {
+    return {
+      loading: false,
+      probs: null,
+      pick: null,
+      blurb: '',
+      source: 'mock',
+      bookmaker: null,
+      analysisSource: 'static',
+      analysisLoading: false,
+      error: null,
+    };
+  }
+  const staticBlurb = getMatchAnalysis(homeTeam.code, awayTeam.code);
+  const mockProbs = mockProbabilities(homeTeam, awayTeam);
+  return {
+    loading: isLiveOddsEnabled(),
+    probs: mockProbs,
+    pick: pickFromProbs(mockProbs),
+    blurb: staticBlurb || buildAnalysis(homeTeam, awayTeam, mockProbs),
     source: 'mock',
     bookmaker: null,
-    analysisSource: 'templated',
+    analysisSource: staticBlurb ? 'static' : 'templated',
     analysisLoading: false,
     error: null,
-  });
+  };
+}
+
+export function useMatchOdds(homeTeam, awayTeam, context = {}) {
+  const [state, setState] = useState(() => seedState(homeTeam, awayTeam));
 
   const homeId = homeTeam?.id;
   const awayId = awayTeam?.id;
@@ -41,85 +64,49 @@ export function useMatchOdds(homeTeam, awayTeam, context = {}) {
   useEffect(() => {
     if (!homeTeam || !awayTeam) return;
 
-    // 1. Seed with templated mock — UI never renders empty.
+    // Curated analysis keyed by the matchup (order-independent). Falls back to
+    // the templated text when a matchup isn't in the hardcoded set.
+    const staticBlurb = getMatchAnalysis(homeTeam.code, awayTeam.code);
+
+    // Re-seed when the matchup changes (probs/blurb computed synchronously).
     const mockProbs = mockProbabilities(homeTeam, awayTeam);
-    const mockPick = pickFromProbs(mockProbs);
-    const mockBlurb = buildAnalysis(homeTeam, awayTeam, mockProbs);
-
     let probs = mockProbs;
-    let pick = mockPick;
-    let source = 'mock';
-    let bookmaker = null;
-
-    setState({
-      loading: isLiveOddsEnabled(),
-      probs,
-      pick,
-      blurb: mockBlurb,
-      source,
-      bookmaker,
-      analysisSource: 'templated',
-      analysisLoading: isLlmEnabled(),
-      error: null,
-    });
+    let pick = pickFromProbs(mockProbs);
+    setState(seedState(homeTeam, awayTeam));
 
     let cancelled = false;
-    const controller = new AbortController();
 
-    // 2. Live odds → upgrade probs.
-    const oddsPromise = isLiveOddsEnabled()
-      ? fetchWorldCupOdds().then((events) => {
+    // Live odds → upgrade probs (and the templated fallback only).
+    if (isLiveOddsEnabled()) {
+      fetchWorldCupOdds()
+        .then((events) => {
           if (cancelled) return;
           const live = findOddsForMatch(events, homeTeam, awayTeam);
           if (live) {
             probs = live.probs;
             pick = pickFromProbs(probs);
-            source = 'live';
-            bookmaker = live.bookmaker;
             setState((s) => ({
               ...s,
               probs,
               pick,
-              blurb: buildAnalysis(homeTeam, awayTeam, probs),
-              source,
-              bookmaker,
+              // Hardcoded analysis always wins; the templated fallback tracks odds.
+              blurb: staticBlurb || buildAnalysis(homeTeam, awayTeam, probs),
+              source: 'live',
+              bookmaker: live.bookmaker,
               loading: false,
             }));
           } else {
             setState((s) => ({ ...s, loading: false }));
           }
-        }).catch((err) => {
+        })
+        .catch((err) => {
           if (cancelled) return;
           setState((s) => ({ ...s, loading: false, error: err.message }));
-        })
-      : Promise.resolve();
-
-    // 3. LLM analysis — kick off after probs settle, using whichever ones we
-    //    end up with (live preferred, mock fallback).
-    if (isLlmEnabled()) {
-      oddsPromise.then(() => {
-        if (cancelled) return;
-        fetchLlmAnalysis(homeTeam, awayTeam, probs, context, {
-          signal: controller.signal,
-        }).then((llmText) => {
-          if (cancelled || !llmText) {
-            // No LLM result → keep templated blurb, just clear loading.
-            setState((s) => ({ ...s, analysisLoading: false }));
-            return;
-          }
-          setState((s) => ({
-            ...s,
-            blurb: llmText,
-            analysisSource: 'llm',
-            analysisLoading: false,
-          }));
         });
-      });
     }
 
     return () => {
       cancelled = true;
-      controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [homeId, awayId, ctxKey]);

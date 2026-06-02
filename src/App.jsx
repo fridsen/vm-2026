@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AuthProvider from './components/AuthProvider.jsx';
+import TeamsProvider from './components/TeamsProvider.jsx';
 import AuthGate from './components/AuthGate.jsx';
 import Layout from './components/Layout.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -12,8 +13,9 @@ import LeaderboardPage from './pages/LeaderboardPage.jsx';
 export default function App() {
   return (
     <AuthProvider>
-      <AuthGate>
-        <BrowserRouter>
+      <TeamsProvider>
+        <AuthGate>
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<DashboardPage />} />
@@ -24,8 +26,9 @@ export default function App() {
               <Route path="leaderboard" element={<LeaderboardPage />} />
             </Route>
           </Routes>
-        </BrowserRouter>
-      </AuthGate>
+          </BrowserRouter>
+        </AuthGate>
+      </TeamsProvider>
     </AuthProvider>
   );
 }
