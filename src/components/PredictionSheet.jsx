@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import clsx from 'clsx';
 import { useTeams } from '../hooks/useTeams.js';
-import { useMatchOdds } from '../hooks/useMatchOdds.js';
+import { useMatchAnalysis } from '../hooks/useMatchAnalysis.js';
 import { emblemForCode } from '../data/emblems.js';
 import { haptics } from '../utils/haptics.js';
 import BottomSheet from './BottomSheet.jsx';
@@ -160,10 +160,7 @@ function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, d
   const { getTeamById } = useTeams();
   const homeTeam = getTeamById(match.homeTeamId);
   const awayTeam = getTeamById(match.awayTeamId);
-  const ai = useMatchOdds(homeTeam, awayTeam, {
-    group: match.group,
-    round: match.round,
-  });
+  const { blurb } = useMatchAnalysis(homeTeam, awayTeam);
   const kickoff = new Date(match.kickoff);
   const heading = match.group ? `Grupp ${match.group}` : match.round || '';
 
@@ -237,23 +234,15 @@ function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, d
       </div>
 
       {/* ── Analysis card ─────────────────────────────────── */}
-      {ai.blurb && (
+      {blurb && (
         <div className="flex flex-col rounded-2xl bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.1)]">
           <div className="flex items-center gap-2 border-b-[0.5px] border-[rgba(12,22,42,0.08)] px-4 pb-2.5 pt-3">
             <span className="font-barlow text-xs font-semibold uppercase tracking-[0.72px] text-ink-muted">
               Analys
             </span>
-            {ai.analysisLoading && <div className="ai-dot" />}
           </div>
           <div className="px-4 pb-3 pt-2">
-            <p
-              className={clsx(
-                'font-barlow text-sm leading-[22px] text-ink transition-opacity duration-300',
-                ai.analysisLoading && 'opacity-60'
-              )}
-            >
-              {ai.blurb}
-            </p>
+            <p className="font-barlow text-sm leading-[22px] text-ink">{blurb}</p>
           </div>
         </div>
       )}
@@ -446,7 +435,7 @@ export default function PredictionSheet({
       onClose={onClose}
       padded={false}
       maxWidth="max-w-[390px]"
-      className="bg-[#f0f5f9]"
+      bg="sheet"
     >
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-1">
         {/* Match content — single live panel, or a 2-panel slide on nav */}
@@ -486,7 +475,7 @@ export default function PredictionSheet({
       </div>
 
         {/* ── Submit + navigation (persistent) ────────────────── */}
-        <div className="flex w-full shrink-0 items-center gap-3 bg-[#f0f5f9] px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-5">
+        <div className="flex w-full shrink-0 items-center gap-3 bg-sheet px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-5">
           <button
             type="button"
             onClick={() => navigate('prev')}

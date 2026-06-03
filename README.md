@@ -19,30 +19,12 @@ plats med migrationerna i `supabase/migrations/` applicerade — utan
 giltiga `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` startar inte
 klienten.
 
-### Match-analys + live odds (frivilligt)
+### Match-analys
 
-Tippnings-bottomsheeten visar en kort svensk analys av matchen. Texten är
-handskriven och hårdkodad i `src/data/matchAnalysis.js`, matchad mot varje
-fixtur via lagens koder — ingen AI och ingen backend inblandad. Matcher som
-saknar en kuraterad text faller tillbaka på en deterministisk mall.
-
-En valfri API-nyckel uppgraderar dessutom sannolikheterna:
-
-| Nyckel | Vad den ger | Tier |
-|---|---|---|
-| `VITE_ODDS_API_KEY` ([the-odds-api.com](https://the-odds-api.com/)) | Riktiga 1X2-sannolikheter från bookmakers (margin borträknad) | Gratis 500 anrop/mån |
-
-```bash
-cp .env.example .env.local
-# Fyll i nyckeln om du vill ha riktiga odds
-```
-
-**Caching:** WC-odds-payloaden cachas en timme i `localStorage`, med graceful
-fallback till mock-sannolikheter om nyckel saknas eller anropet misslyckas.
-
-> ⚠️ Vite bundlar in `VITE_*`-variabler i klient-buildet — nyckeln blir
-> synlig för alla som inspekterar JS:en. För publik produktion: lägg en
-> proxy-server framför som håller nyckeln serverside.
+Tippnings-bottomsheeten visar en kort svensk analys av matchen. Gruppspelsmatcher
+har handskriven text i `src/data/matchAnalysis.js` (matchad via lagkoder).
+Övriga matcher (t.ex. slutspel) får en deterministisk mall från
+`src/utils/aiAnalysis.js` — ingen AI, inga externa odds-API:er.
 
 ## Arkitektur
 
@@ -50,8 +32,8 @@ fallback till mock-sannolikheter om nyckel saknas eller anropet misslyckas.
 src/
   components/   # Delade UI-komponenter (Layout, NavBar, MatchCard, LockBadge, ScoreInput)
   pages/        # En fil per vy (sex vyer)
-  data/         # Statisk team-metadata (lag-id, gruppindelning, profile-strängar för LLM)
-  services/     # All dataaccess mot Supabase + 3:e parts API:er (odds, LLM)
+  data/         # Statisk team-metadata + kuraterad matchanalys
+  services/     # Dataaccess mot Supabase
   hooks/        # React-hooks som wrappar services (useAuth, useMatches, usePredictions, useLockState, ...)
   utils/        # Rena funktioner: scoring, lockRules, signFromScore
 supabase/

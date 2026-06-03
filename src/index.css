@@ -124,20 +124,69 @@
     width: 24px;
     flex: 0 0 auto;
   }
+  :root {
+    --app-tab-bar-height: 54px;
+    --app-tab-bar-total: var(--app-tab-bar-height);
+  }
+  @media (display-mode: standalone) {
+    :root {
+      --app-tab-bar-total: calc(var(--app-tab-bar-height) + env(safe-area-inset-bottom, 0px));
+    }
+  }
   .app-bottom-nav {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    display: flex;
+    width: 100%;
+    justify-content: center;
     background: #fff;
+  }
+  .app-mobile-chrome {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+  @media (display-mode: standalone) {
+    .app-mobile-chrome {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  }
+  .app-mobile-chrome .app-bottom-nav,
+  .app-mobile-chrome .a2hs-float-card {
+    pointer-events: auto;
+  }
+  @media (min-width: 768px) {
+    .app-mobile-chrome {
+      display: none;
+    }
+  }
+  .phone-screen .app-mobile-chrome {
+    position: relative;
+    inset-inline: auto;
+    bottom: auto;
+    top: auto;
+    flex-shrink: 0;
+  }
+  .phone-screen .a2hs-float-host {
+    position: relative;
+    bottom: auto;
+    margin-bottom: 10px;
   }
   .app-bottom-nav-inner {
     display: flex;
-    height: 80px;
     width: 100%;
     max-width: 390px;
-    align-items: flex-start;
+    min-height: var(--app-tab-bar-height);
+    align-items: center;
     justify-content: space-between;
     gap: 0;
     background: #fff;
-    padding: 14px 12px 0;
+    padding: 6px 12px 8px;
   }
   .app-bottom-nav-item {
     display: flex;
@@ -2233,53 +2282,26 @@
     flex: 0 0 auto;
   }
   /* ─── ADD TO HOME SCREEN — floating prompt (iOS) ─────────── */
-  .a2hs-float-host {
-    position: absolute;
-    inset-inline: 0;
-    bottom: calc(100% + 10px);
-    z-index: 30;
-    display: flex;
-    justify-content: center;
-    padding: 0 14px;
-    pointer-events: none;
-  }
   @media (max-width: 767px) {
     .app-shell {
       min-height: auto;
     }
-  }
-  .app-main {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 12px);
+    /* Clearance so the last card can scroll above the fixed tab bar (not scroll-padding — that adds extra empty scroll range). */
+    .app-main {
+      padding-bottom: calc(var(--app-tab-bar-total) + 8px);
+    }
   }
   @media (min-width: 768px) {
     .app-main {
       padding-bottom: 0;
     }
   }
-  .app-mobile-footer {
-    position: fixed;
-    inset-inline: 0;
-    bottom: 0;
-    z-index: 20;
+  .a2hs-float-host {
     display: flex;
     width: 100%;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
+    padding: 0 14px 10px;
     pointer-events: none;
-  }
-  @media (min-width: 768px) {
-    .app-mobile-footer {
-      display: none;
-    }
-  }
-  .app-mobile-footer .app-bottom-nav,
-  .app-mobile-footer .a2hs-float-card {
-    pointer-events: auto;
-  }
-  @media (min-width: 768px) {
-    .a2hs-float-host {
-      display: none;
-    }
   }
   .a2hs-float-card {
     position: relative;
@@ -2522,50 +2544,6 @@
   }
   .pay-card-foot {
     @apply mt-2.5 text-xs text-neutral-400;
-  }
-
-  /* ─── AI ANALYSIS CARD (in prediction sheet) ─────────────── */
-  .ai-card {
-    @apply relative mb-4 overflow-hidden rounded-2xl border border-black/5 bg-surface-2 p-4;
-  }
-  .ai-card-header {
-    @apply mb-2.5 flex items-center gap-2;
-  }
-  .ai-dot {
-    @apply h-1.5 w-1.5 shrink-0 rounded-full bg-accent;
-    animation: aiPulse 1.4s ease-in-out infinite;
-  }
-  @keyframes aiPulse {
-    0%,
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.3;
-      transform: scale(0.7);
-    }
-  }
-  .ai-label {
-    @apply text-[10px] font-bold uppercase tracking-[0.14em] text-pitch-600;
-  }
-  .ai-text {
-    @apply min-h-[42px] text-[13px] font-normal leading-[1.6] text-neutral-500;
-  }
-  .ai-odds {
-    @apply mt-3.5 flex gap-2;
-  }
-  .ai-odd-chip {
-    @apply flex-1 rounded-xl border border-black/[0.07] bg-surface px-2 py-2.5 text-center;
-  }
-  .ai-odd-chip.highlight {
-    @apply border-accent bg-accent;
-  }
-  .ai-odd-label {
-    @apply truncate text-[11px] font-bold uppercase tracking-wider text-neutral-500;
-  }
-  .ai-odd-chip.highlight .ai-odd-label {
-    @apply text-accent-foreground;
   }
 
   /* ─── BOTTOM SHEET ANIMATIONS ────────────────────────────── */

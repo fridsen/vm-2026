@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import AddToHomeScreenPrompt from './AddToHomeScreenPrompt.jsx';
 import { DesktopNav, MobileBottomNav } from './NavBar.jsx';
 import { usePhoneFrame } from '../hooks/usePhoneFrame.js';
+import { useVisualViewportFooter } from '../hooks/useVisualViewportFooter.js';
 
 function PhoneFrameToggle({ on, onToggle }) {
   return (
@@ -23,6 +24,8 @@ export default function Layout() {
   const location = useLocation();
   const mainRef = useRef(null);
 
+  useVisualViewportFooter(!phoneFrame);
+
   useEffect(() => {
     if (phoneFrame) {
       mainRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -39,7 +42,7 @@ export default function Layout() {
             <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pb-6 pt-12">
               <Outlet />
             </main>
-            <div className="app-mobile-footer shrink-0">
+            <div className="app-mobile-chrome">
               <AddToHomeScreenPrompt />
               <MobileBottomNav alwaysVisible />
             </div>
@@ -61,7 +64,7 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
-      <div className="app-mobile-footer">
+      <div className="app-mobile-chrome">
         <AddToHomeScreenPrompt />
         <MobileBottomNav />
       </div>

@@ -13,6 +13,8 @@ export default function BottomSheet({
   className,
   padded = true,
   maxWidth = 'max-w-[420px]',
+  /** `surface` = white cards; `sheet` = prediction-sheet container (#F0F5F9). */
+  bg = 'surface',
 }) {
   const [phase, setPhase] = useState('opening'); // opening | idle | dragging | settling | closing
   const [dragY, setDragY] = useState(0);
@@ -199,7 +201,8 @@ export default function BottomSheet({
       <div
         ref={sheetRef}
         className={clsx(
-          'relative z-10 flex max-h-[calc(100dvh-34px)] w-full flex-col overflow-hidden rounded-t-[32px] bg-surface pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_0_20px_rgba(0,0,0,0.15)]',
+          'relative z-10 flex max-h-[calc(100dvh-34px)] w-full flex-col overflow-hidden rounded-t-[32px] pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_0_20px_rgba(0,0,0,0.15)]',
+          bg === 'sheet' ? 'bg-sheet' : 'bg-surface',
           maxWidth,
           padded && 'px-4',
           className,

@@ -1,8 +1,7 @@
-// Match analysis — produces a multi-sentence Swedish breakdown of a matchup
-// from the 1X2 probabilities (whether real bookmaker-derived or our mock).
+// Templated match analysis for knockouts and other fixtures without curated copy.
 //
-// `mockProbabilities(home, away)` is a deterministic fallback used when no
-// live odds are available. `pickFromProbs(probs)` returns the most-likely
+// `mockProbabilities(home, away)` is a deterministic 1X2 split per matchup.
+// `pickFromProbs(probs)` returns the most-likely
 // outcome. `buildAnalysis(home, away, probs)` composes a four-part analysis
 // (favorite framing → gap commentary → underdog dynamic → closing
 // recommendation) — each part drawn deterministically from a template pool
@@ -176,11 +175,4 @@ export function buildAnalysis(home, away, probs) {
   );
 
   return `${opening} ${gapLine} ${dogLine} ${closing}`;
-}
-
-export function aiAnalysis(home, away) {
-  const probs = mockProbabilities(home, away);
-  if (!probs) return null;
-  const pick = pickFromProbs(probs);
-  return { ...probs, pick, blurb: buildAnalysis(home, away, probs) };
 }

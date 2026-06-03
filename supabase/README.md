@@ -13,6 +13,21 @@ Google. Configure both in the Dashboard (Authentication → Providers):
 - Enable the Google provider; set its Authorized redirect URI to
   `https://<ref>.supabase.co/auth/v1/callback` and add your site origins under
   Authentication → URL Configuration.
+
+### Local dev (stop OAuth sending you to production)
+
+In the **hosted** Supabase project (Dashboard → **Authentication** → **URL Configuration**):
+
+1. **Site URL** — keep production, e.g. `https://vm-2026-seven.vercel.app`
+2. **Redirect URLs** — add every origin you dev on, for example:
+   - `http://localhost:5173`
+   - `http://localhost:5173/**`
+   - `http://127.0.0.1:5173`
+   - Your LAN URL if you test on a phone, e.g. `http://192.168.1.10:5173/**`
+
+If localhost is missing, Google login completes but Supabase sends you to **Site URL** (Vercel) instead of your dev server.
+
+The app passes `redirectTo` from `getAuthRedirectUrl()` (`src/utils/authRedirect.js`) — usually `window.location.origin`. Optional override: `VITE_SITE_URL` in `.env.local`.
 - For email signup to drop the user straight into the app (the design has no
   "confirm your email" step), turn OFF "Confirm email" under
   Authentication → Providers → Email. If it stays ON, signup instead shows a

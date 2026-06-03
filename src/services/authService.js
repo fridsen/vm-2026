@@ -3,6 +3,7 @@
 // Thin, framework-free API so the React useAuth hook stays tiny and the
 // same functions can be reused from scripts/tests.
 
+import { getAuthRedirectUrl } from '../utils/authRedirect.js';
 import { supabase, unwrap } from './supabaseClient.js';
 
 // Stable id we use to scope localStorage entries written by the prototype.
@@ -25,7 +26,7 @@ export function onAuthStateChange(cb) {
 export async function signInWithEmail(email) {
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.origin },
+    options: { emailRedirectTo: getAuthRedirectUrl() },
   });
   if (error) throw error;
 }
@@ -39,7 +40,7 @@ export async function signUpWithPassword({ email, password, firstName, lastName 
     email,
     password,
     options: {
-      emailRedirectTo: window.location.origin,
+      emailRedirectTo: getAuthRedirectUrl(),
       data: { first_name: firstName, last_name: lastName },
     },
   });
@@ -54,7 +55,7 @@ export async function signInWithPassword(email, password) {
 
 export async function sendPasswordReset(email) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin,
+    redirectTo: getAuthRedirectUrl(),
   });
   if (error) throw error;
 }
@@ -62,7 +63,7 @@ export async function sendPasswordReset(email) {
 export async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin },
+    options: { redirectTo: getAuthRedirectUrl() },
   });
   if (error) throw error;
 }
