@@ -5,8 +5,8 @@
 import { signFromScore } from './signFromScore.js';
 
 // ============================================================
-// Gruppspelsmatch: max 5p
-// - Rätt tecken (1/X/2): 2p
+// Gruppspelsmatch: max 6p
+// - Rätt tecken (1/X/2): 3p
 // - Rätt antal hemmamål: 1p
 // - Rätt antal bortamål: 1p
 // - Bonus om allt stämmer (tecken + båda mål): +1p
@@ -28,7 +28,7 @@ export function scoreGroupMatch(pred, actual) {
   const homeCorrect = Number(pred.home) === Number(actual.home);
   const awayCorrect = Number(pred.away) === Number(actual.away);
 
-  if (signCorrect) breakdown.sign = 2;
+  if (signCorrect) breakdown.sign = 3;
   if (homeCorrect) breakdown.homeGoals = 1;
   if (awayCorrect) breakdown.awayGoals = 1;
   if (signCorrect && homeCorrect && awayCorrect) breakdown.exact = 1;
@@ -39,11 +39,11 @@ export function scoreGroupMatch(pred, actual) {
 }
 
 // ============================================================
-// Gruppslutställning: max 6p
+// Gruppslutställning: max 7p
 // - Rätt gruppvinnare: 2p
 // - Rätt tvåa: 1p
 // - Rätt trea: 1p
-// - Bonus om alla fyra rätt i rätt ordning: +2p
+// - Bonus om alla fyra rätt i rätt ordning: +3p
 // ============================================================
 export function scoreGroupStanding(pred, actual) {
   const breakdown = { first: 0, second: 0, third: 0, allFourBonus: 0 };
@@ -60,7 +60,7 @@ export function scoreGroupStanding(pred, actual) {
     pred[1] === actual[1] &&
     pred[2] === actual[2] &&
     pred[3] === actual[3];
-  if (allFour) breakdown.allFourBonus = 2;
+  if (allFour) breakdown.allFourBonus = 3;
 
   const points =
     breakdown.first + breakdown.second + breakdown.third + breakdown.allFourBonus;
@@ -75,7 +75,7 @@ export function scoreGroupStanding(pred, actual) {
 // SF  (semifinal,        4→2):  4p per korrekt lag vidare (max 8p)
 // Bronsmatch: rätt vinnare = 5p
 // Final: rätt finalist = 5p per lag (max 10p)
-// VM-vinnare: 15p
+// VM-vinnare: 20p
 // ============================================================
 const ADVANCE_POINTS = {
   R32: 2,
@@ -125,7 +125,7 @@ export function scoreFinalists(predTeamIds, actualTeamIds) {
 export function scoreWorldCupWinner(predTeamId, actualTeamId) {
   const correct = predTeamId && predTeamId === actualTeamId;
   return {
-    points: correct ? 15 : 0,
+    points: correct ? 20 : 0,
     breakdown: { correct: !!correct },
   };
 }

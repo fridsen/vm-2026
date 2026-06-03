@@ -12,11 +12,19 @@ export function useLeaderboard() {
 
   useEffect(() => {
     let mounted = true;
-    fetchLeaderboard().then((data) => {
-      if (!mounted) return;
-      setEntries(data);
-      setLoading(false);
-    });
+    fetchLeaderboard()
+      .then((data) => {
+        if (!mounted) return;
+        setEntries(data);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setEntries([]);
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setLoading(false);
+      });
     return () => {
       mounted = false;
     };
@@ -33,9 +41,15 @@ export function useMyRank(explicitUserId) {
 
   useEffect(() => {
     if (!userId) {
-      setRank(null);
-      setEntry(null);
-      return;
+      let cancelled = false;
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setRank(null);
+        setEntry(null);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
     let mounted = true;
     Promise.all([fetchLeaderboardRank(userId), fetchUserEntry(userId)]).then(
@@ -44,7 +58,11 @@ export function useMyRank(explicitUserId) {
         setRank(r);
         setEntry(e);
       }
-    );
+    ).catch(() => {
+      if (!mounted) return;
+      setRank(null);
+      setEntry(null);
+    });
     return () => {
       mounted = false;
     };

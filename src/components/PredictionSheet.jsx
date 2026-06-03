@@ -28,7 +28,7 @@ function ArrowLeftIcon({ className }) {
 function TeamEmblem({ team }) {
   const url = team ? emblemForCode(team.code) : null;
   return (
-    <div className="flex h-[70px] w-[70px] items-center justify-center">
+    <div className="flex h-[60px] w-[60px] items-center justify-center">
       {url ? (
         <img
           src={url}
@@ -36,7 +36,7 @@ function TeamEmblem({ team }) {
           className="h-full w-full object-contain"
         />
       ) : (
-        <span className="text-[46px] leading-none">{team?.flag}</span>
+        <span className="text-[40px] leading-none">{team?.flag}</span>
       )}
     </div>
   );
@@ -47,13 +47,13 @@ function TeamEmblem({ team }) {
 // re-measures once the Bebas Neue webfont has loaded (metrics change).
 function TeamName({ children }) {
   const ref = useRef(null);
-  const [size, setSize] = useState(22);
+  const [size, setSize] = useState(20);
 
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    const MAX = 22;
+    const MAX = 20;
     const MIN = 12;
     const fit = () => {
       let s = MAX;
@@ -82,7 +82,7 @@ function TeamName({ children }) {
     <span
       ref={ref}
       style={{ fontSize: `${size}px` }}
-      className="block w-[120px] overflow-hidden whitespace-nowrap text-center font-display uppercase leading-tight tracking-[0.88px] text-ink"
+      className="block w-[120px] overflow-hidden whitespace-nowrap text-center font-display uppercase leading-tight tracking-[0.8px] text-ink"
     >
       {children}
     </span>
@@ -91,9 +91,9 @@ function TeamName({ children }) {
 
 function ScoreStepper({ value, onChange, disabled }) {
   const btn =
-    'flex h-10 w-10 items-center justify-center rounded-lg bg-surface text-2xl leading-none transition-colors disabled:opacity-30';
+    'flex h-10 w-10 items-center justify-center rounded-lg bg-[#eff0f9] pb-[5px] pt-1 font-barlow text-2xl leading-none text-ink transition-colors disabled:opacity-30';
   return (
-    <div className="flex items-center gap-3 drop-shadow-[0px_4px_8px_rgba(57,61,73,0.08)]">
+    <div className="flex items-center gap-3">
       <button
         type="button"
         disabled={disabled}
@@ -101,7 +101,7 @@ function ScoreStepper({ value, onChange, disabled }) {
           haptics.selection();
           onChange(Math.max(0, value - 1));
         }}
-        className={clsx(btn, 'text-ink-faint')}
+        className={btn}
         aria-label="Minus"
       >
         −
@@ -113,7 +113,7 @@ function ScoreStepper({ value, onChange, disabled }) {
           haptics.selection();
           onChange(value + 1);
         }}
-        className={clsx(btn, 'text-ink')}
+        className={btn}
         aria-label="Plus"
       >
         +
@@ -128,13 +128,13 @@ function MarketButton({ symbol, label, selected, onClick }) {
       type="button"
       onClick={onClick}
       className={clsx(
-        'flex h-[74px] flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl px-1 py-3 transition-colors',
-        selected ? 'bg-black' : 'bg-surface'
+        'flex min-h-[68px] flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl px-1 py-3 text-center transition-colors',
+        selected ? 'bg-black' : 'bg-[#eff0f9]'
       )}
     >
       <span
         className={clsx(
-          'font-display text-[30px] leading-[30px]',
+          'font-display text-[26px] leading-[26px]',
           selected ? 'text-white' : 'text-ink'
         )}
       >
@@ -142,7 +142,7 @@ function MarketButton({ symbol, label, selected, onClick }) {
       </span>
       <span
         className={clsx(
-          'w-full truncate font-barlow text-xs',
+          'w-full truncate font-barlow text-xs leading-normal',
           selected ? 'text-white/70' : 'text-ink/50'
         )}
       >
@@ -170,7 +170,7 @@ function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, d
   return (
     <div className="flex flex-col gap-5">
       {/* ── Prediction card ───────────────────────────────── */}
-      <div className="flex flex-col rounded-[20px] bg-sheet">
+      <div className="flex flex-col rounded-[20px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.1)]">
         {/* Title */}
         <div className="flex items-center justify-between border-b-[0.5px] border-[rgba(12,22,42,0.08)] px-4 pb-2.5 pt-3">
           <span className="font-barlow text-xs font-semibold uppercase tracking-[0.72px] text-ink-muted">
@@ -182,7 +182,7 @@ function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, d
         </div>
 
         {/* Score */}
-        <div className="px-2 pb-4 pt-5">
+        <div className="px-2 pb-3 pt-4">
           <div className="flex items-start justify-center gap-2.5">
             {/* Home team */}
             <div className="flex w-[120px] flex-col items-center gap-2">
@@ -213,7 +213,7 @@ function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, d
 
         {/* Match result market */}
         <div className="py-3">
-          <div className="flex gap-2 px-4 drop-shadow-[0px_4px_8px_rgba(57,61,73,0.08)]">
+          <div className="flex gap-3 px-4 drop-shadow-[0px_4px_8px_rgba(57,61,73,0.08)]">
             <MarketButton
               symbol="1"
               label={homeTeam?.name || 'Hemma'}
@@ -238,14 +238,14 @@ function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, d
 
       {/* ── Analysis card ─────────────────────────────────── */}
       {ai.blurb && (
-        <div className="flex flex-col rounded-[20px] bg-sheet">
+        <div className="flex flex-col rounded-2xl bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.1)]">
           <div className="flex items-center gap-2 border-b-[0.5px] border-[rgba(12,22,42,0.08)] px-4 pb-2.5 pt-3">
             <span className="font-barlow text-xs font-semibold uppercase tracking-[0.72px] text-ink-muted">
               Analys
             </span>
             {ai.analysisLoading && <div className="ai-dot" />}
           </div>
-          <div className="px-4 py-3">
+          <div className="px-4 pb-3 pt-2">
             <p
               className={clsx(
                 'font-barlow text-sm leading-[22px] text-ink transition-opacity duration-300',
@@ -297,11 +297,18 @@ export default function PredictionSheet({
   // match id (not the prediction identity) so saving — which changes the
   // prediction prop in place — doesn't wipe the transient "saved" message.
   useEffect(() => {
-    setHome(prediction?.home ?? 0);
-    setAway(prediction?.away ?? 0);
-    setOutcomePick(prediction?.outcome ?? null);
-    setShowTooltip(false);
-    setSaved(false);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setHome(prediction?.home ?? 0);
+      setAway(prediction?.away ?? 0);
+      setOutcomePick(prediction?.outcome ?? null);
+      setShowTooltip(false);
+      setSaved(false);
+    });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [match?.id]);
 
@@ -434,7 +441,14 @@ export default function PredictionSheet({
     : [];
 
   return (
-    <BottomSheet open={!!match} onClose={onClose}>
+    <BottomSheet
+      open={!!match}
+      onClose={onClose}
+      padded={false}
+      maxWidth="max-w-[390px]"
+      className="bg-[#f0f5f9]"
+    >
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-1">
         {/* Match content — single live panel, or a 2-panel slide on nav */}
         <div ref={viewportRef} className={clsx('relative', trans && 'overflow-hidden')}>
           {trans ? (
@@ -469,14 +483,15 @@ export default function PredictionSheet({
             </div>
           )}
         </div>
+      </div>
 
         {/* ── Submit + navigation (persistent) ────────────────── */}
-        <div className="flex items-center gap-3 py-10">
+        <div className="flex w-full shrink-0 items-center gap-3 bg-[#f0f5f9] px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-5">
           <button
             type="button"
             onClick={() => navigate('prev')}
             disabled={!hasPrev}
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[rgba(25,55,93,0.05)] bg-sheet text-ink transition-colors disabled:cursor-default disabled:opacity-30"
+            className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border border-[rgba(25,55,93,0.05)] bg-white text-ink shadow-[0px_1px_2px_rgba(0,0,0,0.1)] transition-colors disabled:cursor-default disabled:opacity-30"
             aria-label="Föregående match"
           >
             <ArrowLeftIcon className="h-4 w-4" />
@@ -495,7 +510,7 @@ export default function PredictionSheet({
               type="button"
               onClick={handleSubmit}
               className={clsx(
-                'flex h-14 w-full items-center justify-center rounded-2xl px-4 font-barlow text-lg font-semibold text-white transition-colors',
+                'flex h-[52px] w-full items-center justify-center rounded-2xl px-4 font-barlow text-base font-semibold text-white transition-colors',
                 canSave
                   ? 'bg-black hover:opacity-90'
                   : 'cursor-not-allowed bg-submit-disabled'
@@ -509,7 +524,7 @@ export default function PredictionSheet({
             type="button"
             onClick={() => navigate('next')}
             disabled={!hasNext}
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[rgba(25,55,93,0.05)] bg-sheet text-ink transition-colors disabled:cursor-default disabled:opacity-30"
+            className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border border-[rgba(25,55,93,0.05)] bg-white text-ink shadow-[0px_1px_2px_rgba(0,0,0,0.1)] transition-colors disabled:cursor-default disabled:opacity-30"
             aria-label="Nästa match"
           >
             <ArrowLeftIcon className="h-4 w-4 rotate-180" />

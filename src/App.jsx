@@ -8,6 +8,7 @@ import MatchesPage from './pages/MatchesPage.jsx';
 import GroupStandingsPage from './pages/GroupStandingsPage.jsx';
 import MinaTipsPage from './pages/MinaTipsPage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="slutspel" element={<Navigate to="/grupper?tab=slutspel" replace />} />
               <Route path="mina-tips" element={<MinaTipsPage />} />
               <Route path="leaderboard" element={<LeaderboardPage />} />
+              <Route path="profile" element={<ProfilePage />} />
             </Route>
           </Routes>
           </BrowserRouter>

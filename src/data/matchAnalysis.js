@@ -13,313 +13,313 @@ const ENTRIES = [
   // ── Grupp A: Mexiko, Sydafrika, Sydkorea, Tjeckien ──────────────
   {
     teams: ['MEX', 'RSA'],
-    text: 'Mexiko är klart högre rankat och har hemmaplansfördel, medan Sydafrika återvänder till VM efter lång frånvaro. Mexiko var obesegrat i marsmatcherna (0–0 mot Portugal, 1–1 mot Belgien) men har en osäker målvaktssituation efter Malagóns hälseneskada. Mötet är en repris på VM 2010 med samma två förbundskaptener. Mexikansk seger är det mest sannolika utfallet.',
+    text: 'Mexiko har hemmaplan och högre kvalitet, även om målvaktsläget oroar. Sydafrika är tillbaka efter lång frånvaro. Mexikansk seger är troligast.',
   },
   {
     teams: ['MEX', 'KOR'],
-    text: 'Två rutinerade VM-nationer där Mexiko har publiken och Sydkorea har individuell toppkvalitet i Son Heung-min (33) och Kim Min-jae. Det blir sannolikt jämnt, med koreansk kontringsfart som främsta hot mot mexikansk bollkontroll. Liten mexikansk fördel, men oavgjort är fullt möjligt.',
+    text: 'Mexiko har publiken och bollkontrollen, Sydkorea hotar med Son och snabba kontringar. Jämn match med liten mexikansk fördel.',
   },
   {
     teams: ['MEX', 'CZE'],
-    text: 'Mexiko är favorit med hemmaplan och bredd; Tjeckien kom in via straffseger mot Danmark i playoff och är välorganiserat. Tjeckiens styrka är struktur snarare än individuell briljans. Knapp mexikansk seger är troligast.',
+    text: 'Mexiko har hemmaplan och större bredd. Tjeckien är välorganiserat men saknar samma spets. Knapp mexikansk seger är troligast.',
   },
   {
     teams: ['RSA', 'KOR'],
-    text: 'Sydkorea är högre rankat och har mer slagkraft framåt genom Son. Sydafrika är defensivt tåligt men har svårare att skapa farlighet. Sydkoreansk fördel.',
+    text: 'Sydkorea har högre ranking och mer spets genom Son. Sydafrika är tåligt bakåt men skapar mindre framåt. Koreansk fördel.',
   },
   {
     teams: ['KOR', 'CZE'],
-    text: 'Jämn match mellan två organiserade lag; Korea har stjärnglansen i Son medan Tjeckien förlitar sig på kollektivet. Små marginaler lär avgöra. Lätt koreansk fördel.',
+    text: 'Två organiserade lag där Korea har Son som matchvinnare och Tjeckien lutar sig mot kollektivet. Små marginaler, lätt koreansk fördel.',
   },
   {
     teams: ['CZE', 'RSA'],
-    text: 'Tjeckien är tyngre på pappret och mer meriterat på senare år. Sydafrika är svårforcerat men producerar lite offensivt. Knapp tjeckisk seger är det mest sannolika.',
+    text: 'Tjeckien är tyngre på pappret och mer meriterat. Sydafrika är svårforcerat men svagt framåt. Knapp tjeckisk seger känns trolig.',
   },
 
   // ── Grupp B: Kanada, Bosnien-Hercegovina, Qatar, Schweiz ────────
   {
     teams: ['CAN', 'BIH'],
-    text: 'Kanada spelar på hemmaplan med sin starkaste trupp någonsin (Davies, Jonathan David, Eustáquio), medan Bosnien kommer med stort självförtroende efter att ha slagit ut Italien. Publiktrycket i Toronto är en reell faktor. Det blir jämnt, med en knapp kanadensisk fördel.',
+    text: 'Kanada har hemmaplan och sin bästa trupp hittills. Bosnien kommer med självförtroende efter playoff. Jämnt, men knapp kanadensisk fördel.',
   },
   {
     teams: ['CAN', 'QAT'],
-    text: 'Kanada är högre rankat och har mer dynamik framåt; Qatar är asiatiska mästare 2023 men underdog här. Qatars styrka ligger i organisation och tålamod. Kanadensisk seger är trolig.',
+    text: 'Kanada har högre tempo och mer offensiv kraft. Qatar är organiserat och tålmodigt men underdog. Kanadensisk seger är trolig.',
   },
   {
     teams: ['CAN', 'SUI'],
-    text: 'Schweiz är gruppens mest stabila lag och tappar sällan poäng i mästerskap, medan Kanada har energin och en publik på sin sida. Två välorganiserade lag som tar få risker. Delade poäng eller en mycket knapp marginal är troligast.',
+    text: 'Schweiz är gruppens mest stabila lag, Kanada har energi och publikstöd. Två disciplinerade lag. Oavgjort eller knapp marginal känns troligast.',
   },
   {
     teams: ['BIH', 'QAT'],
-    text: 'Bosnien har mer europeisk tyngd och slagkraft; Qatar är disciplinerat men har svårt mot fysiskt starka lag. Bosnisk fördel.',
+    text: 'Bosnien har mer tyngd och offensiv slagkraft. Qatar är disciplinerat men kan få problem med fysiken. Bosnisk fördel.',
   },
   {
     teams: ['BIH', 'SUI'],
-    text: 'Schweizisk rutin och defensiv stabilitet möter bosnisk revanschlust och framåtanda. Schweiz är marginellt vassare på pappret. Jämnt, med lätt schweizisk fördel.',
+    text: 'Schweiz har rutin och defensiv stabilitet, Bosnien mer framåtanda. Schweiz är något vassare på pappret. Lätt schweizisk fördel.',
   },
   {
     teams: ['QAT', 'SUI'],
-    text: 'Schweiz är klart högre rankat och svårslaget i turneringsspel. Qatar kan göra det jobbigt med struktur men saknar samma kvalitet. Schweizisk seger trolig.',
+    text: 'Schweiz är klart högre rankat och svårslaget i mästerskap. Qatar kan störa med struktur men saknar samma kvalitet. Schweizisk seger trolig.',
   },
 
   // ── Grupp C: Brasilien, Marocko, Haiti, Skottland ───────────────
   {
     teams: ['BRA', 'MAR'],
-    text: 'En tidig tungviktsmatch: Marocko blev fyra i VM 2022 som första afrikanska semifinalist och är inget enkelt motstånd. Brasilien dras med skadekris (Militão borta, allvarlig hamstringskada på Estêvão, oklara Rodrygo och Cunha), medan Hakimi väntas spelklar för Marocko. Det jämnar ut en match som annars hade haft Brasilien som klar favorit. Mycket jämnt – oavgjort eller knapp marockansk skräll är fullt tänkbart.',
+    text: 'Brasilien har högst toppnivå men skadeläget jämnar ut mötet. Marocko har VM-rutin och stark struktur. Mycket jämnt, oavgjort är möjligt.',
   },
   {
     teams: ['BRA', 'HAI'],
-    text: 'Brasilien har en enorm kvalitetsmässig övervikt även med ett decimerat lag; Haiti spelar sitt första VM sedan 1974. Skillnaden i individuell klass är markant. Brasiliansk seger med marginal är trolig.',
+    text: 'Brasilien har enorm kvalitetsskillnad även med skador i truppen. Haiti är tillbaka i VM men räcker troligen inte till. Klar brasiliansk fördel.',
   },
   {
     teams: ['BRA', 'SCO'],
-    text: 'Brasilien är storfavorit; Skottland (Robertson, McTominay, Gilmour) är välorganiserat men underlägset i individuell kvalitet. Skottlands bästa väg är ett tätt, disciplinerat försvarsspel. Brasiliansk seger är det mest sannolika.',
+    text: 'Brasilien är storfavorit med mer individuell klass. Skottland är organiserat och behöver försvara kompakt. Brasiliansk seger är mest sannolik.',
   },
   {
     teams: ['MAR', 'HAI'],
-    text: 'Marocko är ett topp-tio-lag i världen med betydligt mer kvalitet och rutin. Haiti kämpar men har ett tydligt kvalitetsgap att överbrygga. Marockansk seger trolig.',
+    text: 'Marocko har klart mer kvalitet, rutin och VM-erfarenhet. Haiti kämpar hårt men har ett stort gap att stänga. Marockansk seger trolig.',
   },
   {
     teams: ['SCO', 'HAI'],
-    text: 'Två jämna lag i gruppens nedre halva; Skottland har högre rankning och mer Premier League-rutin. Haiti har fart men är mindre konsekvent. Skotsk fördel.',
+    text: 'Två jämna lag i gruppens nedre halva. Skottland har mer rutin och högre ranking, Haiti mer fart. Lätt skotsk fördel.',
   },
   {
     teams: ['SCO', 'MAR'],
-    text: 'Marocko är ett steg upp i kvalitet och har semifinalrutin från 2022. Skottland är taktiskt disciplinerat men har svårt att matcha marockansk bredd. Marockansk seger är troligast.',
+    text: 'Marocko har högre kvalitet och semifinalrutin från 2022. Skottland är disciplinerat men får svårt med bredden. Marockansk seger troligast.',
   },
 
   // ── Grupp D: USA, Paraguay, Australien, Turkiet ─────────────────
   {
     teams: ['USA', 'PAR'],
-    text: 'USA spelar hemma men kommer med frågetecken efter två marsförluster (mot Belgien och Portugal, 2–7 totalt) som blottade brister i tremannaförsvaret; Dest är tillbaka men Agyemang missar VM. Paraguay är taktiskt disciplinerat och avslutade Sydamerika-kvalet starkt. Hemmapublik talar för USA. Knapp USA-seger eller oavgjort är troligast.',
+    text: 'USA har hemmaplan men också defensiva frågetecken. Paraguay är disciplinerat och starkt från kvalet. Knapp USA-seger eller oavgjort känns troligast.',
   },
   {
     teams: ['USA', 'AUS'],
-    text: 'USA har högre kvalitet och hemmaplan, men Australiens fysik och turneringsrutin kan störa ett osäkert amerikanskt försvar. Det blir sannolikt en kamp där marginalerna är små. Lätt USA-fördel.',
+    text: 'USA har hemmaplan och högre kvalitet, men Australien kan störa med fysik och rutin. Små marginaler väntar. Lätt USA-fördel.',
   },
   {
     teams: ['USA', 'TUR'],
-    text: 'Turkiet (i sitt första VM sedan trean 2002) har stark individuell kvalitet i Arda Güler och Çalhanoğlu, medan USA har publiken men en sårbar baklinje. En av gruppens jämnaste och mest svårtippade matcher. Oavgjort eller knapp seger åt endera hållet.',
+    text: 'Turkiet har spets i Güler och Çalhanoğlu, USA har publiken men en sårbar backlinje. Väldigt svårtippat: oavgjort eller knapp seger.',
   },
   {
     teams: ['PAR', 'AUS'],
-    text: 'Två fysiska, organiserade lag med begränsad offensiv spets. Paraguay är något vassare på kontringar, Australien farligare på fasta situationer. Jämnt, delade poäng är fullt möjligt.',
+    text: 'Två fysiska och organiserade lag. Paraguay hotar mer i kontringar, Australien på fasta. Jämnt, delade poäng är fullt möjligt.',
   },
   {
     teams: ['PAR', 'TUR'],
-    text: 'Turkisk kreativitet och teknisk kvalitet mot paraguayansk struktur och disciplin. Turkiet har de bättre individerna. Lätt turkisk fördel.',
+    text: 'Turkisk kreativitet möter paraguayansk disciplin. Turkiet har mer individuell spets, men Paraguay är svårt att bryta ner. Lätt turkisk fördel.',
   },
   {
     teams: ['AUS', 'TUR'],
-    text: 'Turkiet har mer individuell klass, men Australien är fysiskt och svårspelat och kan utmana på fasta situationer. Det kan bli en närkampsbetonad match. Turkisk fördel, men jämnt.',
+    text: 'Turkiet har mer individuell klass, Australien mer fysik och hot på fasta. Det kan bli tätt och kampigt. Turkisk fördel, men jämnt.',
   },
 
   // ── Grupp E: Tyskland, Curaçao, Elfenbenskusten, Ecuador ────────
   {
     teams: ['GER', 'CUW'],
-    text: 'Curaçao är den minsta nationen (folkmängd) som någonsin kvalat till VM, coachad av Dick Advocaat – men kvalitetsgapet mot Tyskland är mycket stort. Tyskland saknar Gnabry men har kreativ klass i Wirtz och Musiala. Tysk seger med marginal är det troliga.',
+    text: 'Curaçao är en historisk VM-debutant men gapet mot Tyskland är stort. Wirtz och Musiala ger kreativ klass. Tysk seger med marginal trolig.',
   },
   {
     teams: ['GER', 'CIV'],
-    text: 'Tyskland är klar favorit, men Elfenbenskusten har Premier League-kvalitet och fysik som kan ställa till det stundtals. Tysk bollkontroll mot ivoriansk atletism. Tysk seger är troligast.',
+    text: 'Tyskland är klar favorit med bollkontroll och bredd. Elfenbenskusten har fysik och kvalitet som kan störa. Tysk seger är troligast.',
   },
   {
     teams: ['GER', 'ECU'],
-    text: 'Ecuador har en stark defensiv bas och bedöms vara det lag som kan pressa Tyskland mest. Tyskland är vassare offensivt men kan ha svårt att bryta ner ett välorganiserat sydamerikanskt försvar. Tysk fördel, men oavgjort är möjligt.',
+    text: 'Ecuador har stark defensiv och kan pressa Tyskland mest i gruppen. Tyskland är vassare framåt, men oavgjort är möjligt.',
   },
   {
     teams: ['CUW', 'CIV'],
-    text: 'Elfenbenskusten har betydligt mer individuell kvalitet och fysik. Curaçao är välcoachat men underlägset på de flesta positioner. Ivoriansk seger trolig.',
+    text: 'Elfenbenskusten har klart mer individuell kvalitet och fysik. Curaçao är välcoachat men underlägset. Ivoriansk seger trolig.',
   },
   {
     teams: ['CUW', 'ECU'],
-    text: 'Ecuador är högre rankat och defensivt solitt med mer turneringskvalitet. Curaçao kämpar men har ett tydligt gap att hantera. Ecuadoriansk seger är troligast.',
+    text: 'Ecuador är högre rankat, defensivt stabilt och mer turneringsvant. Curaçao får svårt att stänga kvalitetsgapet. Ecuadoriansk seger trolig.',
   },
   {
     teams: ['CIV', 'ECU'],
-    text: 'En jämn match om vilket lag som bäst utmanar Tyskland; Ecuador har den stabilare defensiven, Elfenbenskusten den vassare offensiven. Små marginaler avgör. Lätt Ecuador-fördel.',
+    text: 'Jämnt möte om andraplatsen. Ecuador har stabilare defensiv, Elfenbenskusten mer offensiv kraft. Små marginaler, lätt Ecuador-fördel.',
   },
 
   // ── Grupp F: Nederländerna, Japan, Sverige, Tunisien ────────────
   {
     teams: ['NED', 'JPN'],
-    text: 'Japan slog både Tyskland och Spanien i VM 2022 och vann 1–0 borta mot England i mars 2026 – ett tekniskt och farligt lag. Nederländerna tappade Xavi Simons (korsband) vilket försvagar kreativiteten i en redan tunn mittfältsuppställning. Det gör matchen jämnare än rankingen antyder. Oavgjort är fullt möjligt.',
+    text: 'Japan är tekniskt, snabbt och farligt. Nederländerna har mer bredd men saknar Xavi Simons kreativitet. Jämnare än rankingen säger, kryss möjligt.',
   },
   {
     teams: ['NED', 'SWE'],
-    text: 'Utan Xavi Simons är Nederländerna mer sårbara på mittfältet, och Sverige har en avgörare i Viktor Gyökeres som är i målform efter två playoffmatcher. Holländarna har mer bredd, men Sverige kan göra det till en jämn tillställning. Lätt holländsk fördel, men ett svenskt resultat är inom räckhåll.',
+    text: 'Nederländerna har mer bredd men saknar Simons. Sverige har Gyökeres som tydligt hot. Lätt holländsk fördel, men svenskt resultat är möjligt.',
   },
   {
     teams: ['NED', 'TUN'],
-    text: 'Nederländerna har klart mer kvalitet, medan Tunisien är defensivt välorganiserat och svårforcerat. Tålamod krävs av holländarna mot ett kompakt försvar. Holländsk seger är troligast, men knappt.',
+    text: 'Nederländerna har klart mer kvalitet, men Tunisien är kompakt och svårforcerat. Holländarna behöver tålamod. Seger trolig, men knapp.',
   },
   {
     teams: ['JPN', 'SWE'],
-    text: 'En av gruppens jämnaste matcher: japansk rörlighet och tempo mot svensk fysik och Gyökeres slagkraft. Japan har god form, men Sverige är svårspelat och farligt på fasta situationer. Mycket jämnt – kan avgöras av detaljer.',
+    text: 'Japans tempo och teknik möter svensk fysik och Gyökeres spets. Sverige hotar på fasta. Väldigt jämnt och lär avgöras av detaljer.',
   },
   {
     teams: ['JPN', 'TUN'],
-    text: 'Detta blir VM-historiens 1000:e match. Japans rörlighet och teknik mot tunisisk struktur och disciplin; japanerna har de bättre individerna. Japansk seger är troligast, men knappt.',
+    text: 'VM-historiens 1000:e match. Japan har rörlighet, teknik och bättre individer; Tunisien struktur och disciplin. Japansk seger, men knappt.',
   },
   {
     teams: ['SWE', 'TUN'],
-    text: 'Sverige har mer offensiv slagkraft genom Gyökeres, medan Tunisien förlitar sig på ett kompakt, tåligt försvar. Sverige bör bära spelet men måste vara tålmodigt mot ett lag som gärna släpper initiativet. Knapp svensk seger är troligast.',
+    text: 'Sverige har mer offensiv kraft genom Gyökeres. Tunisien försvarar kompakt och lågt. Sverige bör föra spelet, knapp svensk seger troligast.',
   },
 
   // ── Grupp G: Belgien, Egypten, Iran, Nya Zeeland ────────────────
   {
     teams: ['BEL', 'EGY'],
-    text: 'Belgiens guldgeneration (De Bruyne, Lukaku, Doku) får en sista chans och är gruppens högst rankade lag, medan Egypten lutar sig mot Mohamed Salah, som väntas tillbaka efter en hamstringskada. Salahs form avgör hur jämn matchen blir. Belgisk fördel, men Egypten kan utmana.',
+    text: 'Belgien har mer bredd och högre ranking, Egypten lutar sig mot Salah. Hans form avgör hur jämnt det blir. Belgisk fördel, men Egypten kan störa.',
   },
   {
     teams: ['BEL', 'IRN'],
-    text: 'Belgien har klart mer individuell kvalitet; Iran är defensivt tåligt och organiserat och kan göra det surt. Iran spelar gärna lågt och kontrar. Belgisk seger trolig.',
+    text: 'Belgien har klart mer individuell kvalitet. Iran är organiserat, lågt och kontringsstarkt men saknar samma spets. Belgisk seger trolig.',
   },
   {
     teams: ['BEL', 'NZL'],
-    text: 'Belgien har en mycket stor kvalitetsmässig övervikt. Nya Zeeland kämpar men har ett tydligt gap att överbrygga. Belgisk seger med marginal.',
+    text: 'Belgien har ett stort kvalitetsövertag över hela planen. Nya Zeeland lär kämpa hårt men gapet är tydligt. Belgisk seger med marginal.',
   },
   {
     teams: ['EGY', 'IRN'],
-    text: 'Två rutinerade, defensivt starka lag – en klassiskt jämn drabbning där små marginaler avgör. Egypten är vassare med ett friskt Salah, Iran är svårslaget bakåt. Jämnt, med lätt egyptisk fördel.',
+    text: 'Två rutinerade och defensivt starka lag. Egypten är vassare med Salah, Iran svårslaget bakåt. Jämnt, med lätt egyptisk fördel.',
   },
   {
     teams: ['EGY', 'NZL'],
-    text: 'Egypten är högre rankat och har i Salah en spelare som kan avgöra på egen hand. Nya Zeeland är arbetsamt men underlägset offensivt. Egyptisk seger trolig.',
+    text: 'Egypten är högre rankat och har Salah som kan avgöra själv. Nya Zeeland är arbetsamt men svagare offensivt. Egyptisk seger trolig.',
   },
   {
     teams: ['IRN', 'NZL'],
-    text: 'Iran är mer rutinerat och organiserat med högre rankning. Nya Zeeland kämpar väl men har svårt att skapa farlighet. Iransk seger är troligast.',
+    text: 'Iran är mer rutinerat, bättre organiserat och högre rankat. Nya Zeeland kämpar men skapar för lite. Iransk seger är troligast.',
   },
 
   // ── Grupp H: Spanien, Kap Verde, Saudiarabien, Uruguay ──────────
   {
     teams: ['ESP', 'CPV'],
-    text: 'Spanien är regerande Europamästare och världstvåa mot debutanten Kap Verde. Lamine Yamal hann skada hamstringen men väntas spelklar. Kvalitetsskillnaden är mycket stor. Spansk seger med marginal är trolig.',
+    text: 'Spanien är regerande Europamästare och har enorm kvalitet mot debutanten Kap Verde. Yamal väntas spelklar. Spansk seger med marginal trolig.',
   },
   {
     teams: ['ESP', 'KSA'],
-    text: 'Spanien har en kraftig övervikt i bollinnehav och kvalitet, men Saudiarabien chockade Argentina i VM 2022 och ska inte underskattas. Saudierna behöver en perfekt dag och spansk ineffektivitet. Spansk seger är klart troligast.',
+    text: 'Spanien har stort övertag i bollinnehav och kvalitet. Saudiarabien kan skrälla, men behöver en perfekt dag. Spansk seger klart troligast.',
   },
   {
     teams: ['ESP', 'URU'],
-    text: 'Gruppens troliga toppmatch: spansk bollkontroll mot uruguayansk defensiv stabilitet och kontringsstyrka (Valverde, Núñez, Ugarte). Uruguay har rutinen och tyngden att stå emot. Jämnt – ett av gruppspelets mest intressanta möten, oavgjort är möjligt.',
+    text: 'Gruppens toppmatch: spansk bollkontroll mot Uruguays tyngd, defensiv och kontringar. Mycket jämnt, oavgjort är fullt möjligt.',
   },
   {
     teams: ['CPV', 'KSA'],
-    text: 'Två jämna lag i gruppens nedre halva; Saudiarabien har mer turneringsrutin medan Kap Verde debuterar. Små marginaler avgör. Lätt saudisk fördel.',
+    text: 'Två jämna lag i gruppens nedre halva. Saudiarabien har mer turneringsrutin, Kap Verde debuterar. Små marginaler, lätt saudisk fördel.',
   },
   {
     teams: ['CPV', 'URU'],
-    text: 'Uruguay har betydligt mer kvalitet och rutin på alla linjer. Kap Verde är energiskt men underlägset. Uruguayansk seger trolig.',
+    text: 'Uruguay har klart mer kvalitet, rutin och tyngd på alla linjer. Kap Verde är energiskt men underlägset. Uruguayansk seger trolig.',
   },
   {
     teams: ['KSA', 'URU'],
-    text: 'Uruguay försvarar tight och kontrar vasst, vilket passar mot ett Saudiarabien som gärna har bollen. Saudierna kan dock överraska, vilket VM 2022 visade. Uruguayansk fördel.',
+    text: 'Uruguay försvarar tight och kontrar vasst, vilket passar mot Saudiarabien. Saudierna kan överraska, men Uruguay har fördel.',
   },
 
   // ── Grupp I: Frankrike, Senegal, Norge, Irak (Dödens grupp) ─────
   {
     teams: ['FRA', 'SEN'],
-    text: 'En laddad repris på chocken i VM 2002, då Senegal slog ut regerande mästaren Frankrike. Frankrike är världsetta och 2022-finalist (Mbappé, Doué, Cherki, Olise) men tappade Ekitike till skada, medan Senegal är bland Afrikas starkaste och avancerat från gruppen i sina två senaste VM. Skillnaden i bredd talar för Frankrike, men Senegal har fysiken och farten att överraska. Fransk fördel, med tydlig skrällvarning.',
+    text: 'Frankrike har bredden och världsklassen, Senegal fysiken och farten för att störa. Repris med skrällkänsla. Fransk fördel, men varning.',
   },
   {
     teams: ['FRA', 'NOR'],
-    text: 'Norge har två världsklasspelare i Haaland och Ødegaard som kan avgöra vilken match som helst, men Frankrike har djupet och bredden. Norge är farligast i en öppen match. Fransk fördel, men Norge kan utmana om Haaland får lägen.',
+    text: 'Frankrike har större bredd, men Norge har Haaland och Ødegaard som kan avgöra allt. Norge hotar mest i öppna ytor. Fransk fördel.',
   },
   {
     teams: ['FRA', 'IRQ'],
-    text: 'Frankrike har en mycket stor kvalitetsmässig övervikt; Irak är tillbaka i VM efter 40 år, coachat av Graham Arnold. Irakiernas bästa väg är ett kompakt, disciplinerat försvarsspel. Fransk seger med marginal är trolig.',
+    text: 'Frankrike har ett enormt kvalitetsövertag. Irak är tillbaka efter lång väntan och behöver försvara kompakt. Fransk seger med marginal trolig.',
   },
   {
     teams: ['SEN', 'NOR'],
-    text: 'En av gruppspelets mest jämna och laddade matcher: senegalesisk fysik och fart mot Haalands målfarlighet och Ødegaards speluppfattning. Båda lagen har slagkraft men kan vara sårbara bakåt. Mycket jämnt – kan sluta oavgjort.',
+    text: 'Senegals fysik och fart möter Haalands målhot och Ødegaards blick. Båda har slagkraft men luckor bakåt. Mycket jämnt, kryss möjligt.',
   },
   {
     teams: ['SEN', 'IRQ'],
-    text: 'Senegal har klart mer kvalitet och fysik på de flesta positioner. Irak är tåligt men underlägset offensivt. Senegalesisk seger är troligast.',
+    text: 'Senegal har mer kvalitet, fart och fysik på de flesta positioner. Irak är tåligt men svagare framåt. Senegalesisk seger troligast.',
   },
   {
     teams: ['NOR', 'IRQ'],
-    text: 'Norge har i Haaland och Ødegaard ett kvalitetsövertag som är svårt för Irak att hantera. Irak försvarar lågt och hoppas på kontringar. Norsk seger trolig.',
+    text: 'Norge har Haaland och Ødegaard, ett övertag Irak får svårt att hantera. Irak lär försvara lågt och kontra. Norsk seger trolig.',
   },
 
   // ── Grupp J: Argentina, Algeriet, Österrike, Jordanien ──────────
   {
     teams: ['ARG', 'ALG'],
-    text: 'Regerande världsmästaren med Messi (38), Lautaro, Álvarez och Enzo Fernández mot ett rutinerat men underlägset Algeriet. Argentina hade en stark uppladdning (2–1 mot Mauretanien, 5–0 mot Zambia). Kvalitetsskillnaden är betydande. Argentinsk seger är trolig.',
+    text: 'Argentina har världsmästarkvalitet och flera matchvinnare. Algeriet är rutinerat men underlägset i spets. Argentinsk seger är trolig.',
   },
   {
     teams: ['ARG', 'AUT'],
-    text: 'Gruppens troliga toppmöte: argentinsk individuell klass mot Österrikes intensiva högpressspel under Ralf Rangnick. Österrike kan störa men har svårt att hålla emot över 90 minuter. Argentinsk seger, men Österrike testar dem.',
+    text: 'Gruppens toppmöte: Argentinas klass mot Österrikes intensiva press. Österrike kan störa, men Argentina har mer spets över 90 minuter.',
   },
   {
     teams: ['ARG', 'JOR'],
-    text: 'Argentina har en mycket stor övervikt; Jordanien debuterar i VM men nådde Asiatiska mästerskapets final 2024. Jordanierna är organiserade men underlägsna i kvalitet. Argentinsk seger med marginal trolig.',
+    text: 'Argentina har ett mycket stort kvalitetsövertag. Jordanien är organiserat och kommer med självförtroende, men räcker troligen inte till.',
   },
   {
     teams: ['ALG', 'AUT'],
-    text: 'En jämn match mellan två organiserade lag; Österrike har mer fysik och pressspel, Algeriet mer teknisk individuell kvalitet. Små marginaler avgör. Lätt österrikisk fördel.',
+    text: 'Två organiserade lag: Österrike med fysik och press, Algeriet med teknik och spets. Små marginaler avgör. Lätt österrikisk fördel.',
   },
   {
     teams: ['ALG', 'JOR'],
-    text: 'Två relativt jämbördiga lag; Algeriet har mer rutin och kvalitet, Jordanien kommer med självförtroende. Det kan bli tätt. Lätt algerisk fördel.',
+    text: 'Två ganska jämna lag. Algeriet har mer rutin och kvalitet, Jordanien kommer med självförtroende. Tätt möte, lätt algerisk fördel.',
   },
   {
     teams: ['AUT', 'JOR'],
-    text: 'Österrike har högre rankning och ett aggressivt presspel som kan överbelasta Jordanien. Jordanien är disciplinerat men underlägset. Österrikisk seger är troligast.',
+    text: 'Österrike har högre ranking och ett aggressivt presspel som kan stressa Jordanien. Jordanien är disciplinerat men underdog.',
   },
 
   // ── Grupp K: Portugal, DR Kongo, Uzbekistan, Colombia ───────────
   {
     teams: ['POR', 'COD'],
-    text: 'Portugal har stjärnbredd (Ronaldo, Bruno Fernandes, Bernardo Silva, Leão) och är klar favorit, medan DR Kongo (Wissa, Tuanzebe) kvalade in dramatiskt. Kongoleserna är fysiskt starka men underlägsna i kvalitet. Portugisisk seger trolig.',
+    text: 'Portugal har enorm stjärnbredd och är klar favorit. DR Kongo är fysiskt starkt och dramatiskt kvalat, men underlägset i kvalitet.',
   },
   {
     teams: ['POR', 'UZB'],
-    text: 'Portugal har en mycket stor kvalitetsmässig övervikt mot VM-debutanten Uzbekistan. Uzbekerna är välorganiserade men saknar samma individuella klass. Portugisisk seger med marginal trolig.',
+    text: 'Portugal har ett stort kvalitetsövertag mot debutanten Uzbekistan. Uzbekerna är välorganiserade men saknar spets. Portugisisk seger trolig.',
   },
   {
     teams: ['POR', 'COL'],
-    text: 'Gruppens troliga toppmatch mellan två jämna lag; Colombia är världs-13:a med kreativ kvalitet i James Rodríguez och Luis Díaz. Portugal har mer bredd, men Colombia kan vinna gruppen rakt av. Mycket jämnt – oavgjort är fullt möjligt.',
+    text: 'Gruppens toppmatch. Portugal har mer bredd, Colombia kreativ spets med James och Díaz. Väldigt jämnt, oavgjort är fullt möjligt.',
   },
   {
     teams: ['COD', 'UZB'],
-    text: 'Två jämna lag; DR Kongo har mer fysik och Premier League-rutin, Uzbekistan mer struktur. Det kan bli tätt och avvaktande. Lätt kongolesisk fördel.',
+    text: 'Två jämna lag. DR Kongo har mer fysik och rutin, Uzbekistan mer struktur. Det kan bli tätt och avvaktande. Lätt kongolesisk fördel.',
   },
   {
     teams: ['COD', 'COL'],
-    text: 'Colombia har klart mer individuell kvalitet och offensiv kreativitet. DR Kongo är fysiskt besvärligt och kan störa. Colombiansk fördel.',
+    text: 'Colombia har mer individuell kvalitet och offensiv kreativitet. DR Kongo är fysiskt besvärligt och kan störa. Colombiansk fördel.',
   },
   {
     teams: ['UZB', 'COL'],
-    text: 'Colombia är högre rankat och vassare på de flesta positioner. Uzbekistan debuterar och är välorganiserat men underlägset. Colombiansk seger är troligast.',
+    text: 'Colombia är högre rankat och vassare på de flesta positioner. Uzbekistan debuterar och är välorganiserat men underdog.',
   },
 
   // ── Grupp L: England, Kroatien, Ghana, Panama ───────────────────
   {
     teams: ['ENG', 'CRO'],
-    text: 'Tung historik: Kroatien slog ut England i semifinalen 2018. England kvalade med perfekt facit under Tuchel (8 vinster, 22 gjorda, 0 insläppta) men föll 0–1 mot Japan i mars, medan Modrić (40) fortfarande styr Kroatiens spel. England har den yngre, vassare truppen; Kroatien rutinen. Jämnt, med lätt engelsk fördel.',
+    text: 'England har yngre och vassare trupp, Kroatien rutinen och Modrićs kontroll. Historiken väger tungt. Jämnt, med lätt engelsk fördel.',
   },
   {
     teams: ['ENG', 'GHA'],
-    text: 'England har högre kvalitet och bredd, men Ghanas fart kan skapa problem på omställningar. Engelsmännen bör kontrollera matchen om de behåller balansen bakåt. Engelsk seger är troligast.',
+    text: 'England har mer kvalitet och bredd, men Ghanas fart kan skapa problem i omställningar. Om balansen håller är engelsk seger troligast.',
   },
   {
     teams: ['ENG', 'PAN'],
-    text: 'England har en stor kvalitetsmässig övervikt mot ett disciplinerat, defensivt Panama. Panamas väg är att stå lågt och täta ytor. Engelsk seger trolig.',
+    text: 'England har stort kvalitetsövertag mot ett defensivt och disciplinerat Panama. Panama behöver stå lågt och täta ytor. Engelsk seger trolig.',
   },
   {
     teams: ['CRO', 'GHA'],
-    text: 'Kroatisk rutin och tekniskt mittfältsspel mot ghanansk fart och fysik. Kroatien har den stabilare strukturen, Ghana den högre intensiteten. Lätt kroatisk fördel.',
+    text: 'Kroatisk rutin och teknik möter ghanansk fart och fysik. Kroatien har stabilare struktur, Ghana högre intensitet. Lätt kroatisk fördel.',
   },
   {
     teams: ['CRO', 'PAN'],
-    text: 'Kroatien har mer kvalitet och bollkontroll; Panama är välorganiserat och svårspelat. Kroatien bör bära spelet mot ett kompakt försvar. Kroatisk seger, men jämnt.',
+    text: 'Kroatien har mer kvalitet och bollkontroll. Panama är välorganiserat och kompakt. Kroatien bör föra spelet. Kroatisk seger, men jämnt.',
   },
   {
     teams: ['GHA', 'PAN'],
-    text: 'Två jämna lag; Ghana har mer fart och Premier League-kvalitet, Panama mer taktisk disciplin. Det kan bli en tät match. Lätt ghanansk fördel.',
+    text: 'Två jämna lag. Ghana har mer fart och ligakvalitet, Panama mer taktisk disciplin. Det kan bli tätt. Lätt ghanansk fördel.',
   },
 ];
 

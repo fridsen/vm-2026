@@ -33,7 +33,14 @@ export default function OnboardingScene({ phase, onSetScreen }) {
   // down to the landing screen (the card stays mounted across all phases).
   const [lastForm, setLastForm] = useState('signup');
   useEffect(() => {
-    if (isForm) setLastForm(phase);
+    if (!isForm) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setLastForm(phase);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [phase, isForm]);
   const renderPhase = isForm ? phase : lastForm;
 

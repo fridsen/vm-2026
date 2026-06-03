@@ -27,19 +27,32 @@ export function usePayments() {
       setLoading(false);
       return;
     }
-    const [admin, mine, all] = await Promise.all([
-      fetchIsAdmin(),
-      fetchMyPayment(userId),
-      fetchAllPayments(),
-    ]);
-    setIsAdmin(admin);
-    setMyPayment(mine);
-    setPayments(all);
-    setLoading(false);
+    try {
+      const [admin, mine, all] = await Promise.all([
+        fetchIsAdmin(),
+        fetchMyPayment(userId),
+        fetchAllPayments(),
+      ]);
+      setIsAdmin(admin);
+      setMyPayment(mine);
+      setPayments(all);
+    } catch {
+      setIsAdmin(false);
+      setMyPayment(null);
+      setPayments({});
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
   useEffect(() => {
-    refresh();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) refresh().catch(() => undefined);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [refresh]);
 
   const togglePaid = useCallback(

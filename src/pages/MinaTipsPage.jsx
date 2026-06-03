@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAllMatches } from '../hooks/useMatches.js';
@@ -17,6 +17,14 @@ import winnerIcon from '../assets/mina-tips/winner-icon.svg';
 import helpIcon from '../assets/mina-tips/help-icon.svg';
 
 const MINA_TIPS_INTRO_SEEN_KEY = 'vm2026:minaTipsIntroSeen:v1';
+
+function shouldShowMinaTipsIntro() {
+  try {
+    return window.localStorage?.getItem(MINA_TIPS_INTRO_SEEN_KEY) !== '1';
+  } catch {
+    return true;
+  }
+}
 
 // ─── Circular progress badge ──────────────────────────────────────────────────
 
@@ -81,12 +89,36 @@ function Infobox({ icon, title, body, value, max }) {
 // ─── Segmented control ────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'matcher', label: 'Matcher' },
-  { id: 'grupper', label: 'Grupper' },
+  { id: 'matcher', label: 'Gruppspel' },
+  { id: 'grupper', label: 'Slutspel' },
   { id: 'vinnare', label: 'Vinnare' },
 ];
 
-function SegmentedControl({ value, onChange }) {
+function SegmentBadge({ status }) {
+  if (!status) return null;
+  if (status.done) {
+    return (
+      <span className="mina-segmented-badge is-done" aria-label="Klar">
+        <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path
+            d="M2 5.1 4.1 7.2 8 3"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+    );
+  }
+  return (
+    <span className={clsx('mina-segmented-badge', status.active ? 'is-active' : 'is-idle')}>
+      {status.count}
+    </span>
+  );
+}
+
+function SegmentedControl({ value, onChange, statuses }) {
   const activeIndex = Math.max(0, TABS.findIndex((tab) => tab.id === value));
 
   return (
@@ -111,9 +143,29 @@ function SegmentedControl({ value, onChange }) {
             value === tab.id && 'active',
           )}
         >
-          {tab.label}
+          <span>{tab.label}</span>
+          <SegmentBadge status={statuses?.[tab.id]} />
         </button>
       ))}
+    </div>
+  );
+}
+
+function StatusLegend() {
+  return (
+    <div className="mina-status-legend" aria-label="Statusförklaring">
+      <span>
+        <i className="is-idle" />
+        Ej startat
+      </span>
+      <span>
+        <i className="is-active" />
+        Pågående
+      </span>
+      <span>
+        <i className="is-done" />
+        Klar
+      </span>
     </div>
   );
 }
@@ -429,7 +481,7 @@ export default function MinaTipsPage() {
   const tabParam = searchParams.get('tab');
   const tab = TABS.some((item) => item.id === tabParam) ? tabParam : 'matcher';
   const [rulesOpen, setRulesOpen] = useState(false);
-  const [introOpen, setIntroOpen] = useState(false);
+  const [introOpen, setIntroOpen] = useState(shouldShowMinaTipsIntro);
   const { matches, loading: matchesLoading } = useAllMatches();
   const { groupLocked } = useLockState();
   const { predictions, updateMatch, updateGroupStanding, updateWinner } = usePredictions();
@@ -441,6 +493,23 @@ export default function MinaTipsPage() {
     : 0;
   const totalGroups = GROUPS.length;
   const winner = predictions?.knockout?.FINAL ?? null;
+  const tabStatuses = {
+    matcher: {
+      count: Math.max(0, totalMatches - matchCount),
+      active: matchCount > 0,
+      done: matchCount >= totalMatches && totalMatches > 0,
+    },
+    grupper: {
+      count: Math.max(0, totalGroups - groupCount),
+      active: groupCount > 0,
+      done: groupCount >= totalGroups && totalGroups > 0,
+    },
+    vinnare: {
+      count: 1,
+      active: false,
+      done: Boolean(winner),
+    },
+  };
 
   const infoboxProps = {
     matcher: {
@@ -470,17 +539,16 @@ export default function MinaTipsPage() {
     },
   }[tab];
 
-  useEffect(() => {
-    if (window.localStorage?.getItem(MINA_TIPS_INTRO_SEEN_KEY) === '1') return;
-    setIntroOpen(true);
-  }, []);
-
   function handleTabChange(nextTab) {
     setSearchParams(nextTab === 'matcher' ? {} : { tab: nextTab }, { replace: true });
   }
 
   function handleIntroClose() {
-    window.localStorage?.setItem(MINA_TIPS_INTRO_SEEN_KEY, '1');
+    try {
+      window.localStorage?.setItem(MINA_TIPS_INTRO_SEEN_KEY, '1');
+    } catch {
+      /* ignore unavailable storage */
+    }
     setIntroOpen(false);
   }
 
@@ -506,7 +574,9 @@ export default function MinaTipsPage() {
         </button>
       </header>
 
-      <SegmentedControl value={tab} onChange={handleTabChange} />
+      <SegmentedControl value={tab} onChange={handleTabChange} statuses={tabStatuses} />
+
+      <StatusLegend />
 
       <Infobox {...infoboxProps} />
 

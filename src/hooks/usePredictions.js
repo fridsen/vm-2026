@@ -27,13 +27,24 @@ function usePredictionsImpl(userId) {
       setLoading(false);
       return;
     }
-    const data = await fetchAllPredictions(userId);
-    setPredictions(data);
-    setLoading(false);
+    try {
+      const data = await fetchAllPredictions(userId);
+      setPredictions(data);
+    } catch {
+      setPredictions(null);
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
   useEffect(() => {
-    refresh();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) refresh();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [refresh]);
 
   const updateMatch = useCallback(

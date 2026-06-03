@@ -65,13 +65,13 @@ function PreWcHomeHeader({ name }) {
 
   return (
     <header className="home-topbar">
-      <div className="home-profile">
+      <Link to="/profile" className="home-profile" aria-label="Öppna profil">
         <div className="home-avatar">{initials || 'DU'}</div>
         <div>
           <div className="home-welcome">Välkommen!</div>
           <div className="home-name">{name}</div>
         </div>
-      </div>
+      </Link>
       <button type="button" className="home-bell" aria-label="Notiser">
         <BellIcon />
       </button>
@@ -455,7 +455,6 @@ export default function DashboardPage() {
   const myName = profile?.display_name || user?.email || 'Jimmy';
   const [predictMatch, setPredictMatch] = useState(null);
   const [rulesOpen, setRulesOpen] = useState(false);
-
   const deadlineMs = globalDeadline
     ? new Date(globalDeadline).getTime() - now
     : null;

@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { haptics } from '../utils/haptics.js';
 
 const SHEET_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const CLOSE_DURATION_MS = 280;
 
 export default function BottomSheet({
   open,
@@ -13,7 +14,7 @@ export default function BottomSheet({
   padded = true,
   maxWidth = 'max-w-[420px]',
 }) {
-  const [phase, setPhase] = useState('idle'); // idle | dragging | settling | closing
+  const [phase, setPhase] = useState('opening'); // opening | idle | dragging | settling | closing
   const [dragY, setDragY] = useState(0);
   const overlayRef = useRef(null);
   const sheetRef = useRef(null);
@@ -22,10 +23,25 @@ export default function BottomSheet({
   const movedRef = useRef(false);
 
   useEffect(() => {
-    if (!open) return undefined;
-    setPhase('idle');
-    setDragY(0);
+    if (!open) {
+      let cancelled = false;
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setPhase('opening');
+        setDragY(0);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+    let cancelled = false;
+    const raf = requestAnimationFrame(() => {
+      if (cancelled) return;
+      setPhase('idle');
+    });
     return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
       clearTimeout(closeTimer.current);
     };
   }, [open]);
@@ -62,7 +78,11 @@ export default function BottomSheet({
     haptics.light();
     setPhase('closing');
     clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => onClose?.(), 280);
+    closeTimer.current = setTimeout(() => {
+      setPhase('opening');
+      setDragY(0);
+      onClose?.();
+    }, CLOSE_DURATION_MS);
   };
 
   const onPointerDown = (e) => {
@@ -115,7 +135,11 @@ export default function BottomSheet({
       haptics.medium();
       setPhase('closing');
       clearTimeout(closeTimer.current);
-      closeTimer.current = setTimeout(() => onClose?.(), 280);
+      closeTimer.current = setTimeout(() => {
+        setPhase('opening');
+        setDragY(0);
+        onClose?.();
+      }, CLOSE_DURATION_MS);
     } else {
       setPhase('settling');
       setDragY(0);
@@ -135,9 +159,15 @@ export default function BottomSheet({
   if (!open) return null;
 
   const sheetStyle = { touchAction: 'none' };
-  if (phase === 'closing') {
+  if (phase === 'opening') {
+    sheetStyle.transform = 'translateY(110%)';
+    sheetStyle.transition = 'none';
+  } else if (phase === 'closing') {
     sheetStyle.transform = 'translateY(110%)';
     sheetStyle.transition = `transform 0.28s ${SHEET_EASE}`;
+  } else if (phase === 'idle') {
+    sheetStyle.transform = 'translateY(0)';
+    sheetStyle.transition = `transform 0.32s ${SHEET_EASE}`;
   } else if (phase === 'dragging') {
     sheetStyle.transform = `translateY(${dragY}px)`;
     sheetStyle.transition = 'none';
@@ -147,7 +177,7 @@ export default function BottomSheet({
   }
 
   const backdropOpacity =
-    phase === 'closing'
+    phase === 'opening' || phase === 'closing'
       ? 0
       : phase === 'dragging' || phase === 'settling'
         ? Math.max(0, 1 - dragY / 500)
@@ -163,13 +193,13 @@ export default function BottomSheet({
       aria-labelledby={labelledBy}
     >
       <div
-        className="sheet-fade-in absolute inset-0 bg-black/40"
+        className="fixed inset-0 z-0 bg-black/40"
         style={{ opacity: backdropOpacity, transition: 'opacity 0.28s ease' }}
       />
       <div
         ref={sheetRef}
         className={clsx(
-          'sheet-slide-up relative flex max-h-[calc(100dvh-34px)] w-full flex-col overflow-hidden rounded-t-[32px] bg-surface pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_0_20px_rgba(0,0,0,0.15)]',
+          'relative z-10 flex max-h-[calc(100dvh-34px)] w-full flex-col overflow-hidden rounded-t-[32px] bg-surface pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_0_20px_rgba(0,0,0,0.15)]',
           maxWidth,
           padded && 'px-4',
           className,

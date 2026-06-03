@@ -72,9 +72,11 @@ export function useMatchOdds(homeTeam, awayTeam, context = {}) {
     const mockProbs = mockProbabilities(homeTeam, awayTeam);
     let probs = mockProbs;
     let pick = pickFromProbs(mockProbs);
-    setState(seedState(homeTeam, awayTeam));
 
     let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setState(seedState(homeTeam, awayTeam));
+    });
 
     // Live odds → upgrade probs (and the templated fallback only).
     if (isLiveOddsEnabled()) {

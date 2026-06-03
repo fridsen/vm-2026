@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { RULE_SECTIONS, RuleCard } from './RulesSheet.jsx';
+import RulesContent from './RulesContent.jsx';
 
 export default function MinaTipsIntroModal({ open, onClose }) {
   const overlayRef = useRef(null);
@@ -38,16 +38,7 @@ export default function MinaTipsIntroModal({ open, onClose }) {
           </button>
         </header>
         <div className="mina-intro-content">
-          {RULE_SECTIONS.map((section) => (
-            <section key={section.title} className="mina-rules-section">
-              <h3>{section.title}</h3>
-              <div className="mina-rules-cards">
-                {section.cards.map((card) => (
-                  <RuleCard key={`${section.title}-${card.title}`} card={card} />
-                ))}
-              </div>
-            </section>
-          ))}
+          <RulesContent />
         </div>
       </div>
     </div>
