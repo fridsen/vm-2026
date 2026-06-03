@@ -54,12 +54,12 @@ export default function Layout() {
 
   return (
     <div className="app-viewport">
-      <div className="app-layout flex w-full min-h-0 flex-1 items-start md:min-h-screen">
+      <div className="app-layout flex min-h-0 w-full flex-1 flex-col md:min-h-screen md:flex-row md:items-start">
         <DesktopNav />
-        <div className="app-shell flex w-full min-w-0 min-h-0 flex-1 flex-col md:min-h-screen">
+        <div className="app-shell flex min-h-0 w-full min-w-0 flex-1 flex-col md:min-h-screen">
           <main
             ref={mainRef}
-            className="app-main w-full min-w-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:flex-1 md:overflow-visible md:px-8 md:pb-10 md:pt-8"
+            className="app-main min-h-0 w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:flex-1 md:overflow-visible md:px-8 md:pb-10 md:pt-8"
           >
             <Outlet />
           </main>
