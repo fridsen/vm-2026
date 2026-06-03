@@ -91,7 +91,7 @@ export function MobileBottomNav({ alwaysVisible = false }) {
   return (
     <nav
       className={clsx(
-        'app-bottom-nav z-20 flex w-full shrink-0 justify-center',
+        'app-bottom-nav flex w-full justify-center',
         !alwaysVisible && 'md:hidden',
       )}
     >

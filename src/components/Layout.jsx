@@ -60,10 +60,10 @@ export default function Layout() {
         >
           <Outlet />
         </main>
-        <div className="app-mobile-footer shrink-0">
-          <AddToHomeScreenPrompt />
-          <MobileBottomNav />
-        </div>
+      </div>
+      <div className="app-mobile-footer">
+        <AddToHomeScreenPrompt />
+        <MobileBottomNav />
       </div>
       <PhoneFrameToggle on={false} onToggle={toggle} />
     </div>
