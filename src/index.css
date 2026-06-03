@@ -184,10 +184,11 @@
     max-width: 390px;
     height: var(--app-tab-bar-height);
     box-sizing: border-box;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 0;
     background: #fff;
+    /* Figma 166:73477 — 80px bar, 14px top inset, tabs hug content (items-start) */
     padding: 14px 12px 0;
   }
   .app-bottom-nav-item {
@@ -196,7 +197,7 @@
     flex: 1 1 0;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 4px;
     color: #9499a1;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
