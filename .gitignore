@@ -21,6 +21,9 @@ dist-ssr
 supabase/.branches
 supabase/.temp
 
+# Playwright
+test-results/
+
 # Design references (not used by the build; ~30 MB)
 Inspiration/
 

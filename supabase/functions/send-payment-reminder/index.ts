@@ -88,11 +88,15 @@ Deno.serve(async (req) => {
     const { data: callerData } = await userClient.auth.getUser();
     const sentBy = callerData?.user?.id ?? null;
 
-    const { error: insertErr } = await admin.from('payment_reminders').insert({
-      user_id: userId,
-      message,
-      sent_by: sentBy,
-    });
+    const { data: reminderRow, error: insertErr } = await admin
+      .from('payment_reminders')
+      .insert({
+        user_id: userId,
+        message,
+        sent_by: sentBy,
+      })
+      .select('id')
+      .single();
     if (insertErr) throw insertErr;
 
     let emailSent = false;
@@ -113,17 +117,32 @@ Deno.serve(async (req) => {
         }),
       });
       emailSent = res.ok;
+      if (emailSent && reminderRow?.id) {
+        await admin
+          .from('payment_reminders')
+          .update({ email_sent_at: new Date().toISOString() })
+          .eq('id', reminderRow.id);
+      }
     }
 
-    await admin.from('payments').upsert(
-      {
+    const reminderPatch = {
+      reminder_count: (payment?.reminder_count ?? 0) + 1,
+      last_reminder_at: new Date().toISOString(),
+    };
+    if (payment) {
+      const { error: payErr } = await admin
+        .from('payments')
+        .update(reminderPatch)
+        .eq('user_id', userId);
+      if (payErr) throw payErr;
+    } else {
+      const { error: payErr } = await admin.from('payments').insert({
         user_id: userId,
         paid: false,
-        reminder_count: (payment?.reminder_count ?? 0) + 1,
-        last_reminder_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id' },
-    );
+        ...reminderPatch,
+      });
+      if (payErr) throw payErr;
+    }
 
     return new Response(
       JSON.stringify({ ok: true, emailSent, hasEmail: Boolean(email) }),

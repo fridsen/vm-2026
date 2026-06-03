@@ -7,13 +7,12 @@
 ## Upcoming
 
 - Leaderboard
-- Backup everyones predictions on deadline, test it 3 days ahead
+- ~~Backup everyones predictions on deadline~~ (cron: `vm2026_deadline_tick` — verify dry_run ~8 Jun)
 - Add live match data
 - Add live leaderboard toggle
 - Fäst på hemskärmen
 - Onboarding till prediction sheet
-- Onboarding till min tips sida
 
 ## Done
 
-- [x] Create TODO.md.
+- Onboarding till min tips sida

@@ -50,6 +50,7 @@ export default function Layout() {
           </div>
         </div>
         <PhoneFrameToggle on onToggle={toggle} />
+        <PaymentReminderToast />
       </div>
     );
   }

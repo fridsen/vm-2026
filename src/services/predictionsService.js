@@ -2,7 +2,7 @@
 //
 // Stores one row per (user_id, kind, key) in Supabase. In-scope kinds:
 // match, group_standing, final (VM winner). Legacy knockout/top_scorer rows
-// may still be loaded for display but cannot be saved (server RLS).
+// may remain in the DB for history but are not loaded or saved (server RLS).
 
 import { supabase, unwrap } from './supabaseClient.js';
 
