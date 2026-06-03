@@ -14,6 +14,7 @@
   }
   body {
     @apply w-full font-sans;
+    min-height: 100dvh;
     background: linear-gradient(200deg, #f5f4f9 2%, #e4eff4 32%, #f3eaf4 70%, #f5f4f9 99%) fixed;
     color: #1a1b2e;
   }
@@ -142,17 +143,18 @@
   }
   .app-mobile-chrome {
     position: fixed;
-    inset-inline: 0;
     bottom: 0;
-    z-index: 20;
+    left: 0;
+    right: 0;
+    z-index: 50;
     display: flex;
     width: 100%;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
     background: #fff;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.06);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 4px 0 env(safe-area-inset-bottom, 0px);
     pointer-events: none;
   }
   .app-mobile-chrome .app-bottom-nav,
@@ -2403,14 +2405,14 @@
     height: 24px;
     flex: 0 0 auto;
   }
-  /* ─── MOBILE: document scroll + fixed tab bar (see useVisualViewportFooter) ─ */
+  /* ─── MOBILE: document scroll + fixed tab bar (vmkollen .bnav / .pb-nav pattern) ─ */
   @media (max-width: 767px) {
     .app-shell {
       min-height: auto;
     }
     .app-main {
       padding-bottom: calc(
-        var(--app-tab-bar-height) + var(--app-main-nav-gap) + env(safe-area-inset-bottom, 0px)
+        var(--app-tab-bar-height) + env(safe-area-inset-bottom, 0px)
       );
     }
   }

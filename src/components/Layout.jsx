@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom';
 import AddToHomeScreenPrompt from './AddToHomeScreenPrompt.jsx';
 import { DesktopNav, MobileBottomNav } from './NavBar.jsx';
 import { usePhoneFrame } from '../hooks/usePhoneFrame.js';
-import { useVisualViewportFooter } from '../hooks/useVisualViewportFooter.js';
 
 function PhoneFrameToggle({ on, onToggle }) {
   return (
@@ -23,9 +22,6 @@ export default function Layout() {
   const { phoneFrame, toggle } = usePhoneFrame();
   const location = useLocation();
   const mainRef = useRef(null);
-
-  // Document scroll on mobile so Safari can collapse its chrome; hook pins the tab bar.
-  useVisualViewportFooter(!phoneFrame);
 
   useEffect(() => {
     if (phoneFrame) {
