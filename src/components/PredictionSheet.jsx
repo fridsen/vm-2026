@@ -7,6 +7,10 @@ import { useMatchAnalysis } from '../hooks/useMatchAnalysis.js';
 import { emblemForCode } from '../data/emblems.js';
 import { haptics } from '../utils/haptics.js';
 import BottomSheet from './BottomSheet.jsx';
+import PredictionSheetOnboarding, {
+  PREDICTION_SHEET_ONBOARDING_SEEN_KEY,
+  shouldShowPredictionSheetOnboarding,
+} from './PredictionSheetOnboarding.jsx';
 
 const SHEET_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 const noop = () => {};
@@ -179,7 +183,10 @@ function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, d
         </div>
 
         {/* Score */}
-        <div className="px-2 pb-3 pt-4">
+        <div
+          data-onboarding-target="prediction-score-steppers"
+          className="px-2 pb-3 pt-4"
+        >
           <div className="flex items-start justify-center gap-2.5">
             {/* Home team */}
             <div className="flex w-[120px] flex-col items-center gap-2">
@@ -209,7 +216,7 @@ function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, d
         </div>
 
         {/* Match result market */}
-        <div className="py-3">
+        <div data-onboarding-target="prediction-market" className="py-3">
           <div className="flex gap-3 px-4 drop-shadow-[0px_4px_8px_rgba(57,61,73,0.08)]">
             <MarketButton
               symbol="1"
@@ -272,6 +279,8 @@ export default function PredictionSheet({
   const [saved, setSaved] = useState(false);
   // Carousel transition between games: { dir, outgoing, incoming } | null.
   const [trans, setTrans] = useState(null);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [sheetPhase, setSheetPhase] = useState(null);
 
   const tooltipTimer = useRef(null);
   const savedTimer = useRef(null);
@@ -300,6 +309,31 @@ export default function PredictionSheet({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [match?.id]);
+
+  useEffect(() => {
+    if (!match) {
+      setOnboardingOpen(false);
+      return;
+    }
+    if (!shouldShowPredictionSheetOnboarding()) {
+      setOnboardingOpen(false);
+      return;
+    }
+    if (sheetPhase !== 'idle') {
+      setOnboardingOpen(false);
+      return;
+    }
+    setOnboardingOpen(true);
+  }, [match?.id, sheetPhase]);
+
+  function handleOnboardingComplete() {
+    try {
+      window.localStorage?.setItem(PREDICTION_SHEET_ONBOARDING_SEEN_KEY, '1');
+    } catch {
+      /* ignore unavailable storage */
+    }
+    setOnboardingOpen(false);
+  }
 
   useEffect(
     () => () => {
@@ -430,12 +464,23 @@ export default function PredictionSheet({
     : [];
 
   return (
+    <>
     <BottomSheet
       open={!!match}
       onClose={onClose}
+      onPhaseChange={setSheetPhase}
+      lockDismiss={onboardingOpen}
       padded={false}
       maxWidth="max-w-[390px]"
       bg="sheet"
+      overlay={
+        onboardingOpen ? (
+          <PredictionSheetOnboarding
+            open
+            onComplete={handleOnboardingComplete}
+          />
+        ) : null
+      }
     >
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-1">
         {/* Match content — single live panel, or a 2-panel slide on nav */}
@@ -475,7 +520,10 @@ export default function PredictionSheet({
       </div>
 
         {/* ── Submit + navigation (persistent) ────────────────── */}
-        <div className="flex w-full shrink-0 items-center gap-3 bg-sheet px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-5">
+        <div
+          data-onboarding-target="prediction-footer"
+          className="flex w-full shrink-0 items-center gap-3 bg-sheet px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-5"
+        >
           <button
             type="button"
             onClick={() => navigate('prev')}
@@ -520,5 +568,6 @@ export default function PredictionSheet({
           </button>
         </div>
     </BottomSheet>
+    </>
   );
 }

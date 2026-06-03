@@ -15,6 +15,12 @@ export default function BottomSheet({
   maxWidth = 'max-w-[420px]',
   /** `surface` = white cards; `sheet` = prediction-sheet container (#F0F5F9). */
   bg = 'surface',
+  /** Rendered above the sheet panel (e.g. in-sheet spotlight onboarding). */
+  overlay = null,
+  /** Called when open/animation phase changes: opening | idle | dragging | settling | closing */
+  onPhaseChange,
+  /** When true, backdrop tap and drag-to-dismiss are disabled. */
+  lockDismiss = false,
 }) {
   const [phase, setPhase] = useState('opening'); // opening | idle | dragging | settling | closing
   const [dragY, setDragY] = useState(0);
@@ -49,6 +55,17 @@ export default function BottomSheet({
   }, [open]);
 
   useEffect(() => {
+    onPhaseChange?.(open ? phase : null);
+  }, [open, phase, onPhaseChange]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (open) root.classList.add('bottom-sheet-open');
+    else root.classList.remove('bottom-sheet-open');
+    return () => root.classList.remove('bottom-sheet-open');
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return undefined;
     const findScrollable = (node) => {
       let el = node?.parentElement;
@@ -76,7 +93,7 @@ export default function BottomSheet({
   }, [open]);
 
   const requestClose = () => {
-    if (phase === 'closing') return;
+    if (lockDismiss || phase === 'closing') return;
     haptics.light();
     setPhase('closing');
     clearTimeout(closeTimer.current);
@@ -133,7 +150,7 @@ export default function BottomSheet({
     drag.current = { id: null, startY: 0, lastY: 0, lastT: 0, v: 0, dragging: false };
     if (!wasDragging) return;
     movedRef.current = true;
-    if (dy > 120 || v > 0.6) {
+    if (!lockDismiss && (dy > 120 || v > 0.6)) {
       haptics.medium();
       setPhase('closing');
       clearTimeout(closeTimer.current);
@@ -188,6 +205,7 @@ export default function BottomSheet({
   return (
     <div
       ref={overlayRef}
+      data-bottom-sheet-overlay=""
       className="fixed inset-0 z-50 flex items-end justify-center"
       onClick={requestClose}
       role="dialog"
@@ -201,7 +219,7 @@ export default function BottomSheet({
       <div
         ref={sheetRef}
         className={clsx(
-          'relative z-10 flex max-h-[calc(100dvh-34px)] w-full flex-col overflow-hidden rounded-t-[32px] pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_0_20px_rgba(0,0,0,0.15)]',
+          'bottom-sheet-panel relative z-10 flex max-h-[calc(100dvh-34px)] w-full flex-col overflow-hidden rounded-t-[32px] pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_0_20px_rgba(0,0,0,0.15)]',
           bg === 'sheet' ? 'bg-sheet' : 'bg-surface',
           maxWidth,
           padded && 'px-4',
@@ -220,6 +238,15 @@ export default function BottomSheet({
         </button>
         {children}
       </div>
+      {overlay ? (
+        <div
+          className="absolute inset-0 z-20"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          {overlay}
+        </div>
+      ) : null}
     </div>
   );
 }

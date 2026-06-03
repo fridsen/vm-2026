@@ -1017,13 +1017,30 @@
     border: 0;
   }
 
-  /* ─── MINA TIPS ONBOARDING (post-rules, Figma 180:77705) ─── */
+  /* ─── SPOTLIGHT ONBOARDING (Mina tips 180:77705, Prediction sheet 180:78287) ─── */
   .mina-onboarding-overlay {
     position: fixed;
     inset: 0;
     z-index: 70;
     pointer-events: none;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
+  }
+  /* Lives inside BottomSheet overlay — must not use fixed/body portal (transform stacking). */
+  .mina-onboarding-overlay.prediction-sheet-onboarding {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+  }
+
+  /* Sheet and tab bar were both z-50; chrome follows Layout in DOM and covered the footer. */
+  @media (max-width: 767px) {
+    html.bottom-sheet-open [data-bottom-sheet-overlay] {
+      z-index: 60;
+    }
+    html.bottom-sheet-open .app-mobile-chrome {
+      visibility: hidden;
+      pointer-events: none;
+    }
   }
   .mina-onboarding-scrim-fill {
     position: fixed;
@@ -1053,6 +1070,8 @@
     color: #000 !important;
   }
   .mina-onboarding-highlight-tab {
+    position: relative;
+    z-index: 1;
     border-radius: 12px !important;
     background: #fefefe !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
