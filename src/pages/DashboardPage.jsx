@@ -238,7 +238,7 @@ function RulesPreviewCard({ onOpen }) {
         <div className="home-list-row no-action">
           <div>
             <h3>Tippa alla 3 delar</h3>
-            <p>Matcher, gruppspel, vinnare</p>
+            <p>Matcher, grupper, vinnare</p>
           </div>
         </div>
         <div className="home-list-row no-action">

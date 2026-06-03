@@ -69,6 +69,7 @@ export function DesktopNav() {
             key={item.to}
             to={item.to}
             end={item.end}
+            {...(item.to === '/mina-tips' ? { 'data-onboarding-target': 'mina-tips-nav' } : {})}
             className={({ isActive }) =>
               clsx(
                 'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition-colors',
@@ -101,6 +102,7 @@ export function MobileBottomNav({ alwaysVisible = false }) {
             key={item.to}
             to={item.to}
             end={item.end}
+            {...(item.to === '/mina-tips' ? { 'data-onboarding-target': 'mina-tips-nav' } : {})}
             className={({ isActive }) =>
               clsx(
                 'app-bottom-nav-item',

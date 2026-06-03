@@ -11,6 +11,10 @@ import { flattenMatchesByGroup } from '../utils/matchSchedule.js';
 import PredictionSheet from '../components/PredictionSheet.jsx';
 import RulesSheet from '../components/RulesSheet.jsx';
 import MinaTipsIntroModal from '../components/MinaTipsIntroModal.jsx';
+import MinaTipsOnboarding, {
+  MINA_TIPS_ONBOARDING_SEEN_KEY,
+  shouldShowMinaTipsOnboarding,
+} from '../components/MinaTipsOnboarding.jsx';
 import matchesIcon from '../assets/mina-tips/matches-icon.svg';
 import groupsIcon from '../assets/mina-tips/groups-icon.svg';
 import winnerIcon from '../assets/mina-tips/winner-icon.svg';
@@ -89,8 +93,8 @@ function Infobox({ icon, title, body, value, max }) {
 // ─── Segmented control ────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'matcher', label: 'Gruppspel' },
-  { id: 'grupper', label: 'Slutspel' },
+  { id: 'matcher', label: 'Matcher' },
+  { id: 'grupper', label: 'Grupper' },
   { id: 'vinnare', label: 'Vinnare' },
 ];
 
@@ -135,6 +139,7 @@ function SegmentedControl({ value, onChange, statuses }) {
         <button
           key={tab.id}
           type="button"
+          data-onboarding-target={`mina-tab-${tab.id}`}
           onClick={() => onChange(tab.id)}
           role="tab"
           aria-selected={value === tab.id}
@@ -482,6 +487,9 @@ export default function MinaTipsPage() {
   const tab = TABS.some((item) => item.id === tabParam) ? tabParam : 'matcher';
   const [rulesOpen, setRulesOpen] = useState(false);
   const [introOpen, setIntroOpen] = useState(shouldShowMinaTipsIntro);
+  const [onboardingOpen, setOnboardingOpen] = useState(
+    () => !shouldShowMinaTipsIntro() && shouldShowMinaTipsOnboarding(),
+  );
   const { matches, loading: matchesLoading } = useAllMatches();
   const { groupLocked } = useLockState();
   const { predictions, updateMatch, updateGroupStanding, updateWinner } = usePredictions();
@@ -550,6 +558,18 @@ export default function MinaTipsPage() {
       /* ignore unavailable storage */
     }
     setIntroOpen(false);
+    if (shouldShowMinaTipsOnboarding()) {
+      setOnboardingOpen(true);
+    }
+  }
+
+  function handleOnboardingComplete() {
+    try {
+      window.localStorage?.setItem(MINA_TIPS_ONBOARDING_SEEN_KEY, '1');
+    } catch {
+      /* ignore unavailable storage */
+    }
+    setOnboardingOpen(false);
   }
 
   return (
@@ -609,6 +629,11 @@ export default function MinaTipsPage() {
       )}
       <RulesSheet open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <MinaTipsIntroModal open={introOpen} onClose={handleIntroClose} />
+      <MinaTipsOnboarding
+        open={onboardingOpen && !introOpen}
+        onStepTab={handleTabChange}
+        onComplete={handleOnboardingComplete}
+      />
     </div>
   );
 }
