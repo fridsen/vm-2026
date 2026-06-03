@@ -91,11 +91,11 @@ export function MobileBottomNav({ alwaysVisible = false }) {
   return (
     <nav
       className={clsx(
-        'pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center',
+        'app-bottom-nav z-20 flex w-full shrink-0 justify-center',
         !alwaysVisible && 'md:hidden',
       )}
     >
-      <div className="app-bottom-nav-inner pointer-events-auto">
+      <div className="app-bottom-nav-inner">
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}

@@ -17,6 +17,12 @@
     background: linear-gradient(200deg, #f5f4f9 2%, #e4eff4 32%, #f3eaf4 70%, #f5f4f9 99%) fixed;
     color: #1a1b2e;
   }
+  @media (max-width: 767px) {
+    body {
+      overflow: hidden;
+      height: 100dvh;
+    }
+  }
   #root {
     @apply w-full min-w-0;
   }
@@ -64,8 +70,6 @@
     background: linear-gradient(200deg, #f5f4f9 2%, #e4eff4 32%, #f3eaf4 70%, #f5f4f9 99%);
     display: flex;
     flex-direction: column;
-    /* Make this the containing block for fixed-positioned descendants
-       so MobileBottomNav stays inside the bezel. */
     transform: translateZ(0);
   }
   /* Drop the bezel on small viewports — render edge-to-edge instead. */
@@ -120,6 +124,10 @@
     height: 24px;
     width: 24px;
     flex: 0 0 auto;
+  }
+  .app-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: #fff;
   }
   .app-bottom-nav-inner {
     display: flex;
@@ -2227,14 +2235,18 @@
   }
   /* ─── ADD TO HOME SCREEN — floating prompt (iOS) ─────────── */
   .a2hs-float-host {
-    position: fixed;
+    position: absolute;
     inset-inline: 0;
-    bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 10px);
+    bottom: calc(100% + 10px);
     z-index: 30;
     display: flex;
     justify-content: center;
     padding: 0 14px;
     pointer-events: none;
+  }
+  .app-mobile-footer {
+    position: relative;
+    width: 100%;
   }
   @media (min-width: 768px) {
     .a2hs-float-host {

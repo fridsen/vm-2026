@@ -32,11 +32,13 @@ export default function Layout() {
       <div className="phone-frame-host">
         <div className="phone-bezel">
           <div className="phone-screen">
-            <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pb-24 pt-12">
+            <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pb-6 pt-12">
               <Outlet />
             </main>
-            <MobileBottomNav alwaysVisible />
-            <AddToHomeScreenPrompt />
+            <div className="app-mobile-footer shrink-0">
+              <AddToHomeScreenPrompt />
+              <MobileBottomNav alwaysVisible />
+            </div>
           </div>
         </div>
         <PhoneFrameToggle on onToggle={toggle} />
@@ -45,14 +47,19 @@ export default function Layout() {
   }
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full md:min-h-screen">
       <DesktopNav />
-      <div className="flex min-h-screen w-full min-w-0 flex-1 flex-col">
-        <main ref={mainRef} className="w-full min-w-0 flex-1 overflow-x-hidden px-4 pb-24 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:px-8 md:pb-10 md:pt-8">
+      <div className="app-shell fixed inset-0 flex w-full min-w-0 flex-col md:static md:min-h-screen md:flex-1">
+        <main
+          ref={mainRef}
+          className="w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pb-6 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:overflow-visible md:px-8 md:pb-10 md:pt-8"
+        >
           <Outlet />
         </main>
-        <MobileBottomNav />
-        <AddToHomeScreenPrompt />
+        <div className="app-mobile-footer shrink-0">
+          <AddToHomeScreenPrompt />
+          <MobileBottomNav />
+        </div>
       </div>
       <PhoneFrameToggle on={false} onToggle={toggle} />
     </div>
