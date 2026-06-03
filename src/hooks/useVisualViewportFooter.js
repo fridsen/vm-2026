@@ -2,10 +2,16 @@ import { useEffect } from 'react';
 
 const MOBILE_MQ = '(max-width: 767px)';
 
+function getBottomInset() {
+  const vv = window.visualViewport;
+  if (!vv) return 0;
+  return Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+}
+
 /**
- * iOS Safari: layout-viewport height exceeds the visual viewport when browser
- * chrome shows/hides. Pin the tab bar to the visual bottom and clamp document
- * scroll so you cannot scroll into empty space below the content.
+ * iOS Safari: the layout viewport extends below the visual viewport when browser
+ * chrome is visible. Extend the tab bar stack to fill that gap and only clamp the
+ * extra layout-only scroll range (not normal content scroll).
  */
 export function useVisualViewportFooter(enabled = true) {
   useEffect(() => {
@@ -17,12 +23,10 @@ export function useVisualViewportFooter(enabled = true) {
     let raf = 0;
 
     const clampScroll = () => {
-      const vv = window.visualViewport;
-      if (!vv) return;
-
+      const bottomInset = getBottomInset();
       const maxScroll = Math.max(
         0,
-        document.documentElement.scrollHeight - vv.height - vv.offsetTop,
+        document.documentElement.scrollHeight - window.innerHeight - bottomInset,
       );
       if (window.scrollY > maxScroll + 1) {
         window.scrollTo({ top: maxScroll, left: 0, behavior: 'auto' });
@@ -33,9 +37,14 @@ export function useVisualViewportFooter(enabled = true) {
       const vv = window.visualViewport;
       if (!chrome || !vv) return;
 
-      const bottom = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+      const bottomInset = getBottomInset();
+      document.documentElement.style.setProperty(
+        '--app-visual-bottom-inset',
+        `${bottomInset}px`,
+      );
+
       chrome.style.top = 'auto';
-      chrome.style.bottom = `${bottom}px`;
+      chrome.style.bottom = '0';
       chrome.style.transform = 'none';
 
       clampScroll();
@@ -73,6 +82,7 @@ export function useVisualViewportFooter(enabled = true) {
         chrome.style.removeProperty('transform');
       }
       chrome = null;
+      document.documentElement.style.removeProperty('--app-visual-bottom-inset');
       window.visualViewport?.removeEventListener('resize', schedule);
       window.visualViewport?.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
