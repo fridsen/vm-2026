@@ -150,11 +150,6 @@
     --app-tab-bar-total: var(--app-tab-bar-height);
     --app-main-nav-gap: 24px;
   }
-  @media (display-mode: standalone) {
-    :root {
-      --app-tab-bar-total: calc(var(--app-tab-bar-height) + env(safe-area-inset-bottom, 0px));
-    }
-  }
   .app-bottom-nav {
     display: flex;
     width: 100%;
@@ -174,7 +169,7 @@
     justify-content: flex-end;
     background: #fff;
     border-top: 1px solid rgba(0, 0, 0, 0.06);
-    padding: 4px 0 env(safe-area-inset-bottom, 0px);
+    padding: 4px 0 0;
     pointer-events: none;
     /* top + --vv-bottom-gap from useVisualViewportFooter on mobile */
   }
@@ -2446,11 +2441,8 @@
     .app-shell {
       min-height: auto;
     }
-    /* Same formula as vmkollen .pb-nav: bar height + safe-area */
     .app-main {
-      padding-bottom: calc(
-        var(--app-tab-bar-height) + env(safe-area-inset-bottom, 0px)
-      );
+      padding-bottom: var(--app-tab-bar-height);
     }
   }
   @media (min-width: 768px) {
