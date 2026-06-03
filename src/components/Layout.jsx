@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import AddToHomeScreenPrompt from './AddToHomeScreenPrompt.jsx';
 import { DesktopNav, MobileBottomNav } from './NavBar.jsx';
 import { usePhoneFrame } from '../hooks/usePhoneFrame.js';
+import { useVisualViewportFooter } from '../hooks/useVisualViewportFooter.js';
 
 function PhoneFrameToggle({ on, onToggle }) {
   return (
@@ -22,6 +23,8 @@ export default function Layout() {
   const { phoneFrame, toggle } = usePhoneFrame();
   const location = useLocation();
   const mainRef = useRef(null);
+
+  useVisualViewportFooter(!phoneFrame);
 
   useEffect(() => {
     if (phoneFrame) {
@@ -54,7 +57,7 @@ export default function Layout() {
     <>
       <div className="app-layout flex w-full items-start md:min-h-screen">
         <DesktopNav />
-        <div className="app-shell flex w-full min-w-0 flex-1 flex-col md:min-h-screen">
+        <div className="app-shell flex min-h-dvh w-full min-w-0 flex-1 flex-col md:min-h-screen">
           <main
             ref={mainRef}
             className="app-main w-full min-w-0 overflow-x-hidden px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:flex-1 md:px-8 md:pb-10 md:pt-8"
