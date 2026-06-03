@@ -23,6 +23,16 @@ export function useVisualViewportFooter(enabled = true) {
       chrome.style.bottom = `${bottom}px`;
       chrome.style.top = 'auto';
       chrome.style.transform = 'none';
+
+      const nav = chrome.querySelector('.app-bottom-nav');
+      if (nav) {
+        const navH = Math.ceil(nav.getBoundingClientRect().height);
+        const chromePad = parseFloat(getComputedStyle(chrome).paddingBottom) || 0;
+        document.documentElement.style.setProperty(
+          '--app-tab-bar-total',
+          `${Math.ceil(navH + chromePad)}px`,
+        );
+      }
     };
 
     const schedule = () => {
@@ -57,6 +67,7 @@ export function useVisualViewportFooter(enabled = true) {
         chrome.style.removeProperty('transform');
       }
       chrome = null;
+      document.documentElement.style.removeProperty('--app-tab-bar-total');
       window.visualViewport?.removeEventListener('resize', schedule);
       window.visualViewport?.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
