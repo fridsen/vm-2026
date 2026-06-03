@@ -74,7 +74,7 @@ function BracketRows({ matches }) {
   );
 }
 
-export default function KnockoutPage() {
+export function KnockoutContent() {
   const { matches } = useKnockoutMatches();
 
   const byRound = useMemo(() => {
@@ -91,10 +91,7 @@ export default function KnockoutPage() {
   const finalMatch = byRound.FINAL?.[0];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-3">
-      <PageHeader title="Slutspel" subtitle="Från sextondelsfinal till final" />
-
-      <div className="py-3">
+    <div className="py-3">
         {ROUNDS_TO_SHOW.map((round, idx) => {
           const list = byRound[round] || [];
           if (list.length === 0) return null;
@@ -149,7 +146,15 @@ export default function KnockoutPage() {
             </div>
           </div>
         )}
-      </div>
+    </div>
+  );
+}
+
+export default function KnockoutPage() {
+  return (
+    <div className="mx-auto max-w-3xl space-y-3">
+      <PageHeader title="Slutspel" subtitle="Från sextondelsfinal till final" />
+      <KnockoutContent />
     </div>
   );
 }

@@ -1,40 +1,63 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { format } from 'date-fns';
+import { sv } from 'date-fns/locale';
 import { useAllMatches } from '../hooks/useMatches.js';
 import { useLockState } from '../hooks/useLockState.js';
 import { usePredictions } from '../hooks/usePredictions.js';
-import { GROUPS } from '../data/teams.js';
-import PageHeader from '../components/PageHeader.jsx';
-import GameRow from '../components/GameRow.jsx';
+import MatchCard from '../components/MatchCard.jsx';
 import PredictionSheet from '../components/PredictionSheet.jsx';
-import LockBadge from '../components/LockBadge.jsx';
-import { STATE } from '../utils/lockRules.js';
-import { flattenMatchesByGroup } from '../utils/matchSchedule.js';
+import { getMatchDayKey } from '../utils/matchSchedule.js';
+
+function buildMatchDays(matches) {
+  const byDay = new Map();
+  for (const match of matches) {
+    const dayKey = getMatchDayKey(match.kickoff);
+    if (!byDay.has(dayKey)) byDay.set(dayKey, []);
+    byDay.get(dayKey).push(match);
+  }
+
+  return [...byDay.entries()]
+    .map(([dayKey, dayMatches]) => ({
+      dayKey,
+      date: new Date(`${dayKey}T12:00:00`),
+      matches: [...dayMatches].sort((a, b) => a.kickoff.localeCompare(b.kickoff)),
+    }))
+    .sort((a, b) => a.dayKey.localeCompare(b.dayKey));
+}
 
 export default function MatchesPage() {
   const { matches, loading } = useAllMatches();
   const { now, groupLocked } = useLockState();
   const { predictions, updateMatch } = usePredictions();
   const [predictMatch, setPredictMatch] = useState(null);
+  const chipRefs = useRef(new Map());
 
-  const matchesByGroup = useMemo(() => {
-    const map = {};
-    for (const g of GROUPS) map[g] = [];
-    for (const m of matches) {
-      if (map[m.group]) map[m.group].push(m);
-    }
-    for (const g of GROUPS) {
-      map[g].sort((a, b) => a.kickoff.localeCompare(b.kickoff));
-    }
-    return map;
-  }, [matches]);
+  const todayKey = getMatchDayKey(new Date(now).toISOString());
+  const days = useMemo(() => buildMatchDays(matches), [matches]);
+  const [selectedDay, setSelectedDay] = useState(todayKey);
 
-  const totalPredicted = predictions ? Object.keys(predictions.matches || {}).length : 0;
-  const lockState = groupLocked ? STATE.LOCKED : STATE.OPEN;
+  const activeDay = useMemo(() => {
+    if (days.some((day) => day.dayKey === selectedDay)) return selectedDay;
+    return days[0]?.dayKey || selectedDay;
+  }, [days, selectedDay]);
 
-  // Matches in the same order they're rendered on this page (group A→L,
-  // kickoff within each group). The sheet's prev/next arrows walk this
-  // list so navigation lines up with what the user sees on screen.
-  const orderedMatches = useMemo(() => flattenMatchesByGroup(matches), [matches]);
+  const selectedMatches = useMemo(
+    () => days.find((day) => day.dayKey === activeDay)?.matches || [],
+    [days, activeDay],
+  );
+
+  useEffect(() => {
+    chipRefs.current.get(activeDay)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
+  }, [activeDay]);
+
+  const orderedMatches = useMemo(
+    () => days.flatMap((day) => day.matches),
+    [days],
+  );
   const sheetIndex = predictMatch
     ? orderedMatches.findIndex((m) => m.id === predictMatch.id)
     : -1;
@@ -46,46 +69,67 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4">
-        <PageHeader title="Matcher" subtitle="Laddar…" />
+      <div className="matches-page tab-page-enter">
+        <header className="matches-hero">
+          <h1>Matcher</h1>
+          <p>Laddar…</p>
+        </header>
         <div className="card p-8 text-center text-neutral-500">Laddar matcher…</div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-2">
-      <PageHeader
-        title="Matcher"
-        subtitle="Gruppspel · 72 matcher"
-        right={
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold tabular-nums text-neutral-900">
-              <span className="text-neutral-500">{totalPredicted}</span> / 72
-            </span>
-            <LockBadge state={lockState} />
-          </div>
-        }
-      />
+    <div className="matches-page tab-page-enter">
+      <header className="matches-hero">
+        <h1>Matcher</h1>
+        <p>Alla matcher i svensk tid</p>
+      </header>
 
-      {GROUPS.map((g) => {
-        const games = matchesByGroup[g] || [];
-        if (games.length === 0) return null;
-        return (
-          <section key={g}>
-            <div className="group-section-title">Grupp {g}</div>
-            {games.map((m) => (
-              <GameRow
-                key={m.id}
-                match={m}
-                now={now}
-                prediction={predictions?.matches?.[m.id]}
-                onPredict={groupLocked ? undefined : () => setPredictMatch(m)}
-              />
-            ))}
-          </section>
-        );
-      })}
+      <div className="matches-date-carousel" aria-label="Välj matchdag">
+        {days.map((day) => {
+          const selected = day.dayKey === activeDay;
+          return (
+            <button
+              key={day.dayKey}
+              ref={(node) => {
+                if (node) chipRefs.current.set(day.dayKey, node);
+                else chipRefs.current.delete(day.dayKey);
+              }}
+              type="button"
+              className={selected ? 'matches-date-chip is-selected' : 'matches-date-chip'}
+              onClick={() => setSelectedDay(day.dayKey)}
+              aria-pressed={selected}
+            >
+              <span>{format(day.date, 'EEE', { locale: sv })}</span>
+              <strong>{format(day.date, 'd', { locale: sv })}</strong>
+              <span>{format(day.date, 'MMM', { locale: sv })}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="matches-day-header">
+        <span>{format(new Date(`${activeDay}T12:00:00`), 'EEEE d MMMM', { locale: sv })}</span>
+        <span>{selectedMatches.length} matcher</span>
+      </div>
+
+      <div className="matches-card-list">
+        {selectedMatches.length > 0 ? (
+          selectedMatches.map((match) => (
+            <MatchCard
+              key={match.id}
+              match={match}
+              prediction={predictions?.matches?.[match.id]}
+              onPredict={groupLocked ? undefined : () => setPredictMatch(match)}
+            />
+          ))
+        ) : (
+          <div className="card p-6 text-center text-sm text-neutral-500">
+            Inga matcher den här dagen.
+          </div>
+        )}
+      </div>
 
       {groupLocked && (
         <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-center text-sm text-amber-800">

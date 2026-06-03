@@ -39,7 +39,7 @@ export default function Layout() {
     <div className="flex min-h-screen w-full">
       <DesktopNav />
       <div className="flex min-h-screen w-full min-w-0 flex-1 flex-col">
-        <main className="w-full min-w-0 flex-1 overflow-x-hidden px-4 pb-28 pt-6 md:px-8 md:pb-10 md:pt-8">
+        <main className="w-full min-w-0 flex-1 overflow-x-hidden px-4 pb-24 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:px-8 md:pb-10 md:pt-8">
           <Outlet />
         </main>
         <MobileBottomNav />

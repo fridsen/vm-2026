@@ -6,6 +6,7 @@ import { useTeams } from '../hooks/useTeams.js';
 import { useMatchOdds } from '../hooks/useMatchOdds.js';
 import { emblemForCode } from '../data/emblems.js';
 import { haptics } from '../utils/haptics.js';
+import BottomSheet from './BottomSheet.jsx';
 
 const SHEET_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 const noop = () => {};
@@ -280,25 +281,17 @@ export default function PredictionSheet({
   const [outcomePick, setOutcomePick] = useState(prediction?.outcome ?? null);
   const [showTooltip, setShowTooltip] = useState(false);
   const [saved, setSaved] = useState(false);
-  // Drag-to-dismiss: phase + live offset.
-  const [phase, setPhase] = useState('idle'); // idle | dragging | settling | closing
-  const [dragY, setDragY] = useState(0);
   // Carousel transition between games: { dir, outgoing, incoming } | null.
   const [trans, setTrans] = useState(null);
 
   const tooltipTimer = useRef(null);
   const savedTimer = useRef(null);
-  const closeTimer = useRef(null);
-  const overlayRef = useRef(null);
-  const sheetRef = useRef(null);
   const viewportRef = useRef(null);
   const trackRef = useRef(null);
   const outPanelRef = useRef(null);
   const inPanelRef = useRef(null);
   const prevProps = useRef(null); // last shown { match, home, away, outcome }
   const navDirRef = useRef('next');
-  const drag = useRef({ id: null, startY: 0, lastY: 0, lastT: 0, v: 0, dragging: false });
-  const movedRef = useRef(false);
 
   // Reset per-match state when navigating to a different match. Keyed on the
   // match id (not the prediction identity) so saving — which changes the
@@ -309,8 +302,6 @@ export default function PredictionSheet({
     setOutcomePick(prediction?.outcome ?? null);
     setShowTooltip(false);
     setSaved(false);
-    setPhase('idle');
-    setDragY(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [match?.id]);
 
@@ -318,7 +309,6 @@ export default function PredictionSheet({
     () => () => {
       clearTimeout(tooltipTimer.current);
       clearTimeout(savedTimer.current);
-      clearTimeout(closeTimer.current);
     },
     []
   );
@@ -414,104 +404,6 @@ export default function PredictionSheet({
     savedTimer.current = setTimeout(() => setSaved(false), 1200);
   };
 
-  // ── Background scroll lock ──────────────────────────────────
-  // The scrollable element is the page's <main> (phone-frame mode) or the
-  // window/body (desktop). Lock the real scroll container, not just body.
-  useEffect(() => {
-    if (!match) return;
-    const findScrollable = (node) => {
-      let el = node?.parentElement;
-      while (el) {
-        const oy = getComputedStyle(el).overflowY;
-        if (/(auto|scroll)/.test(oy) && el.scrollHeight > el.clientHeight) return el;
-        el = el.parentElement;
-      }
-      return null;
-    };
-    const scroller =
-      findScrollable(overlayRef.current) ||
-      overlayRef.current?.closest('main') ||
-      null;
-    const targets = [document.body, scroller].filter(Boolean);
-    const prev = targets.map((el) => el.style.overflow);
-    targets.forEach((el) => {
-      el.style.overflow = 'hidden';
-    });
-    return () => {
-      targets.forEach((el, i) => {
-        el.style.overflow = prev[i];
-      });
-    };
-  }, [match]);
-
-  // ── Drag-to-dismiss (pointer events) ────────────────────────
-  const onPointerDown = (e) => {
-    if (e.button != null && e.button !== 0) return;
-    drag.current = {
-      id: e.pointerId,
-      startY: e.clientY,
-      lastY: e.clientY,
-      lastT: performance.now(),
-      v: 0,
-      dragging: false,
-    };
-  };
-
-  const onPointerMove = (e) => {
-    const d = drag.current;
-    if (d.id === null || e.pointerId !== d.id) return;
-    const dy = e.clientY - d.startY;
-    const now = performance.now();
-    const dt = now - d.lastT;
-    if (dt > 0) d.v = (e.clientY - d.lastY) / dt;
-    d.lastY = e.clientY;
-    d.lastT = now;
-    if (!d.dragging) {
-      if (dy > 8) {
-        d.dragging = true;
-        try {
-          sheetRef.current?.setPointerCapture(d.id);
-        } catch {
-          /* ignore */
-        }
-        setPhase('dragging');
-      } else {
-        return;
-      }
-    }
-    setDragY(Math.max(0, dy));
-  };
-
-  const endDrag = (e) => {
-    const d = drag.current;
-    if (d.id === null || e.pointerId !== d.id) return;
-    const wasDragging = d.dragging;
-    const dy = Math.max(0, e.clientY - d.startY);
-    const v = d.v;
-    drag.current = { id: null, startY: 0, lastY: 0, lastT: 0, v: 0, dragging: false };
-    if (!wasDragging) return; // it was a tap, let the click through
-    movedRef.current = true; // swallow the click that follows a real drag
-    if (dy > 120 || v > 0.6) {
-      haptics.medium();
-      setPhase('closing');
-      clearTimeout(closeTimer.current);
-      closeTimer.current = setTimeout(() => onClose?.(), 280);
-    } else {
-      setPhase('settling');
-      setDragY(0);
-      clearTimeout(closeTimer.current);
-      closeTimer.current = setTimeout(() => setPhase('idle'), 280);
-    }
-  };
-
-  const onClickCapture = (e) => {
-    if (movedRef.current) {
-      e.preventDefault();
-      e.stopPropagation();
-      movedRef.current = false;
-    }
-  };
-
   if (!match) return null;
 
   const canSave = !disabled && !!outcomePick;
@@ -528,25 +420,6 @@ export default function PredictionSheet({
     setShowTooltip(false);
   };
 
-  const sheetStyle = { touchAction: 'none' };
-  if (phase === 'closing') {
-    sheetStyle.transform = 'translateY(110%)';
-    sheetStyle.transition = `transform 0.28s ${SHEET_EASE}`;
-  } else if (phase === 'dragging') {
-    sheetStyle.transform = `translateY(${dragY}px)`;
-    sheetStyle.transition = 'none';
-  } else if (phase === 'settling') {
-    sheetStyle.transform = `translateY(${dragY}px)`;
-    sheetStyle.transition = `transform 0.25s ${SHEET_EASE}`;
-  }
-
-  const backdropOpacity =
-    phase === 'closing'
-      ? 0
-      : phase === 'dragging' || phase === 'settling'
-        ? Math.max(0, 1 - dragY / 500)
-        : 1;
-
   // Carousel panel ordering for the active transition.
   const transPanels = trans
     ? trans.dir === 'prev'
@@ -561,35 +434,7 @@ export default function PredictionSheet({
     : [];
 
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-end justify-center"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      {/* Dimmed backdrop on its own layer so dragging only fades the backdrop,
-          never the sheet (CSS opacity would otherwise cascade to children). */}
-      <div
-        className="sheet-fade-in absolute inset-0 bg-black/60 backdrop-blur-sm"
-        style={{ opacity: backdropOpacity, transition: 'opacity 0.28s ease' }}
-      />
-      <div
-        ref={sheetRef}
-        className="sheet-slide-up relative flex w-full max-w-[420px] flex-col rounded-t-[32px] bg-surface px-4 pb-2 shadow-[0_0_20px_rgba(0,0,0,0.15)]"
-        style={sheetStyle}
-        onClick={(e) => e.stopPropagation()}
-        onClickCapture={onClickCapture}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-      >
-        {/* Handlebar */}
-        <div className="flex justify-center pb-3 pt-2">
-          <div className="h-1 w-10 rounded-full bg-sheet" />
-        </div>
-
+    <BottomSheet open={!!match} onClose={onClose}>
         {/* Match content — single live panel, or a 2-panel slide on nav */}
         <div ref={viewportRef} className={clsx('relative', trans && 'overflow-hidden')}>
           {trans ? (
@@ -664,13 +509,12 @@ export default function PredictionSheet({
             type="button"
             onClick={() => navigate('next')}
             disabled={!hasNext}
-            className="flex h-14 w-14 shrink-0 rotate-180 items-center justify-center rounded-2xl border border-[rgba(25,55,93,0.05)] bg-sheet text-ink transition-colors disabled:cursor-default disabled:opacity-30"
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[rgba(25,55,93,0.05)] bg-sheet text-ink transition-colors disabled:cursor-default disabled:opacity-30"
             aria-label="Nästa match"
           >
-            <ArrowLeftIcon className="h-4 w-4" />
+            <ArrowLeftIcon className="h-4 w-4 rotate-180" />
           </button>
         </div>
-      </div>
-    </div>
+    </BottomSheet>
   );
 }

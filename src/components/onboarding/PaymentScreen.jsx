@@ -47,7 +47,9 @@ export default function PaymentScreen() {
   const message = `VM-TIPS ${firstName}`.trim();
 
   const openSwish = () => {
-    // Best-effort deep link into the Swish app on mobile.
+    // Best-effort deep link into the Swish app on mobile. Swish no longer
+    // honours a prefilled payload for private numbers, so we just open the app
+    // and rely on the copy rows above for the recipient and message.
     window.location.href = 'swish://';
   };
 
@@ -71,11 +73,10 @@ export default function PaymentScreen() {
         </p>
       </div>
 
-      <div className="flex flex-col items-center gap-1 text-center">
+      <div className="flex flex-col items-center text-center">
         <div className="font-display text-[60px] leading-[60px] tracking-[-0.6px] text-lime">
           {FEE} kr
         </div>
-        <p className="font-barlow text-base text-white">Deltagaravgift</p>
       </div>
 
       <div className="flex flex-col gap-2">

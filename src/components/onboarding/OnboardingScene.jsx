@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
+import { useAuth } from '../../hooks/useAuth.js';
 import Logo from './Logo.jsx';
 import OnboardingButton from './OnboardingButton.jsx';
 import SignupScreen from './SignupScreen.jsx';
@@ -17,8 +18,16 @@ const FORM_PHASES = ['signup', 'login', 'complete', 'payment'];
 //     when moving from the landing screen into a form;
 //   - the black card slides up (grows) from the bottom of the screen.
 export default function OnboardingScene({ phase, onSetScreen }) {
+  const { signOut } = useAuth();
   const isForm = FORM_PHASES.includes(phase);
-  const showBack = phase === 'signup' || phase === 'login';
+  // Every form phase gets a back arrow (per design). For the pre-auth screens
+  // it returns to the landing choice; for the post-auth steps (complete /
+  // payment) there's nothing to go "back" to but sign-out, so it does that.
+  const showBack = isForm;
+  const goBack = () => {
+    if (phase === 'signup' || phase === 'login') onSetScreen('landing');
+    else signOut();
+  };
 
   // Keep the last form phase so the card still has content while it slides back
   // down to the landing screen (the card stays mounted across all phases).
@@ -29,15 +38,15 @@ export default function OnboardingScene({ phase, onSetScreen }) {
   const renderPhase = isForm ? phase : lastForm;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden overscroll-none bg-lime">
+    <div className="fixed inset-x-0 top-0 z-50 h-[100dvh] overflow-hidden overscroll-none bg-lime">
       <div className="relative mx-auto h-full w-full max-w-[400px]">
         {/* Back arrow (signup / login only). */}
         <button
           type="button"
-          onClick={() => onSetScreen('landing')}
+          onClick={goBack}
           aria-label="Tillbaka"
           className={clsx(
-            'onb-fade absolute left-5 top-14 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black text-lime',
+            'onb-fade absolute left-6 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black text-lime',
             showBack ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
         >
@@ -57,7 +66,7 @@ export default function OnboardingScene({ phase, onSetScreen }) {
           className="onb-logo absolute left-1/2 z-10 inline-flex -translate-x-1/2"
           style={
             isForm
-              ? { top: '123px', height: '100px' }
+              ? { top: '64px', height: '100px' }
               : { top: 'calc(46% - 120px)', height: '240px' }
           }
         >
@@ -81,7 +90,7 @@ export default function OnboardingScene({ phase, onSetScreen }) {
 
         {/* Black card: grows up from the bottom of the screen. */}
         <div
-          className="onb-card absolute inset-x-2 bottom-2 z-10 flex max-h-[calc(100dvh-240px)] flex-col gap-8 overflow-y-auto rounded-[32px] bg-black p-8"
+          className="onb-card absolute inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-10 flex max-h-[calc(100dvh-188px)] flex-col gap-5 overflow-y-auto rounded-[32px] bg-black px-6 py-7"
           style={{ transform: isForm ? 'translateY(0)' : 'translateY(120%)' }}
         >
           {renderPhase === 'signup' && (

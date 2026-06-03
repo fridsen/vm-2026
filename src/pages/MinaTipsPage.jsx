@@ -1,0 +1,544 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import clsx from 'clsx';
+import { useAllMatches } from '../hooks/useMatches.js';
+import { useLockState } from '../hooks/useLockState.js';
+import { usePredictions } from '../hooks/usePredictions.js';
+import { useTeams } from '../hooks/useTeams.js';
+import { GROUPS } from '../data/teams.js';
+import { flagImageForCode } from '../data/flagImages.js';
+import { flattenMatchesByGroup } from '../utils/matchSchedule.js';
+import PredictionSheet from '../components/PredictionSheet.jsx';
+import RulesSheet from '../components/RulesSheet.jsx';
+import MinaTipsIntroModal from '../components/MinaTipsIntroModal.jsx';
+import matchesIcon from '../assets/mina-tips/matches-icon.svg';
+import groupsIcon from '../assets/mina-tips/groups-icon.svg';
+import winnerIcon from '../assets/mina-tips/winner-icon.svg';
+import helpIcon from '../assets/mina-tips/help-icon.svg';
+
+const MINA_TIPS_INTRO_SEEN_KEY = 'vm2026:minaTipsIntroSeen:v1';
+
+// ─── Circular progress badge ──────────────────────────────────────────────────
+
+function CircularProgress({ value, max }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+  const done = pct >= 100;
+  const r = 17;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * (pct / 100);
+
+  return (
+    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
+      <svg width="40" height="40" viewBox="0 0 40 40" className="-rotate-90">
+        <circle
+          cx="20" cy="20" r={r}
+          fill="none"
+          stroke={done ? '#22c55e' : '#e5e7eb'}
+          strokeWidth="4"
+        />
+        {pct > 0 && (
+          <circle
+            cx="20" cy="20" r={r}
+            fill="none"
+            stroke={done ? '#22c55e' : '#22c55e'}
+            strokeWidth="4"
+            strokeDasharray={`${dash} ${circ}`}
+            strokeLinecap="round"
+          />
+        )}
+      </svg>
+      <span
+        className={clsx(
+          'absolute text-[10px] font-bold tabular-nums',
+          done ? 'text-green-500' : 'text-neutral-500',
+        )}
+      >
+        {pct}
+      </span>
+    </div>
+  );
+}
+
+// ─── Infobox ──────────────────────────────────────────────────────────────────
+
+function Infobox({ icon, title, body, value, max }) {
+  return (
+    <div className="mina-infobox">
+      <div className="mina-infobox-icon">
+        {icon}
+      </div>
+      <div className="mina-infobox-copy">
+        <div className="mina-infobox-title">
+          {title}
+        </div>
+        <div className="mina-infobox-body">{body}</div>
+      </div>
+      <CircularProgress value={value} max={max} />
+    </div>
+  );
+}
+
+// ─── Segmented control ────────────────────────────────────────────────────────
+
+const TABS = [
+  { id: 'matcher', label: 'Matcher' },
+  { id: 'grupper', label: 'Grupper' },
+  { id: 'vinnare', label: 'Vinnare' },
+];
+
+function SegmentedControl({ value, onChange }) {
+  const activeIndex = Math.max(0, TABS.findIndex((tab) => tab.id === value));
+
+  return (
+    <div
+      className="mina-segmented"
+      role="tablist"
+      aria-label="Mina tips"
+      style={{
+        '--segment-count': TABS.length,
+        '--segment-index': activeIndex,
+      }}
+    >
+      {TABS.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => onChange(tab.id)}
+          role="tab"
+          aria-selected={value === tab.id}
+          className={clsx(
+            'mina-segmented-tab',
+            value === tab.id && 'active',
+          )}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Matcher tab ──────────────────────────────────────────────────────────────
+
+function MatchPredictionValue({ prediction }) {
+  if (!prediction) return null;
+  const outcome =
+    prediction.outcome ||
+    (prediction.home > prediction.away ? '1' : prediction.home === prediction.away ? 'X' : '2');
+
+  return (
+    <span className="mina-match-prediction">
+      {prediction.home}-{prediction.away} ({outcome})
+    </span>
+  );
+}
+
+function MinaMatchRow({ match, prediction, onPredict }) {
+  const { getTeamById } = useTeams();
+  const home = getTeamById(match.homeTeamId);
+  const away = getTeamById(match.awayTeamId);
+  const homeFlag = flagImageForCode(home?.code || home?.id);
+  const awayFlag = flagImageForCode(away?.code || away?.id);
+
+  return (
+    <button type="button" className="mina-match-row" onClick={onPredict}>
+      <span className="mina-match-teams">
+        <span className="mina-match-team">
+          <span className="mina-match-flag" aria-hidden>
+            {homeFlag ? <img src={homeFlag} alt="" /> : (home?.flag ?? '🏳')}
+          </span>
+          <span>{home?.name ?? 'TBD'}</span>
+        </span>
+        <span className="mina-match-vs">vs</span>
+        <span className="mina-match-team">
+          <span className="mina-match-flag" aria-hidden>
+            {awayFlag ? <img src={awayFlag} alt="" /> : (away?.flag ?? '🏳')}
+          </span>
+          <span>{away?.name ?? 'TBD'}</span>
+        </span>
+      </span>
+      {prediction ? (
+        <MatchPredictionValue prediction={prediction} />
+      ) : (
+        <span className="mina-match-cta">Tippa</span>
+      )}
+    </button>
+  );
+}
+
+function MatcherTab({ matches, predictions, updateMatch, groupLocked }) {
+  const [predictMatch, setPredictMatch] = useState(null);
+
+  const matchesByGroup = useMemo(() => {
+    const map = {};
+    for (const g of GROUPS) map[g] = [];
+    for (const m of matches) {
+      if (map[m.group]) map[m.group].push(m);
+    }
+    for (const g of GROUPS) {
+      map[g].sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+    }
+    return map;
+  }, [matches]);
+
+  const orderedMatches = useMemo(() => flattenMatchesByGroup(matches), [matches]);
+  const sheetIndex = predictMatch
+    ? orderedMatches.findIndex((m) => m.id === predictMatch.id)
+    : -1;
+  const prevMatch = sheetIndex > 0 ? orderedMatches[sheetIndex - 1] : null;
+  const nextMatch =
+    sheetIndex >= 0 && sheetIndex < orderedMatches.length - 1
+      ? orderedMatches[sheetIndex + 1]
+      : null;
+
+  return (
+    <>
+      <div className="mina-stack">
+        {GROUPS.map((g) => {
+          const games = matchesByGroup[g] || [];
+          if (games.length === 0) return null;
+          const predicted = games.filter((m) => predictions?.matches?.[m.id]).length;
+          const allDone = predicted === games.length;
+          return (
+            <section key={g} className="mina-card">
+              <div className="mina-card-title">
+                <span>GRUPP {g}</span>
+                <span className={allDone ? 'is-complete' : ''}>
+                  {allDone ? 'KLAR' : `${predicted} / ${games.length}`}
+                </span>
+              </div>
+              {games.map((m) => (
+                <MinaMatchRow
+                  key={m.id}
+                  match={m}
+                  prediction={predictions?.matches?.[m.id]}
+                  onPredict={groupLocked ? undefined : () => setPredictMatch(m)}
+                />
+              ))}
+            </section>
+          );
+        })}
+      </div>
+
+      <PredictionSheet
+        match={predictMatch}
+        prediction={predictMatch ? predictions?.matches?.[predictMatch.id] : null}
+        disabled={groupLocked}
+        onClose={() => setPredictMatch(null)}
+        onSave={({ home, away, outcome }) => {
+          if (predictMatch) updateMatch(predictMatch.id, { home, away, outcome });
+        }}
+        hasPrev={!!prevMatch}
+        hasNext={!!nextMatch}
+        onPrev={() => prevMatch && setPredictMatch(prevMatch)}
+        onNext={() => nextMatch && setPredictMatch(nextMatch)}
+      />
+    </>
+  );
+}
+
+// ─── Grupper tab ──────────────────────────────────────────────────────────────
+
+const RANK_COLORS = [
+  'rank-gold',
+  'rank-silver',
+  'rank-bronze',
+  'rank-fourth',
+];
+
+function GroupRankCard({ group, matches, groupStandings, onToggleRank }) {
+  const { getTeamsInGroup } = useTeams();
+  const allTeams = useMemo(() => getTeamsInGroup(group, matches), [getTeamsInGroup, group, matches]);
+
+  const ranked = groupStandings || [];
+  const unranked = allTeams
+    .filter((t) => !ranked.includes(t.id))
+    .map((t) => t.id);
+
+  const orderedIds = [...ranked, ...unranked];
+  const allDone = ranked.length === allTeams.length && allTeams.length > 0;
+
+  return (
+    <div className="mina-card">
+      <div className="mina-card-title">
+        <span>GRUPP {group}</span>
+        <span className={allDone ? 'is-complete' : ''}>
+          {allDone ? 'KLAR' : `${ranked.length} / ${allTeams.length}`}
+        </span>
+      </div>
+      <div>
+        {orderedIds.map((teamId) => {
+          const rankIdx = ranked.indexOf(teamId);
+          const isRanked = rankIdx !== -1;
+          const team = allTeams.find((t) => t.id === teamId);
+          const flagImage = flagImageForCode(team?.code || team?.id);
+          if (!team) return null;
+          return (
+            <button
+              key={teamId}
+              type="button"
+              onClick={() => onToggleRank(group, teamId, allTeams.map((t) => t.id))}
+              className={clsx(
+                'mina-rank-row',
+                isRanked && RANK_COLORS[rankIdx],
+              )}
+            >
+              <span
+                className={clsx(
+                  'mina-rank-badge',
+                  isRanked && RANK_COLORS[rankIdx],
+                )}
+              >
+                {isRanked ? rankIdx + 1 : '–'}
+              </span>
+              <span className="mina-rank-flag" aria-hidden>
+                {flagImage ? <img src={flagImage} alt="" /> : team.flag}
+              </span>
+              <span
+                className={clsx(
+                  'mina-rank-team',
+                  rankIdx === 3 && 'is-fourth',
+                )}
+              >
+                {team.name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function GrupperTab({ matches, predictions, updateGroupStanding }) {
+  function handleToggleRank(group, teamId, allTeamIds) {
+    const current = predictions?.groupStandings?.[group] || [];
+    let next;
+    if (current.includes(teamId)) {
+      next = current.filter((id) => id !== teamId);
+    } else {
+      next = [...current, teamId];
+      if (next.length === allTeamIds.length - 1) {
+        const lastUnranked = allTeamIds.find((id) => !next.includes(id));
+        if (lastUnranked) next = [...next, lastUnranked];
+      }
+    }
+    updateGroupStanding(group, next);
+  }
+
+  return (
+    <div className="mina-stack">
+      {GROUPS.map((g) => (
+        <GroupRankCard
+          key={g}
+          group={g}
+          matches={matches}
+          groupStandings={predictions?.groupStandings?.[g] || []}
+          onToggleRank={handleToggleRank}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── Vinnare tab ──────────────────────────────────────────────────────────────
+
+function VinnareTab({ predictions, updateWinner }) {
+  const scrollRef = useRef(null);
+  const { teams } = useTeams();
+  const currentWinner = predictions?.knockout?.FINAL ?? null;
+
+  const sortedTeams = useMemo(() => {
+    const alphabetical = [...teams].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+    if (!currentWinner) return alphabetical;
+    const winner = alphabetical.find((t) => t.id === currentWinner);
+    if (!winner) return alphabetical;
+    return [winner, ...alphabetical.filter((t) => t.id !== currentWinner)];
+  }, [teams, currentWinner]);
+
+  function handleSelect(teamId) {
+    if (teamId === currentWinner) {
+      updateWinner(null);
+    } else {
+      updateWinner(teamId);
+      // Scroll to top so the selected team (now at position 0) is visible
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+  }
+
+  return (
+    <div ref={scrollRef} className="mina-card">
+      <div>
+        {sortedTeams.map((team) => {
+          const selected = team.id === currentWinner;
+          return (
+            <button
+              key={team.id}
+              type="button"
+              onClick={() => handleSelect(team.id)}
+              className={clsx(
+                'mina-winner-row',
+                selected && 'is-selected',
+              )}
+            >
+              <span className="mina-match-flag" aria-hidden>
+                {team.flag}
+              </span>
+              <span
+                className={clsx(
+                  'mina-winner-team',
+                  selected ? 'text-green-700' : 'text-neutral-900',
+                )}
+              >
+                {team.name}
+              </span>
+              <span
+                className={clsx(
+                  'mina-winner-radio',
+                  selected
+                    ? 'is-selected'
+                    : '',
+                )}
+              >
+                {selected && (
+                  <svg viewBox="0 0 10 10" className="h-3 w-3" fill="none">
+                    <path
+                      d="M2 5l2.5 2.5L8 3"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function MinaTipsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const tab = TABS.some((item) => item.id === tabParam) ? tabParam : 'matcher';
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [introOpen, setIntroOpen] = useState(false);
+  const { matches, loading: matchesLoading } = useAllMatches();
+  const { groupLocked } = useLockState();
+  const { predictions, updateMatch, updateGroupStanding, updateWinner } = usePredictions();
+
+  const matchCount = predictions ? Object.keys(predictions.matches || {}).length : 0;
+  const totalMatches = matches.length || 72;
+  const groupCount = predictions
+    ? Object.values(predictions.groupStandings || {}).filter((arr) => arr.length === 4).length
+    : 0;
+  const totalGroups = GROUPS.length;
+  const winner = predictions?.knockout?.FINAL ?? null;
+
+  const infoboxProps = {
+    matcher: {
+      icon: <img src={matchesIcon} alt="" />,
+      title: 'TIPPA MATCHERNA',
+      body: (
+        <>
+          Tippa <strong>alla matcher</strong> i gruppspelet
+        </>
+      ),
+      value: matchCount,
+      max: totalMatches,
+    },
+    grupper: {
+      icon: <img src={groupsIcon} alt="" />,
+      title: 'TIPPA PLACERING',
+      body: 'Rangordna lagen 1–4 per grupp.',
+      value: groupCount,
+      max: totalGroups,
+    },
+    vinnare: {
+      icon: <img src={winnerIcon} alt="" />,
+      title: 'VÄLJ DITT VINNARLAG',
+      body: 'Vilket lag tar hem guldet 2026?',
+      value: winner ? 1 : 0,
+      max: 1,
+    },
+  }[tab];
+
+  useEffect(() => {
+    if (window.localStorage?.getItem(MINA_TIPS_INTRO_SEEN_KEY) === '1') return;
+    setIntroOpen(true);
+  }, []);
+
+  function handleTabChange(nextTab) {
+    setSearchParams(nextTab === 'matcher' ? {} : { tab: nextTab }, { replace: true });
+  }
+
+  function handleIntroClose() {
+    window.localStorage?.setItem(MINA_TIPS_INTRO_SEEN_KEY, '1');
+    setIntroOpen(false);
+  }
+
+  return (
+    <div className="mina-page tab-page-enter">
+      {/* Hero */}
+      <header className="mina-hero">
+        <div className="mina-hero-copy">
+          <h1>
+            Dina Tips
+          </h1>
+          <p>
+            Alla dina tips samlade på ett ställe
+          </p>
+        </div>
+        <button
+          type="button"
+          aria-label="Hjälp"
+          onClick={() => setRulesOpen(true)}
+          className="mina-help-button"
+        >
+          <img src={helpIcon} alt="" />
+        </button>
+      </header>
+
+      <SegmentedControl value={tab} onChange={handleTabChange} />
+
+      <Infobox {...infoboxProps} />
+
+      {matchesLoading ? (
+        <div className="card p-8 text-center text-neutral-400">Laddar…</div>
+      ) : (
+        <>
+          {tab === 'matcher' && (
+            <MatcherTab
+              matches={matches}
+              predictions={predictions}
+              updateMatch={updateMatch}
+              groupLocked={groupLocked}
+            />
+          )}
+          {tab === 'grupper' && (
+            <GrupperTab
+              matches={matches}
+              predictions={predictions}
+              updateGroupStanding={updateGroupStanding}
+            />
+          )}
+          {tab === 'vinnare' && (
+            <VinnareTab
+              predictions={predictions}
+              updateWinner={updateWinner}
+            />
+          )}
+        </>
+      )}
+      <RulesSheet open={rulesOpen} onClose={() => setRulesOpen(false)} />
+      <MinaTipsIntroModal open={introOpen} onClose={handleIntroClose} />
+    </div>
+  );
+}

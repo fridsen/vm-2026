@@ -1,10 +1,55 @@
 import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAllMatches } from '../hooks/useMatches.js';
 import { useTeams } from '../hooks/useTeams.js';
 import { GROUPS } from '../data/teams.js';
+import { flagImageForCode } from '../data/flagImages.js';
 import { computeGroupStandings } from '../utils/matchSchedule.js';
-import PageHeader from '../components/PageHeader.jsx';
+import { KnockoutContent } from './KnockoutPage.jsx';
+
+const TABS = [
+  { id: 'grupper', label: 'Gruppspel' },
+  { id: 'slutspel', label: 'Slutspel' },
+];
+
+const TABLE_COLUMNS = ['SM', 'V', 'O', 'F', '+/-', 'P'];
+
+function formatGoalDifference(value) {
+  return value > 0 ? `+${value}` : value;
+}
+
+function StageSegmentedControl({ value, onChange }) {
+  const activeIndex = Math.max(0, TABS.findIndex((tab) => tab.id === value));
+
+  return (
+    <div
+      className="mina-segmented"
+      role="tablist"
+      aria-label="Turneringsvy"
+      style={{
+        '--segment-count': TABS.length,
+        '--segment-index': activeIndex,
+      }}
+    >
+      {TABS.map((tab) => {
+        const selected = value === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            onClick={() => onChange(tab.id)}
+            className={clsx('mina-segmented-tab', selected && 'active')}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function GroupTable({ group, matches }) {
   const { getTeamsInGroup } = useTeams();
@@ -25,66 +70,67 @@ function GroupTable({ group, matches }) {
     <div className="group-table-card stagger-child">
       <div className="gt-header">
         <div className="gt-group-name">Grupp {group}</div>
-        <div className="flex items-center gap-1.5">
-          <span className="block h-2.5 w-2.5 rounded-full bg-accent" />
-          <span className="block h-2.5 w-2.5 rounded-full bg-pink-400" />
-          <span className="ml-1 text-[10px] font-semibold text-neutral-500">Vidare</span>
+        <div className="gt-legend" aria-hidden>
+          {TABLE_COLUMNS.map((column) => (
+            <span key={column} className={column === 'P' ? 'is-points' : undefined}>
+              {column}
+            </span>
+          ))}
         </div>
       </div>
-      <div className="gt-col-headers">
-        <div className="col-team">Lag</div>
-        <div className="col-num">Sp</div>
-        <div className="col-num">V</div>
-        <div className="col-num">O</div>
-        <div className="col-pts">P</div>
-      </div>
-      {standings.map((row, idx) => (
-        <div
-          key={row.team.id}
-          className={clsx(
-            'gt-row',
-            idx === 0 && 'qualify-1st',
-            idx === 1 && 'qualify-2nd',
-          )}
-        >
-          <div className="gt-pos">{idx + 1}</div>
-          <div className="gt-flag" aria-hidden>
-            {row.team.flag}
+      {standings.map((row, idx) => {
+        const flagImage = flagImageForCode(row.team.code);
+
+        return (
+          <div key={row.team.id} className="gt-row">
+            <div className="gt-team">
+              <div className="gt-pos">{idx + 1}</div>
+              <div className="gt-flag" aria-hidden>
+                {flagImage ? <img src={flagImage} alt="" /> : row.team.flag}
+              </div>
+              <div className="gt-team-name">{row.team.name}</div>
+            </div>
+            <div className="gt-data">
+              <span>{row.played}</span>
+              <span>{row.won}</span>
+              <span>{row.drawn}</span>
+              <span>{row.lost}</span>
+              <span>{formatGoalDifference(row.gd)}</span>
+              <span className="gt-pts">{row.points}</span>
+            </div>
           </div>
-          <div className="gt-team-name">{row.team.name}</div>
-          <div className="gt-num">{row.played}</div>
-          <div className="gt-num">{row.won}</div>
-          <div className="gt-num">{row.drawn}</div>
-          <div className="gt-pts">{row.points}</div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
 export default function GroupStandingsPage() {
   const { matches } = useAllMatches();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('tab') === 'slutspel' ? 'slutspel' : 'grupper';
+
+  function setTab(nextTab) {
+    setSearchParams(nextTab === 'slutspel' ? { tab: 'slutspel' } : {}, { replace: true });
+  }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-3">
-      <PageHeader title="Grupper" subtitle="Tabell · gruppspel" />
+    <div className="tables-page tab-page-enter">
+      <header className="tables-hero">
+        <h1>Tabeller</h1>
+        <p>Grupper och slutspel</p>
+      </header>
+      <StageSegmentedControl value={tab} onChange={setTab} />
 
-      <div className="space-y-2">
-        {GROUPS.map((g) => (
-          <GroupTable key={g} group={g} matches={matches} />
-        ))}
-      </div>
-
-      <div className="flex items-center gap-4 px-1 pt-1">
-        <div className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-sm bg-accent" />
-          <span className="text-[11px] font-semibold text-neutral-500">1:a — direkt vidare</span>
+      {tab === 'grupper' ? (
+        <div className="tables-card-list">
+          {GROUPS.map((g) => (
+            <GroupTable key={g} group={g} matches={matches} />
+          ))}
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-sm bg-pink-400" />
-          <span className="text-[11px] font-semibold text-neutral-500">2:a — vidare</span>
-        </div>
-      </div>
+      ) : (
+        <KnockoutContent />
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 // Reads from `matches` and `knockout_matches`.
 
 import { supabase, unwrap } from './supabaseClient.js';
+import { groupMatchScheduleForTeams } from '../data/groupMatchSchedule.js';
 
 export const KNOCKOUT_ROUNDS = ['R32', 'R16', 'QF', 'SF', 'BRONZE', 'FINAL'];
 
@@ -10,15 +11,19 @@ function rowToMatch(r) {
     r.home_score != null && r.away_score != null
       ? { home: r.home_score, away: r.away_score }
       : null;
+  const schedule = groupMatchScheduleForTeams(r.home_team_id, r.away_team_id);
+
   return {
     id: r.id,
     group: r.group,
     round: r.round,
-    kickoff: r.kickoff,
+    kickoff: schedule?.kickoff ?? r.kickoff,
     homeTeamId: r.home_team_id,
     awayTeamId: r.away_team_id,
+    venue: schedule?.venue ?? r.venue ?? null,
     result,
     status: r.status,
+    broadcastChannel: r.broadcast_channel ?? r.channel ?? r.tv_channel ?? schedule?.channel ?? null,
   };
 }
 
@@ -41,11 +46,15 @@ function rowToKnockout(r) {
   };
 }
 
+function sortByKickoff(matches) {
+  return [...matches].sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+}
+
 export async function fetchAllMatches() {
   const rows = unwrap(
     await supabase.from('matches').select('*').order('kickoff'),
   );
-  return rows.map(rowToMatch);
+  return sortByKickoff(rows.map(rowToMatch));
 }
 
 export async function fetchMatchesByGroup(group) {
@@ -56,7 +65,7 @@ export async function fetchMatchesByGroup(group) {
       .eq('group', group)
       .order('kickoff'),
   );
-  return rows.map(rowToMatch);
+  return sortByKickoff(rows.map(rowToMatch));
 }
 
 export async function fetchMatch(id) {
