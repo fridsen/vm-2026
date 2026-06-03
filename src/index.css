@@ -17,12 +17,6 @@
     background: linear-gradient(200deg, #f5f4f9 2%, #e4eff4 32%, #f3eaf4 70%, #f5f4f9 99%) fixed;
     color: #1a1b2e;
   }
-  @media (max-width: 767px) {
-    body {
-      overflow: hidden;
-      height: 100dvh;
-    }
-  }
   #root {
     @apply w-full min-w-0;
   }
@@ -2244,8 +2238,18 @@
     padding: 0 14px;
     pointer-events: none;
   }
+  .app-main {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 12px);
+  }
+  @media (min-width: 768px) {
+    .app-main {
+      padding-bottom: 0;
+    }
+  }
   .app-mobile-footer {
-    position: relative;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
     width: 100%;
   }
   @media (min-width: 768px) {
