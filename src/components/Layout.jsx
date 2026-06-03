@@ -3,8 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import AddToHomeScreenPrompt from './AddToHomeScreenPrompt.jsx';
 import { DesktopNav, MobileBottomNav } from './NavBar.jsx';
 import { usePhoneFrame } from '../hooks/usePhoneFrame.js';
-
-const MOBILE_MQ = '(max-width: 767px)';
+import { useVisualViewportFooter } from '../hooks/useVisualViewportFooter.js';
 
 function PhoneFrameToggle({ on, onToggle }) {
   return (
@@ -25,8 +24,11 @@ export default function Layout() {
   const location = useLocation();
   const mainRef = useRef(null);
 
+  // Document scroll on mobile so Safari can collapse its chrome; hook pins the tab bar.
+  useVisualViewportFooter(!phoneFrame);
+
   useEffect(() => {
-    if (phoneFrame || window.matchMedia(MOBILE_MQ).matches) {
+    if (phoneFrame) {
       mainRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     } else {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -53,13 +55,13 @@ export default function Layout() {
   }
 
   return (
-    <div className="app-viewport">
-      <div className="app-layout flex min-h-0 w-full flex-1 flex-col md:min-h-screen md:flex-row md:items-start">
+    <>
+      <div className="app-layout flex w-full items-start md:min-h-screen">
         <DesktopNav />
-        <div className="app-shell flex min-h-0 w-full min-w-0 flex-1 flex-col md:min-h-screen">
+        <div className="app-shell flex w-full min-w-0 flex-1 flex-col md:min-h-screen">
           <main
             ref={mainRef}
-            className="app-main min-h-0 w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:flex-1 md:overflow-visible md:px-8 md:pb-10 md:pt-8"
+            className="app-main w-full min-w-0 overflow-x-hidden px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:flex-1 md:px-8 md:pb-10 md:pt-8"
           >
             <Outlet />
           </main>
@@ -70,6 +72,6 @@ export default function Layout() {
         <AddToHomeScreenPrompt />
         <MobileBottomNav />
       </div>
-    </div>
+    </>
   );
 }
