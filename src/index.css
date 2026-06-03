@@ -125,9 +125,9 @@
     flex: 0 0 auto;
   }
   :root {
-    --app-tab-bar-height: 68px;
+    --app-tab-bar-height: 80px;
     --app-tab-bar-total: var(--app-tab-bar-height);
-    --app-main-nav-gap: 20px;
+    --app-main-nav-gap: 24px;
   }
   @media (display-mode: standalone) {
     :root {
@@ -182,12 +182,13 @@
     display: flex;
     width: 100%;
     max-width: 390px;
-    min-height: var(--app-tab-bar-height);
+    height: var(--app-tab-bar-height);
+    box-sizing: border-box;
     align-items: center;
     justify-content: space-between;
     gap: 0;
     background: #fff;
-    padding: 10px 12px 12px;
+    padding: 14px 12px 0;
   }
   .app-bottom-nav-item {
     display: flex;
