@@ -86,7 +86,7 @@ function TeamName({ children }) {
     <span
       ref={ref}
       style={{ fontSize: `${size}px` }}
-      className="block w-[120px] overflow-hidden whitespace-nowrap text-center font-display uppercase leading-tight tracking-[0.8px] text-ink"
+      className="prediction-team-name block w-[120px] overflow-hidden whitespace-nowrap text-center font-display uppercase leading-tight tracking-[0.8px] text-ink"
     >
       {children}
     </span>
@@ -198,10 +198,10 @@ function MatchContent({ match, home, away, outcome, onHome, onAway, onOutcome, d
             </div>
 
             {/* Center score */}
-            <div className="flex gap-2 py-[29px] font-display text-[60px] leading-[60px] text-ink">
-              <span>{home}</span>
-              <span>-</span>
-              <span>{away}</span>
+            <div className="prediction-score-display flex shrink-0 gap-2 py-[29px] font-display text-[60px] leading-[60px] text-ink">
+              <span className="tabular-nums">{home}</span>
+              <span className="tabular-nums">-</span>
+              <span className="tabular-nums">{away}</span>
             </div>
 
             {/* Away team */}
@@ -522,7 +522,7 @@ export default function PredictionSheet({
         {/* ── Submit + navigation (persistent) ────────────────── */}
         <div
           data-onboarding-target="prediction-footer"
-          className="flex w-full shrink-0 items-center gap-3 bg-sheet px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-5"
+          className="flex w-full shrink-0 items-center gap-3 bg-sheet px-4 pb-6 pt-5"
         >
           <button
             type="button"

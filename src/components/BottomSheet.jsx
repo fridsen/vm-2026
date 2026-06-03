@@ -219,7 +219,7 @@ export default function BottomSheet({
       <div
         ref={sheetRef}
         className={clsx(
-          'bottom-sheet-panel relative z-10 flex max-h-[calc(100dvh-34px)] w-full flex-col overflow-hidden rounded-t-[32px] pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_0_20px_rgba(0,0,0,0.15)]',
+          'bottom-sheet-panel relative z-10 flex max-h-[calc(100dvh-34px)] w-full flex-col overflow-hidden rounded-t-[32px] pb-0 shadow-[0_0_20px_rgba(0,0,0,0.15)]',
           bg === 'sheet' ? 'bg-sheet' : 'bg-surface',
           maxWidth,
           padded && 'px-4',

@@ -1032,6 +1032,14 @@
     z-index: 20;
   }
 
+  /* Safari draws dotted underlines on overflow:hidden text without text-overflow: clip */
+  .prediction-team-name,
+  .prediction-score-display span {
+    text-decoration: none;
+    -webkit-text-decoration: none;
+    text-overflow: clip;
+  }
+
   /* Sheet and tab bar were both z-50; chrome follows Layout in DOM and covered the footer. */
   @media (max-width: 767px) {
     html.bottom-sheet-open [data-bottom-sheet-overlay] {
