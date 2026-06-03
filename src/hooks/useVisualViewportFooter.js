@@ -9,9 +9,9 @@ function getBottomInset() {
 }
 
 /**
- * iOS Safari: the layout viewport extends below the visual viewport when browser
- * chrome is visible. Extend the tab bar stack to fill that gap and only clamp the
- * extra layout-only scroll range (not normal content scroll).
+ * iOS Safari: fixed `bottom: 0` sticks to the layout viewport, so when browser
+ * chrome hides the tab bar floats above a white band. Pin to the visual viewport
+ * bottom via `top`, and pad the chrome stack to cover the toolbar zone when visible.
  */
 export function useVisualViewportFooter(enabled = true) {
   useEffect(() => {
@@ -43,8 +43,14 @@ export function useVisualViewportFooter(enabled = true) {
         `${bottomInset}px`,
       );
 
-      chrome.style.top = 'auto';
-      chrome.style.bottom = '0';
+      // Measure after inset padding is applied (chrome includes nav + filler pad).
+      const chromeH = chrome.getBoundingClientRect().height;
+      const top = Math.round(vv.offsetTop + vv.height - chromeH);
+      chrome.style.top = `${top}px`;
+      chrome.style.bottom = 'auto';
+      chrome.style.left = '0';
+      chrome.style.right = '0';
+      chrome.style.width = '100%';
       chrome.style.transform = 'none';
 
       clampScroll();
@@ -79,6 +85,9 @@ export function useVisualViewportFooter(enabled = true) {
       if (chrome) {
         chrome.style.removeProperty('top');
         chrome.style.removeProperty('bottom');
+        chrome.style.removeProperty('left');
+        chrome.style.removeProperty('right');
+        chrome.style.removeProperty('width');
         chrome.style.removeProperty('transform');
       }
       chrome = null;

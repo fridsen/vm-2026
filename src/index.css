@@ -143,8 +143,9 @@
   .app-mobile-chrome {
     position: fixed;
     inset-inline: 0;
+    /* top set from visualViewport in useVisualViewportFooter (not layout bottom: 0) */
     top: auto;
-    bottom: 0;
+    bottom: auto;
     z-index: 20;
     display: flex;
     width: 100%;
