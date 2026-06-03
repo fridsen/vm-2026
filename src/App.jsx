@@ -9,6 +9,8 @@ import GroupStandingsPage from './pages/GroupStandingsPage.jsx';
 import MinaTipsPage from './pages/MinaTipsPage.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
+import AdminPaymentsPage from './pages/AdminPaymentsPage.jsx';
+import AdminPredictionHistoryPage from './pages/AdminPredictionHistoryPage.jsx';
 
 export default function App() {
   return (
@@ -25,6 +27,8 @@ export default function App() {
               <Route path="mina-tips" element={<MinaTipsPage />} />
               <Route path="leaderboard" element={<LeaderboardPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              <Route path="admin/betalningar" element={<AdminPaymentsPage />} />
+              <Route path="admin/tipphistorik" element={<AdminPredictionHistoryPage />} />
             </Route>
           </Routes>
           </BrowserRouter>

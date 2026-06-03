@@ -42,21 +42,28 @@ The app passes `redirectTo` from `getAuthRedirectUrl()` (`src/utils/authRedirect
    supabase login
    supabase link --project-ref <ref>
    ```
-3. Push the schema and prediction-lock migrations:
+3. Push the schema and prediction-lock migrations (includes `20260608000001_security_ops.sql`):
    ```bash
    supabase db push
    ```
-4. Set Edge Function secrets:
+4. Deploy admin Edge Functions (after secrets below):
+   ```bash
+   supabase functions deploy send-payment-reminder
+   supabase functions deploy snapshot-predictions
+   ```
+   Secrets for reminders: `RESEND_API_KEY`, `REMINDER_FROM_EMAIL`, optional `ENTRY_FEE_SEK`, `SWISH_NUMBER`.
+5. Verify locks: run `scripts/verify-prediction-locks.sql` in the SQL editor.
+6. Set Edge Function secrets:
    ```bash
    supabase secrets set \
      FOOTBALL_PROVIDER=football-data \
      FOOTBALL_DATA_API_KEY=...           # or API_FOOTBALL_KEY
    ```
-5. Deploy the sync function:
+7. Deploy the sync function:
    ```bash
    supabase functions deploy sync-fixtures
    ```
-6. Configure cron secrets in the Dashboard
+8. Configure cron secrets in the Dashboard
    (Database → Database Settings → Custom Config):
    ```
    app.functions_base_url = https://<ref>.supabase.co/functions/v1
@@ -112,9 +119,9 @@ Setup:
    VITE_ENTRY_FEE_SEK=100
    ```
 
-Admins see "Markera betald" toggles on the Topplista page; everyone sees a
-paid/unpaid badge. No in-app UI manages the allowlist — edit the `admins`
-table directly.
+Admins use **Profil → Admin** links to `/admin/betalningar` (unpaid list,
+mark paid, send reminders) and `/admin/tipphistorik` (prediction audit).
+The allowlist stays in the `admins` table.
 
 ## Match analysis (hardcoded)
 

@@ -98,6 +98,7 @@ export async function upsertProfile(userId, nameOrParts) {
   const row = { id: userId, display_name: displayName };
   if (firstName) row.first_name = firstName;
   if (lastName) row.last_name = lastName;
+  if (parts.email) row.email = parts.email;
 
   const data = unwrap(
     await supabase

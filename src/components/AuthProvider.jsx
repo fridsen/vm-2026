@@ -50,10 +50,19 @@ export default function AuthProvider({ children }) {
       const parts = namePartsFromUser(u);
       if (parts?.firstName) {
         try {
-          p = await upsertProfile(u.id, parts);
+          p = await upsertProfile(u.id, { ...parts, email: u.email });
         } catch {
           /* fall through to the CompleteProfile screen */
         }
+      }
+    } else if (u.email && !p.email) {
+      try {
+        p = await upsertProfile(u.id, {
+          displayName: p.display_name,
+          email: u.email,
+        });
+      } catch {
+        /* non-fatal */
       }
     }
     setProfile(p);

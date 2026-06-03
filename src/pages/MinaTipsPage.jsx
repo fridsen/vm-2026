@@ -22,6 +22,15 @@ import helpIcon from '../assets/mina-tips/help-icon.svg';
 
 const MINA_TIPS_INTRO_SEEN_KEY = 'vm2026:minaTipsIntroSeen:v1';
 
+function TipsLockBanner({ locked }) {
+  if (!locked) return null;
+  return (
+    <div className="mb-4 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-center text-sm text-amber-800">
+      Tippningen är låst sedan första gruppspelsmatchen startade.
+    </div>
+  );
+}
+
 function shouldShowMinaTipsIntro() {
   try {
     return window.localStorage?.getItem(MINA_TIPS_INTRO_SEEN_KEY) !== '1';
@@ -223,7 +232,7 @@ function MinaMatchRow({ match, prediction, onPredict }) {
   );
 }
 
-function MatcherTab({ matches, predictions, updateMatch, groupLocked }) {
+function MatcherTab({ matches, predictions, updateMatch, tournamentLocked }) {
   const [predictMatch, setPredictMatch] = useState(null);
 
   const matchesByGroup = useMemo(() => {
@@ -269,7 +278,7 @@ function MatcherTab({ matches, predictions, updateMatch, groupLocked }) {
                   key={m.id}
                   match={m}
                   prediction={predictions?.matches?.[m.id]}
-                  onPredict={groupLocked ? undefined : () => setPredictMatch(m)}
+                  onPredict={tournamentLocked ? undefined : () => setPredictMatch(m)}
                 />
               ))}
             </section>
@@ -280,7 +289,7 @@ function MatcherTab({ matches, predictions, updateMatch, groupLocked }) {
       <PredictionSheet
         match={predictMatch}
         prediction={predictMatch ? predictions?.matches?.[predictMatch.id] : null}
-        disabled={groupLocked}
+        disabled={tournamentLocked}
         onClose={() => setPredictMatch(null)}
         onSave={({ home, away, outcome }) => {
           if (predictMatch) updateMatch(predictMatch.id, { home, away, outcome });
@@ -303,7 +312,7 @@ const RANK_COLORS = [
   'rank-fourth',
 ];
 
-function GroupRankCard({ group, matches, groupStandings, onToggleRank }) {
+function GroupRankCard({ group, matches, groupStandings, onToggleRank, tournamentLocked }) {
   const { getTeamsInGroup } = useTeams();
   const allTeams = useMemo(() => getTeamsInGroup(group, matches), [getTeamsInGroup, group, matches]);
 
@@ -334,6 +343,7 @@ function GroupRankCard({ group, matches, groupStandings, onToggleRank }) {
             <button
               key={teamId}
               type="button"
+              disabled={tournamentLocked}
               onClick={() => onToggleRank(group, teamId, allTeams.map((t) => t.id))}
               className={clsx(
                 'mina-rank-row',
@@ -367,8 +377,9 @@ function GroupRankCard({ group, matches, groupStandings, onToggleRank }) {
   );
 }
 
-function GrupperTab({ matches, predictions, updateGroupStanding }) {
+function GrupperTab({ matches, predictions, updateGroupStanding, tournamentLocked }) {
   function handleToggleRank(group, teamId, allTeamIds) {
+    if (tournamentLocked) return;
     const current = predictions?.groupStandings?.[group] || [];
     let next;
     if (current.includes(teamId)) {
@@ -385,6 +396,7 @@ function GrupperTab({ matches, predictions, updateGroupStanding }) {
 
   return (
     <div className="mina-stack">
+      <TipsLockBanner locked={tournamentLocked} />
       {GROUPS.map((g) => (
         <GroupRankCard
           key={g}
@@ -392,6 +404,7 @@ function GrupperTab({ matches, predictions, updateGroupStanding }) {
           matches={matches}
           groupStandings={predictions?.groupStandings?.[g] || []}
           onToggleRank={handleToggleRank}
+          tournamentLocked={tournamentLocked}
         />
       ))}
     </div>
@@ -400,7 +413,7 @@ function GrupperTab({ matches, predictions, updateGroupStanding }) {
 
 // ─── Vinnare tab ──────────────────────────────────────────────────────────────
 
-function VinnareTab({ predictions, updateWinner }) {
+function VinnareTab({ predictions, updateWinner, tournamentLocked }) {
   const scrollRef = useRef(null);
   const { teams } = useTeams();
   const currentWinner = predictions?.knockout?.FINAL ?? null;
@@ -414,6 +427,7 @@ function VinnareTab({ predictions, updateWinner }) {
   }, [teams, currentWinner]);
 
   function handleSelect(teamId) {
+    if (tournamentLocked) return;
     if (teamId === currentWinner) {
       updateWinner(null);
     } else {
@@ -427,6 +441,7 @@ function VinnareTab({ predictions, updateWinner }) {
 
   return (
     <div ref={scrollRef} className="mina-card">
+      <TipsLockBanner locked={tournamentLocked} />
       <div>
         {sortedTeams.map((team) => {
           const selected = team.id === currentWinner;
@@ -434,6 +449,7 @@ function VinnareTab({ predictions, updateWinner }) {
             <button
               key={team.id}
               type="button"
+              disabled={tournamentLocked}
               onClick={() => handleSelect(team.id)}
               className={clsx(
                 'mina-winner-row',
@@ -491,7 +507,7 @@ export default function MinaTipsPage() {
     () => !shouldShowMinaTipsIntro() && shouldShowMinaTipsOnboarding(),
   );
   const { matches, loading: matchesLoading } = useAllMatches();
-  const { groupLocked } = useLockState();
+  const { tournamentLocked } = useLockState();
   const { predictions, updateMatch, updateGroupStanding, updateWinner } = usePredictions();
 
   const matchCount = predictions ? Object.keys(predictions.matches || {}).length : 0;
@@ -604,12 +620,13 @@ export default function MinaTipsPage() {
         <div className="card p-8 text-center text-neutral-400">Laddar…</div>
       ) : (
         <>
+          <TipsLockBanner locked={tournamentLocked && tab === 'matcher'} />
           {tab === 'matcher' && (
             <MatcherTab
               matches={matches}
               predictions={predictions}
               updateMatch={updateMatch}
-              groupLocked={groupLocked}
+              tournamentLocked={tournamentLocked}
             />
           )}
           {tab === 'grupper' && (
@@ -617,12 +634,14 @@ export default function MinaTipsPage() {
               matches={matches}
               predictions={predictions}
               updateGroupStanding={updateGroupStanding}
+              tournamentLocked={tournamentLocked}
             />
           )}
           {tab === 'vinnare' && (
             <VinnareTab
               predictions={predictions}
               updateWinner={updateWinner}
+              tournamentLocked={tournamentLocked}
             />
           )}
         </>

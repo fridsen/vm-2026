@@ -4,6 +4,7 @@ import AddToHomeScreenPrompt from './AddToHomeScreenPrompt.jsx';
 import { DesktopNav, MobileBottomNav } from './NavBar.jsx';
 import { usePhoneFrame } from '../hooks/usePhoneFrame.js';
 import { useVisualViewportFooter } from '../hooks/useVisualViewportFooter.js';
+import PaymentReminderToast from './PaymentReminderToast.jsx';
 
 function PhoneFrameToggle({ on, onToggle }) {
   return (
@@ -71,6 +72,7 @@ export default function Layout() {
         <AddToHomeScreenPrompt />
         <MobileBottomNav />
       </div>
+      <PaymentReminderToast />
     </>
   );
 }

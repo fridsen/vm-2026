@@ -3,11 +3,7 @@ import {
   fetchAllPredictions,
   saveMatchPrediction,
   saveGroupStandingPrediction,
-  saveTopScorerPrediction,
-  saveKnockoutAdvance,
-  saveBronzeWinner,
   saveWorldCupWinner,
-  saveFinalists,
 } from '../services/predictionsService.js';
 import { useAuth } from './useAuth.js';
 
@@ -52,7 +48,7 @@ function usePredictionsImpl(userId) {
       await saveMatchPrediction(userId, matchId, { home, away, outcome });
       await refresh();
     },
-    [userId, refresh]
+    [userId, refresh],
   );
 
   const updateGroupStanding = useCallback(
@@ -60,31 +56,7 @@ function usePredictionsImpl(userId) {
       await saveGroupStandingPrediction(userId, group, teamIds);
       await refresh();
     },
-    [userId, refresh]
-  );
-
-  const updateTopScorers = useCallback(
-    async (playerIds) => {
-      await saveTopScorerPrediction(userId, playerIds);
-      await refresh();
-    },
-    [userId, refresh]
-  );
-
-  const updateKnockoutAdvance = useCallback(
-    async (round, matchId, teamId) => {
-      await saveKnockoutAdvance(userId, round, matchId, teamId);
-      await refresh();
-    },
-    [userId, refresh]
-  );
-
-  const updateBronze = useCallback(
-    async (teamId) => {
-      await saveBronzeWinner(userId, teamId);
-      await refresh();
-    },
-    [userId, refresh]
+    [userId, refresh],
   );
 
   const updateWinner = useCallback(
@@ -92,15 +64,7 @@ function usePredictionsImpl(userId) {
       await saveWorldCupWinner(userId, teamId);
       await refresh();
     },
-    [userId, refresh]
-  );
-
-  const updateFinalists = useCallback(
-    async (teamIds) => {
-      await saveFinalists(userId, teamIds);
-      await refresh();
-    },
-    [userId, refresh]
+    [userId, refresh],
   );
 
   return {
@@ -109,10 +73,6 @@ function usePredictionsImpl(userId) {
     refresh,
     updateMatch,
     updateGroupStanding,
-    updateTopScorers,
-    updateKnockoutAdvance,
-    updateBronze,
     updateWinner,
-    updateFinalists,
   };
 }

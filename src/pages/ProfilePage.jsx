@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import { usePayments } from '../hooks/usePayments.js';
@@ -37,7 +38,7 @@ function LinkIcon() {
 export default function ProfilePage() {
   const { user, profile } = useAuth();
   const { entries } = useLeaderboard();
-  const { myPayment, payments, entryFee } = usePayments();
+  const { myPayment, payments, entryFee, isAdmin } = usePayments();
   const [copied, setCopied] = useState(false);
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Spelaren';
   const initials = initialsForName(displayName);
@@ -102,6 +103,20 @@ export default function ProfilePage() {
           </div>
         </div>
       </section>
+
+      {isAdmin && (
+        <section className="profile-section">
+          <h2>Admin</h2>
+          <div className="profile-card flex flex-col gap-2 p-4 text-sm font-bold">
+            <Link to="/admin/betalningar" className="text-green-700">
+              Betalningar och påminnelser
+            </Link>
+            <Link to="/admin/tipphistorik" className="text-green-700">
+              Tipphistorik
+            </Link>
+          </div>
+        </section>
+      )}
 
       <section className="profile-section">
         <h2>Bjud in</h2>
