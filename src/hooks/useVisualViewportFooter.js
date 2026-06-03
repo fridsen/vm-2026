@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 
 const MOBILE_MQ = '(max-width: 767px)';
+const TAB_BAR_HEIGHT_FALLBACK = 80;
 
 /**
- * iOS Safari: layout-viewport bottom ≠ visual-viewport bottom when browser chrome
- * shows/hides. Offset the chrome stack (never clamp — negative bottom moves it down).
+ * iOS Safari: pin bottom chrome to the visual viewport (not the layout bottom).
+ * Uses top positioning so page scroll does not push the tab bar off-screen.
  */
 export function useVisualViewportFooter(enabled = true) {
   useEffect(() => {
@@ -19,20 +20,13 @@ export function useVisualViewportFooter(enabled = true) {
       const vv = window.visualViewport;
       if (!chrome || !vv) return;
 
-      const bottom = window.innerHeight - vv.offsetTop - vv.height;
-      chrome.style.bottom = `${bottom}px`;
-      chrome.style.top = 'auto';
+      const chromeH = Math.max(TAB_BAR_HEIGHT_FALLBACK, Math.ceil(chrome.offsetHeight));
+      const top = Math.round(vv.offsetTop + vv.height - chromeH);
+      chrome.style.top = `${top}px`;
+      chrome.style.bottom = 'auto';
       chrome.style.transform = 'none';
 
-      const nav = chrome.querySelector('.app-bottom-nav');
-      if (nav) {
-        const navH = Math.ceil(nav.getBoundingClientRect().height);
-        const chromePad = parseFloat(getComputedStyle(chrome).paddingBottom) || 0;
-        document.documentElement.style.setProperty(
-          '--app-tab-bar-total',
-          `${Math.ceil(navH + chromePad)}px`,
-        );
-      }
+      document.documentElement.style.setProperty('--app-tab-bar-total', `${chromeH}px`);
     };
 
     const schedule = () => {
@@ -48,7 +42,6 @@ export function useVisualViewportFooter(enabled = true) {
       window.visualViewport.addEventListener('resize', schedule);
       window.visualViewport.addEventListener('scroll', schedule);
       window.addEventListener('resize', schedule);
-      window.addEventListener('scroll', schedule, { passive: true });
       window.addEventListener('orientationchange', schedule);
 
       if (typeof ResizeObserver !== 'undefined') {
@@ -71,7 +64,6 @@ export function useVisualViewportFooter(enabled = true) {
       window.visualViewport?.removeEventListener('resize', schedule);
       window.visualViewport?.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
-      window.removeEventListener('scroll', schedule);
       window.removeEventListener('orientationchange', schedule);
     };
 

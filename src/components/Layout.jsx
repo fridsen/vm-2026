@@ -54,21 +54,23 @@ export default function Layout() {
   }
 
   return (
-    <div className="flex w-full md:min-h-screen">
-      <DesktopNav />
-      <div className="app-shell flex w-full min-w-0 flex-1 flex-col md:min-h-screen">
-        <main
-          ref={mainRef}
-          className="app-main w-full min-w-0 overflow-x-hidden px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:flex-1 md:px-8 md:pb-10 md:pt-8"
-        >
-          <Outlet />
-        </main>
+    <>
+      <div className="app-layout flex w-full items-start md:min-h-screen">
+        <DesktopNav />
+        <div className="app-shell flex w-full min-w-0 flex-1 flex-col md:min-h-screen">
+          <main
+            ref={mainRef}
+            className="app-main w-full min-w-0 overflow-x-hidden px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:flex-1 md:px-8 md:pb-10 md:pt-8"
+          >
+            <Outlet />
+          </main>
+        </div>
+        <PhoneFrameToggle on={false} onToggle={toggle} />
       </div>
       <div className="app-mobile-chrome">
         <AddToHomeScreenPrompt />
         <MobileBottomNav />
       </div>
-      <PhoneFrameToggle on={false} onToggle={toggle} />
-    </div>
+    </>
   );
 }

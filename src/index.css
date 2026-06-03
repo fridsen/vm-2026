@@ -143,6 +143,7 @@
   .app-mobile-chrome {
     position: fixed;
     inset-inline: 0;
+    top: auto;
     bottom: 0;
     z-index: 20;
     display: flex;
@@ -2412,7 +2413,10 @@
     }
     /* Clearance so the last card can scroll above the fixed tab bar (not scroll-padding — that adds extra empty scroll range). */
     .app-main {
-      padding-bottom: calc(var(--app-tab-bar-total) + var(--app-main-nav-gap));
+      padding-bottom: calc(
+        max(var(--app-tab-bar-height), var(--app-tab-bar-total, var(--app-tab-bar-height)))
+        + var(--app-main-nav-gap)
+      );
     }
   }
   @media (min-width: 768px) {
