@@ -148,6 +148,7 @@
     z-index: 20;
     display: flex;
     width: 100%;
+    height: fit-content;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
@@ -2408,14 +2409,16 @@
   }
   /* ─── ADD TO HOME SCREEN — floating prompt (iOS) ─────────── */
   @media (max-width: 767px) {
+    html {
+      overscroll-behavior-y: none;
+    }
     .app-shell {
       min-height: auto;
     }
-    /* Clearance so the last card can scroll above the fixed tab bar (not scroll-padding — that adds extra empty scroll range). */
+    /* Fixed tab bar clearance only — do not tie to measured chrome height (iOS inflates scroll). */
     .app-main {
       padding-bottom: calc(
-        max(var(--app-tab-bar-height), var(--app-tab-bar-total, var(--app-tab-bar-height)))
-        + var(--app-main-nav-gap)
+        var(--app-tab-bar-height) + var(--app-main-nav-gap) + env(safe-area-inset-bottom, 0px)
       );
     }
   }
