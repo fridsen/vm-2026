@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 import { haptics } from '../utils/haptics.js';
 
@@ -43,13 +44,19 @@ export default function BottomSheet({
       };
     }
     let cancelled = false;
-    const raf = requestAnimationFrame(() => {
-      if (cancelled) return;
-      setPhase('idle');
+    setPhase('opening');
+    setDragY(0);
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        if (cancelled) return;
+        setPhase('idle');
+      });
     });
     return () => {
       cancelled = true;
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
       clearTimeout(closeTimer.current);
     };
   }, [open]);
@@ -202,7 +209,7 @@ export default function BottomSheet({
         ? Math.max(0, 1 - dragY / 500)
         : 1;
 
-  return (
+  return createPortal(
     <div
       ref={overlayRef}
       data-bottom-sheet-overlay=""
@@ -247,6 +254,7 @@ export default function BottomSheet({
           {overlay}
         </div>
       ) : null}
-    </div>
+    </div>,
+    document.body,
   );
 }

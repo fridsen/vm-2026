@@ -23,6 +23,10 @@ function namePartsFromUser(u) {
   if (meta.first_name) {
     return { firstName: meta.first_name, lastName: meta.last_name || '' };
   }
+  // Google OAuth often exposes given_name / family_name when scopes allow it.
+  if (meta.given_name) {
+    return { firstName: meta.given_name, lastName: meta.family_name || '' };
+  }
   const full = (meta.full_name || meta.name || '').trim();
   if (!full) return null;
   const [first, ...rest] = full.split(/\s+/);

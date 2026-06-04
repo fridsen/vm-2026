@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAllMatches } from '../hooks/useMatches.js';
 import { useLockState } from '../hooks/useLockState.js';
@@ -10,17 +10,10 @@ import { flagImageForCode } from '../data/flagImages.js';
 import { flattenMatchesByGroup } from '../utils/matchSchedule.js';
 import PredictionSheet from '../components/PredictionSheet.jsx';
 import RulesSheet from '../components/RulesSheet.jsx';
-import MinaTipsIntroModal from '../components/MinaTipsIntroModal.jsx';
-import MinaTipsOnboarding, {
-  MINA_TIPS_ONBOARDING_SEEN_KEY,
-  shouldShowMinaTipsOnboarding,
-} from '../components/MinaTipsOnboarding.jsx';
 import matchesIcon from '../assets/mina-tips/matches-icon.svg';
 import groupsIcon from '../assets/mina-tips/groups-icon.svg';
 import winnerIcon from '../assets/mina-tips/winner-icon.svg';
 import helpIcon from '../assets/mina-tips/help-icon.svg';
-
-const MINA_TIPS_INTRO_SEEN_KEY = 'vm2026:minaTipsIntroSeen:v1';
 
 function TipsLockBanner({ locked }) {
   if (!locked) return null;
@@ -29,14 +22,6 @@ function TipsLockBanner({ locked }) {
       Tippningen är låst sedan första gruppspelsmatchen startade.
     </div>
   );
-}
-
-function shouldShowMinaTipsIntro() {
-  try {
-    return window.localStorage?.getItem(MINA_TIPS_INTRO_SEEN_KEY) !== '1';
-  } catch {
-    return true;
-  }
 }
 
 // ─── Circular progress badge ──────────────────────────────────────────────────
@@ -232,8 +217,17 @@ function MinaMatchRow({ match, prediction, onPredict }) {
   );
 }
 
-function MatcherTab({ matches, predictions, updateMatch, tournamentLocked }) {
+function MatcherTab({
+  matches,
+  predictions,
+  updateMatch,
+  tournamentLocked,
+  openFirstMatchOnMount,
+  openFirstMatchDelay,
+  onFirstMatchOpened,
+}) {
   const [predictMatch, setPredictMatch] = useState(null);
+  const openedFirstMatchRef = useRef(false);
 
   const matchesByGroup = useMemo(() => {
     const map = {};
@@ -256,6 +250,33 @@ function MatcherTab({ matches, predictions, updateMatch, tournamentLocked }) {
     sheetIndex >= 0 && sheetIndex < orderedMatches.length - 1
       ? orderedMatches[sheetIndex + 1]
       : null;
+
+  useEffect(() => {
+    if (!openFirstMatchOnMount || openedFirstMatchRef.current) return;
+    if (tournamentLocked) {
+      openedFirstMatchRef.current = true;
+      onFirstMatchOpened?.();
+      return;
+    }
+    const first = orderedMatches[0];
+    if (!first) return;
+
+    const delay = Math.max(0, openFirstMatchDelay ?? 0);
+    const timer = window.setTimeout(() => {
+      openedFirstMatchRef.current = true;
+      setPredictMatch(first);
+      // Clear router state after paint so the portaled sheet can mount first.
+      window.requestAnimationFrame(() => onFirstMatchOpened?.());
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    openFirstMatchOnMount,
+    openFirstMatchDelay,
+    orderedMatches,
+    tournamentLocked,
+    onFirstMatchOpened,
+  ]);
 
   return (
     <>
@@ -498,13 +519,38 @@ function VinnareTab({ predictions, updateWinner, tournamentLocked }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function MinaTipsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const tab = TABS.some((item) => item.id === tabParam) ? tabParam : 'matcher';
+  const openFirstMatchPending = location.state?.openFirstMatch === true;
+  const openFirstMatchDelay = Number(location.state?.openFirstMatchDelay) || 0;
+  const landedFromAppOnboarding = location.state?.fromAppOnboarding === true;
+  const prevTabRef = useRef(tab);
+  const [tabSlide, setTabSlide] = useState(0);
   const [rulesOpen, setRulesOpen] = useState(false);
-  const [introOpen, setIntroOpen] = useState(shouldShowMinaTipsIntro);
-  const [onboardingOpen, setOnboardingOpen] = useState(
-    () => !shouldShowMinaTipsIntro() && shouldShowMinaTipsOnboarding(),
+
+  useEffect(() => {
+    const prev = prevTabRef.current;
+    if (prev === tab) return;
+    const prevIdx = TABS.findIndex((item) => item.id === prev);
+    const nextIdx = TABS.findIndex((item) => item.id === tab);
+    setTabSlide(nextIdx > prevIdx ? 1 : nextIdx < prevIdx ? -1 : 0);
+    prevTabRef.current = tab;
+  }, [tab]);
+
+  function clearOpenFirstMatchState() {
+    navigate(
+      { pathname: location.pathname, search: location.search },
+      { replace: true, state: null },
+    );
+  }
+
+  const tabPanelClass = clsx(
+    'tab-slide-panel mina-tab-panel',
+    tabSlide === 1 && 'tab-slide-panel--from-right',
+    tabSlide === -1 && 'tab-slide-panel--from-left',
   );
   const { matches, loading: matchesLoading } = useAllMatches();
   const { tournamentLocked } = useLockState();
@@ -567,29 +613,13 @@ export default function MinaTipsPage() {
     setSearchParams(nextTab === 'matcher' ? {} : { tab: nextTab }, { replace: true });
   }
 
-  function handleIntroClose() {
-    try {
-      window.localStorage?.setItem(MINA_TIPS_INTRO_SEEN_KEY, '1');
-    } catch {
-      /* ignore unavailable storage */
-    }
-    setIntroOpen(false);
-    if (shouldShowMinaTipsOnboarding()) {
-      setOnboardingOpen(true);
-    }
-  }
-
-  function handleOnboardingComplete() {
-    try {
-      window.localStorage?.setItem(MINA_TIPS_ONBOARDING_SEEN_KEY, '1');
-    } catch {
-      /* ignore unavailable storage */
-    }
-    setOnboardingOpen(false);
-  }
-
   return (
-    <div className="mina-page tab-page-enter">
+    <div
+      className={clsx(
+        'mina-page',
+        landedFromAppOnboarding && 'mina-page--from-app-onboarding',
+      )}
+    >
       {/* Hero */}
       <header className="mina-hero">
         <div className="mina-hero-copy">
@@ -614,45 +644,43 @@ export default function MinaTipsPage() {
 
       <StatusLegend />
 
-      <Infobox {...infoboxProps} />
-
       {matchesLoading ? (
         <div className="card p-8 text-center text-neutral-400">Laddar…</div>
       ) : (
-        <>
-          <TipsLockBanner locked={tournamentLocked && tab === 'matcher'} />
-          {tab === 'matcher' && (
-            <MatcherTab
-              matches={matches}
-              predictions={predictions}
-              updateMatch={updateMatch}
-              tournamentLocked={tournamentLocked}
-            />
-          )}
-          {tab === 'grupper' && (
-            <GrupperTab
-              matches={matches}
-              predictions={predictions}
-              updateGroupStanding={updateGroupStanding}
-              tournamentLocked={tournamentLocked}
-            />
-          )}
-          {tab === 'vinnare' && (
-            <VinnareTab
-              predictions={predictions}
-              updateWinner={updateWinner}
-              tournamentLocked={tournamentLocked}
-            />
-          )}
-        </>
+        <div className="tab-slide-viewport mina-tab-viewport">
+          <div key={tab} className={tabPanelClass}>
+            <Infobox {...infoboxProps} />
+            <TipsLockBanner locked={tournamentLocked && tab === 'matcher'} />
+            {tab === 'matcher' && (
+              <MatcherTab
+                matches={matches}
+                predictions={predictions}
+                updateMatch={updateMatch}
+                tournamentLocked={tournamentLocked}
+                openFirstMatchOnMount={openFirstMatchPending}
+                openFirstMatchDelay={openFirstMatchDelay}
+                onFirstMatchOpened={clearOpenFirstMatchState}
+              />
+            )}
+            {tab === 'grupper' && (
+              <GrupperTab
+                matches={matches}
+                predictions={predictions}
+                updateGroupStanding={updateGroupStanding}
+                tournamentLocked={tournamentLocked}
+              />
+            )}
+            {tab === 'vinnare' && (
+              <VinnareTab
+                predictions={predictions}
+                updateWinner={updateWinner}
+                tournamentLocked={tournamentLocked}
+              />
+            )}
+          </div>
+        </div>
       )}
       <RulesSheet open={rulesOpen} onClose={() => setRulesOpen(false)} />
-      <MinaTipsIntroModal open={introOpen} onClose={handleIntroClose} />
-      <MinaTipsOnboarding
-        open={onboardingOpen && !introOpen}
-        onStepTab={handleTabChange}
-        onComplete={handleOnboardingComplete}
-      />
     </div>
   );
 }

@@ -1017,6 +1017,187 @@
     border: 0;
   }
 
+  /* ─── APP ONBOARDING (Hem, Figma 188:82770) ───────────────── */
+  .app-onboarding-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+    font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
+    pointer-events: auto;
+  }
+  .app-onboarding-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    pointer-events: auto;
+    transition: opacity 0.5s ease;
+  }
+  .app-onboarding-overlay.is-exiting .app-onboarding-scrim {
+    opacity: 0;
+  }
+  .app-onboarding-panel {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 327px);
+    pointer-events: none;
+    transition:
+      opacity 0.48s ease,
+      transform 0.48s ease;
+  }
+  .app-onboarding-overlay.is-exiting .app-onboarding-panel {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  .app-onboarding-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-radius: 24px;
+    background: #fff;
+    padding: 8px 8px 20px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    pointer-events: auto;
+  }
+  .app-onboarding-media {
+    height: 184px;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+  .app-onboarding-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .app-onboarding-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 12px;
+  }
+  .app-onboarding-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #000;
+  }
+  .app-onboarding-copy h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+  .app-onboarding-body {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 22px;
+    letter-spacing: -0.14px;
+  }
+  .app-onboarding-body p {
+    margin: 0;
+    line-height: 22px;
+  }
+  .app-onboarding-body p + p {
+    margin-top: 6px;
+  }
+  .app-onboarding-body strong {
+    font-weight: 600;
+    line-height: 22px;
+  }
+  .app-onboarding-actions {
+    position: relative;
+    min-height: 40px;
+  }
+  .app-onboarding-cta {
+    min-height: 40px;
+    border: none;
+    border-radius: 12px;
+    background: #000;
+    padding: 10px 24px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: #fff;
+    cursor: pointer;
+  }
+  .app-onboarding-cta:hover {
+    opacity: 0.9;
+  }
+  .app-onboarding-dots {
+    position: absolute;
+    right: 0;
+    top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .app-onboarding-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #dbdcea;
+  }
+  .app-onboarding-dot.is-active {
+    width: 20px;
+    background: #000;
+  }
+
+  /* ─── TAB SLIDE (main nav + Mina tips segments) ─────────── */
+  .tab-slide-viewport,
+  .mina-tab-viewport {
+    overflow: hidden;
+  }
+  .tab-slide-panel,
+  .mina-tab-panel {
+    animation-duration: 0.34s;
+    animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+    animation-fill-mode: both;
+  }
+  .tab-slide-panel--from-right,
+  .mina-tab-panel--from-right {
+    animation-name: tabSlideEnterFromRight;
+  }
+  .tab-slide-panel--from-left,
+  .mina-tab-panel--from-left {
+    animation-name: tabSlideEnterFromLeft;
+  }
+  @keyframes tabSlideEnterFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(28px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes tabSlideEnterFromLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-28px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  .mina-page--from-app-onboarding {
+    animation: minaPageLand 0.55s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+  @keyframes minaPageLand {
+    from {
+      opacity: 0.6;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   /* ─── SPOTLIGHT ONBOARDING (Mina tips 180:77705, Prediction sheet 180:78287) ─── */
   .mina-onboarding-overlay {
     position: fixed;
@@ -1025,11 +1206,102 @@
     pointer-events: none;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
   }
-  /* Lives inside BottomSheet overlay — must not use fixed/body portal (transform stacking). */
-  .mina-onboarding-overlay.prediction-sheet-onboarding {
+  /* Prediction sheet spotlight (Figma 180:78287) — inside portaled BottomSheet. */
+  .prediction-sheet-onboarding {
     position: absolute;
     inset: 0;
     z-index: 20;
+    pointer-events: none;
+    font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .prediction-sheet-onboarding.is-visible {
+    opacity: 1;
+  }
+  .prediction-onboarding-scrim-fill {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .prediction-onboarding-hole {
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    background: transparent;
+  }
+  .prediction-onboarding-blocker {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: auto;
+  }
+  .prediction-onboarding-highlight {
+    position: relative;
+    z-index: 2;
+    border-radius: 12px !important;
+    background: #fff !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  }
+  .prediction-onboarding-callout {
+    position: fixed;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    pointer-events: none;
+  }
+  .prediction-onboarding-card {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+    border-radius: 18px;
+    background: #fff;
+    padding: 24px 20px 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    pointer-events: auto;
+  }
+  .prediction-onboarding-card-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .prediction-onboarding-card h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 20px;
+    color: #000;
+  }
+  .prediction-onboarding-card p {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 20px;
+    color: #000;
+  }
+  .prediction-onboarding-cta {
+    align-self: flex-start;
+    min-height: 40px;
+    border: none;
+    border-radius: 12px;
+    background: #000;
+    padding: 10px 24px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: #fff;
+    cursor: pointer;
+  }
+  .prediction-onboarding-cta:hover {
+    opacity: 0.9;
+  }
+  .prediction-onboarding-cta.is-wide {
+    min-width: 120px;
   }
 
   /* Safari draws dotted underlines on overflow:hidden text without text-overflow: clip */
@@ -2463,6 +2735,20 @@
     height: 24px;
     flex: 0 0 auto;
   }
+  .profile-logout-button {
+    display: flex;
+    height: 52px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    border: 1px solid #d8dbe6;
+    background: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 20px;
+    color: #5c6178;
+  }
   /* ─── MOBILE: document scroll (vmkollen .bnav + .pb-nav) ─ */
   @media (max-width: 767px) {
     .app-shell {
@@ -2760,7 +3046,8 @@
   .onb-logo {
     transition:
       top 0.55s cubic-bezier(0.4, 0, 0.2, 1),
-      height 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+      height 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+      width 0.55s cubic-bezier(0.4, 0, 0.2, 1);
   }
   /* Black card slides up from / down to the bottom edge of the screen. */
   .onb-card {
@@ -2846,5 +3133,16 @@
   }
   .tab-page-enter > *:nth-child(6) {
     animation-delay: 0.24s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .app-onboarding-panel,
+    .app-onboarding-scrim,
+    .tab-slide-panel,
+    .mina-tab-panel,
+    .mina-page--from-app-onboarding,
+    .prediction-sheet-onboarding {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 }

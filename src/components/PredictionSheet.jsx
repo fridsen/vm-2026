@@ -7,7 +7,9 @@ import { useMatchAnalysis } from '../hooks/useMatchAnalysis.js';
 import { emblemForCode } from '../data/emblems.js';
 import { haptics } from '../utils/haptics.js';
 import BottomSheet from './BottomSheet.jsx';
+import { hasCompletedAppOnboarding } from './AppOnboarding.jsx';
 import PredictionSheetOnboarding, {
+  PREDICTION_SHEET_ONBOARDING_DELAY_MS,
   PREDICTION_SHEET_ONBOARDING_SEEN_KEY,
   shouldShowPredictionSheetOnboarding,
 } from './PredictionSheetOnboarding.jsx';
@@ -313,17 +315,22 @@ export default function PredictionSheet({
   useEffect(() => {
     if (!match) {
       setOnboardingOpen(false);
-      return;
+      return undefined;
     }
-    if (!shouldShowPredictionSheetOnboarding()) {
+    if (!hasCompletedAppOnboarding() || !shouldShowPredictionSheetOnboarding()) {
       setOnboardingOpen(false);
-      return;
+      return undefined;
     }
     if (sheetPhase !== 'idle') {
       setOnboardingOpen(false);
-      return;
+      return undefined;
     }
-    setOnboardingOpen(true);
+
+    const timer = window.setTimeout(
+      () => setOnboardingOpen(true),
+      PREDICTION_SHEET_ONBOARDING_DELAY_MS,
+    );
+    return () => window.clearTimeout(timer);
   }, [match?.id, sheetPhase]);
 
   function handleOnboardingComplete() {
@@ -427,11 +434,19 @@ export default function PredictionSheet({
     }
     haptics.success();
     onSave?.({ home, away, outcome: outcomePick });
-    // Keep the sheet open so the user can keep navigating; briefly confirm
-    // the save, then fall back to the "edit" copy (prediction now exists).
     setSaved(true);
     clearTimeout(savedTimer.current);
-    savedTimer.current = setTimeout(() => setSaved(false), 1200);
+
+    if (hasNext && onNext) {
+      // Brief confirmation, then slide to the next match (batch tipping).
+      savedTimer.current = setTimeout(() => {
+        setSaved(false);
+        navDirRef.current = 'next';
+        onNext();
+      }, 450);
+    } else {
+      savedTimer.current = setTimeout(() => setSaved(false), 1200);
+    }
   };
 
   if (!match) return null;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
 import Field from './Field.jsx';
 import OnboardingButton, { GoogleButton } from './OnboardingButton.jsx';
+import OnboardingDivider from './OnboardingDivider.jsx';
 
 export default function LoginScreen() {
   const { signInWithPassword, signInWithGoogle, sendPasswordReset } = useAuth();
@@ -16,7 +17,6 @@ export default function LoginScreen() {
     setError(null);
     try {
       await signInWithPassword(email, password);
-      // AuthProvider picks up the session and AuthGate advances.
     } catch (err) {
       setError(err.message);
       setStatus('idle');
@@ -52,43 +52,34 @@ export default function LoginScreen() {
 
   return (
     <>
-      <div className="flex flex-col items-center gap-1 text-center">
-        <h1 className="font-display text-[32px] leading-[32px] tracking-[-0.32px] text-lime">
-          Logga in
-        </h1>
-        <p className="font-barlow text-base text-white">Kom igång att tippa!</p>
-      </div>
+      <h1 className="text-center font-display text-[32px] leading-8 tracking-[-0.32px] text-lime">
+        Logga in
+      </h1>
 
       <form onSubmit={submit} className="flex flex-col gap-6">
-        <GoogleButton onClick={google} disabled={busy} />
-
-        <div className="flex w-full items-center gap-2">
-          <div className="h-px flex-1 bg-white/20" />
-          <span className="font-barlow text-xs font-medium text-white/40">
-            eller logga in med
-          </span>
-          <div className="h-px flex-1 bg-white/20" />
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <Field
-            label="Email"
-            type="email"
-            required
-            autoComplete="email"
-            placeholder="Din email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Field
-            label="Lösenord"
-            type="password"
-            required
-            autoComplete="current-password"
-            placeholder="Ditt lösenord"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        <div className="flex flex-col gap-6">
+          <GoogleButton onClick={google} disabled={busy} />
+          <OnboardingDivider>eller logga in med</OnboardingDivider>
+          <div className="flex flex-col gap-4">
+            <Field
+              label="Emailadress"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="Emailadress"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Field
+              label="Lösenord"
+              type="password"
+              required
+              autoComplete="current-password"
+              placeholder="Lösenord"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
         </div>
 
         {status === 'reset-sent' && (
@@ -98,7 +89,7 @@ export default function LoginScreen() {
         )}
         {error && <p className="font-barlow text-sm text-red-400">{error}</p>}
 
-        <div className="mt-auto flex flex-col items-center gap-4 pt-2">
+        <div className="flex flex-col items-center gap-4">
           <OnboardingButton type="submit" variant="primary" disabled={busy}>
             {status === 'submitting' ? 'Loggar in…' : 'Logga in'}
           </OnboardingButton>
@@ -107,7 +98,7 @@ export default function LoginScreen() {
             onClick={reset}
             className="font-barlow text-sm font-medium tracking-[-0.14px] text-lime"
           >
-            Glömt lösenord
+            Glömt lösenord?
           </button>
         </div>
       </form>

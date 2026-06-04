@@ -11,8 +11,7 @@
 - Add live match data
 - Add live leaderboard toggle
 - Fäst på hemskärmen
-- Onboarding till prediction sheet
-
 ## Done
 
-- Onboarding till min tips sida
+- Onboarding till min tips sida (ersatt av app-onboarding på Hem)
+- Onboarding till prediction sheet

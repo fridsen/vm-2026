@@ -9,8 +9,7 @@ import OnboardingScene from './onboarding/OnboardingScene.jsx';
 //   loading            → splash (hero logo)
 //   not signed in      → landing ⇄ signup ⇄ login
 //   no profile yet     → complete (rare: Google with no name claim)
-//   payment not acked  → payment (shown once after signup)
-//   otherwise          → the app
+//   otherwise          → the app (payment is in-app onboarding, not here)
 export default function AuthGate({ children }) {
   const { user, profile, loading } = useAuth();
   // Which unauthenticated screen to show (no router available out here).
@@ -20,7 +19,6 @@ export default function AuthGate({ children }) {
   if (loading) phase = 'splash';
   else if (!user) phase = screen; // landing | signup | login
   else if (!profile) phase = 'complete';
-  else if (!profile.payment_ack) phase = 'payment';
   else phase = 'app';
 
   if (phase === 'app') return children;

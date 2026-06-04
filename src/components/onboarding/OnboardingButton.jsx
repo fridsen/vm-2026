@@ -60,7 +60,7 @@ export function GoogleButton({ children = 'Fortsätt med Google', className, ...
       {...props}
     >
       <GoogleIcon />
-      <span className="font-barlow text-base font-medium text-black/[0.54]">{children}</span>
+      <span className="font-barlow text-base font-medium text-[rgba(0,0,0,0.54)]">{children}</span>
     </button>
   );
 }

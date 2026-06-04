@@ -36,7 +36,7 @@ function LinkIcon() {
 }
 
 export default function ProfilePage() {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { entries } = useLeaderboard();
   const { myPayment, payments, entryFee, isAdmin } = usePayments();
   const [copied, setCopied] = useState(false);
@@ -123,6 +123,20 @@ export default function ProfilePage() {
         <button type="button" className="profile-invite-button" onClick={copyInviteLink}>
           <LinkIcon />
           <span>{copied ? 'Länk kopierad!' : 'Kopiera inbjudningslänk'}</span>
+        </button>
+      </section>
+
+      <section className="profile-section">
+        <h2>Konto</h2>
+        <button
+          type="button"
+          className="profile-logout-button"
+          onClick={() => {
+            haptics.light();
+            signOut();
+          }}
+        >
+          Logga ut
         </button>
       </section>
     </div>

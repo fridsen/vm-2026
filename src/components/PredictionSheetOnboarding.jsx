@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
 
 export const PREDICTION_SHEET_ONBOARDING_SEEN_KEY = 'vm2026:predictionSheetOnboardingSeen:v1';
+export const PREDICTION_SHEET_ONBOARDING_DELAY_MS = 550;
+export const PREDICTION_SHEET_ONBOARDING_FADE_MS = 400;
 
 const SHEET_ROOT_SELECTOR = '[data-bottom-sheet-overlay]';
-const SCRIM = 'rgba(0, 0, 0, 0.8)';
+const SCRIM = 'rgba(0, 0, 0, 0.6)';
 
 export function shouldShowPredictionSheetOnboarding() {
   try {
@@ -21,7 +23,7 @@ const STEPS = [
     placement: 'below',
     title: 'Hur många mål gör lagen?',
     body:
-      'Använd plus (+) och minus (−) knapparna för att ändra hur många mål de båda lagen gör.',
+      'Använd plus (+) och minus (-) knapparna för att ändra hur många mål de båda lagen gör.',
     cta: 'Fortsätt',
   },
   {
@@ -39,7 +41,7 @@ const STEPS = [
     placement: 'above',
     title: 'Spara och gå vidare',
     body:
-      'Glöm inte att spara ditt tips efter du satt resultat och tecken, vill du tippa nästa match eller kolla föregående är det bara använda pilarna, annars klickar du på mörka bakgrunden eller drar ner modalen för att komma tillbaka.',
+      'Glöm inte att spara ditt tips efter du satt resultat och tecken, när du sparat tipset går du vidare automatiskt till nästa match. Vill du inte tippa nästa match är det bara att klicka på mörka bakgrunden eller dra ner modalen för att komma tillbaka.',
     cta: 'Jag är redo!',
     ctaWide: true,
   },
@@ -133,9 +135,9 @@ function useTargetHighlight(step, open) {
     const el = getVisibleTarget(step.target);
     if (!el) return undefined;
 
-    el.classList.add('mina-onboarding-highlight-tab');
+    el.classList.add('prediction-onboarding-highlight');
     return () => {
-      el.classList.remove('mina-onboarding-highlight-tab');
+      el.classList.remove('prediction-onboarding-highlight');
     };
   }, [open, step]);
 }
@@ -158,15 +160,15 @@ function OnboardingCallout({ step, rect, onAdvance }) {
   }
 
   return (
-    <div className="mina-onboarding-callout" style={cardStyle}>
-      <div className="mina-onboarding-card">
-        <div className="mina-onboarding-card-copy">
+    <div className="prediction-onboarding-callout" style={cardStyle}>
+      <div className="prediction-onboarding-card">
+        <div className="prediction-onboarding-card-copy">
           <h3>{step.title}</h3>
           <p>{step.body}</p>
         </div>
         <button
           type="button"
-          className={clsx('mina-onboarding-cta', step.ctaWide && 'is-wide')}
+          className={clsx('prediction-onboarding-cta', step.ctaWide && 'is-wide')}
           onClick={onAdvance}
         >
           {step.cta}
@@ -176,15 +178,29 @@ function OnboardingCallout({ step, rect, onAdvance }) {
   );
 }
 
-/** Spotlight tour rendered inside BottomSheet (not portaled to document.body). */
+/** Spotlight tour inside the portaled BottomSheet overlay. */
 export default function PredictionSheetOnboarding({ open, onComplete }) {
   const [stepIndex, setStepIndex] = useState(0);
-  const { rect, step } = useTargetRect(stepIndex, open);
+  const [fadeIn, setFadeIn] = useState(false);
+  const { rect, step } = useTargetRect(stepIndex, open && fadeIn);
 
-  useTargetHighlight(step, open);
+  useTargetHighlight(step, open && fadeIn);
 
   useEffect(() => {
-    if (!open) setStepIndex(0);
+    if (!open) {
+      setStepIndex(0);
+      setFadeIn(false);
+      return undefined;
+    }
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setFadeIn(true));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      setFadeIn(false);
+    };
   }, [open]);
 
   function handleAdvance() {
@@ -199,14 +215,17 @@ export default function PredictionSheetOnboarding({ open, onComplete }) {
 
   return (
     <div
-      className="mina-onboarding-overlay prediction-sheet-onboarding"
+      className={clsx(
+        'prediction-sheet-onboarding',
+        fadeIn && 'is-visible',
+      )}
       role="dialog"
       aria-modal="true"
       aria-labelledby="prediction-sheet-onboarding-title"
     >
       {rect && (
         <div
-          className="mina-onboarding-hole is-tab"
+          className="prediction-onboarding-hole"
           style={{
             top: rect.top,
             left: rect.left,
@@ -218,8 +237,10 @@ export default function PredictionSheetOnboarding({ open, onComplete }) {
           aria-hidden
         />
       )}
-      {!rect && <div className="mina-onboarding-scrim-fill" style={{ background: SCRIM }} aria-hidden />}
-      <div className="mina-onboarding-blocker" aria-hidden />
+      {!rect && (
+        <div className="prediction-onboarding-scrim-fill" style={{ background: SCRIM }} aria-hidden />
+      )}
+      <div className="prediction-onboarding-blocker" aria-hidden />
       <OnboardingCallout step={step} rect={rect} onAdvance={handleAdvance} />
       <p id="prediction-sheet-onboarding-title" className="sr-only">
         {step.title}

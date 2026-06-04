@@ -69,7 +69,7 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <div className="matches-page tab-page-enter">
+      <div className="matches-page">
         <header className="matches-hero">
           <h1>Matcher</h1>
           <p>Laddar…</p>
@@ -80,7 +80,7 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="matches-page tab-page-enter">
+    <div className="matches-page">
       <header className="matches-hero">
         <h1>Matcher</h1>
         <p>Alla matcher i svensk tid</p>

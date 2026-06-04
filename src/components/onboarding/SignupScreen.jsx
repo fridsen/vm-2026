@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
 import Field from './Field.jsx';
 import OnboardingButton, { GoogleButton } from './OnboardingButton.jsx';
+import OnboardingDivider from './OnboardingDivider.jsx';
 
 export default function SignupScreen({ onGoToLogin }) {
   const { signUpWithPassword, signInWithGoogle } = useAuth();
@@ -13,7 +14,6 @@ export default function SignupScreen({ onGoToLogin }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    // Split the single name field into first + last; require at least two parts.
     const parts = name.trim().split(/\s+/).filter(Boolean);
     if (parts.length < 2) {
       setError('Ange både förnamn och efternamn.');
@@ -30,8 +30,6 @@ export default function SignupScreen({ onGoToLogin }) {
         firstName,
         lastName,
       });
-      // With a session, AuthProvider picks up the user and AuthGate advances.
-      // Without one, Supabase requires email confirmation first.
       if (!hasSession) setStatus('sent');
     } catch (err) {
       setError(err.message);
@@ -53,7 +51,7 @@ export default function SignupScreen({ onGoToLogin }) {
   if (status === 'sent') {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-6 text-center">
-        <h1 className="font-display text-[32px] leading-[32px] tracking-[-0.32px] text-lime">
+        <h1 className="font-display text-[32px] leading-8 tracking-[-0.32px] text-lime">
           Kolla din mejl
         </h1>
         <p className="font-barlow text-base text-white/80">
@@ -68,57 +66,48 @@ export default function SignupScreen({ onGoToLogin }) {
 
   return (
     <>
-      <div className="flex flex-col items-center gap-1 text-center">
-        <h1 className="font-display text-[32px] leading-[32px] tracking-[-0.32px] text-lime">
-          Skapa nytt konto
-        </h1>
-        <p className="font-barlow text-base text-white">Kom igång att tippa!</p>
-      </div>
+      <h1 className="text-center font-display text-[32px] leading-8 tracking-[-0.32px] text-lime">
+        Skapa konto
+      </h1>
 
       <form onSubmit={submit} className="flex flex-col gap-6">
-        <GoogleButton onClick={google} disabled={busy} />
-
-        <div className="flex w-full items-center gap-2">
-          <div className="h-px flex-1 bg-white/20" />
-          <span className="font-barlow text-xs font-medium text-white/40">
-            eller registrera dig med
-          </span>
-          <div className="h-px flex-1 bg-white/20" />
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <Field
-            label="Förnamn och efternamn"
-            required
-            autoComplete="name"
-            placeholder="Förnamn & efternamn"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <Field
-            label="Email"
-            type="email"
-            required
-            autoComplete="email"
-            placeholder="Din email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Field
-            label="Lösenord"
-            type="password"
-            required
-            minLength={6}
-            autoComplete="new-password"
-            placeholder="Välj lösenord"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        <div className="flex flex-col gap-6">
+          <GoogleButton onClick={google} disabled={busy} />
+          <OnboardingDivider>eller registrera dig med</OnboardingDivider>
+          <div className="flex flex-col gap-4">
+            <Field
+              label="Förnamn och efternamn"
+              required
+              autoComplete="name"
+              placeholder="Förnamn & efternamn"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <Field
+              label="Emailadress"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="Emailadress"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Field
+              label="Lösenord"
+              type="password"
+              required
+              minLength={6}
+              autoComplete="new-password"
+              placeholder="Lösenord"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
         </div>
 
         {error && <p className="font-barlow text-sm text-red-400">{error}</p>}
 
-        <div className="mt-auto flex flex-col items-center gap-4 pt-2">
+        <div className="flex flex-col items-center gap-4">
           <OnboardingButton type="submit" variant="primary" disabled={busy}>
             {status === 'submitting' ? 'Skapar konto…' : 'Gå med i VM-Tipset'}
           </OnboardingButton>
