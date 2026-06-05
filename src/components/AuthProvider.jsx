@@ -40,6 +40,7 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   // Fetch the profile and, if it's missing but the user already carries a
   // name (email signup metadata or Google), create it automatically so the
@@ -79,23 +80,14 @@ export default function AuthProvider({ children }) {
       const session = await getSession();
       if (!mounted) return;
       setUser(session.user);
-      if (session.user) await ensureProfile(session.user);
       setLoading(false);
     })();
 
-    const unsub = onAuthStateChange(async (u) => {
+    // Sync updates only — async Supabase calls here deadlock signInWithPassword
+    // because auth-js holds an exclusive lock while notifying subscribers.
+    const unsub = onAuthStateChange((u) => {
       setUser(u);
-      if (u) {
-        await ensureProfile(u);
-        // First-login migration of any prototype-era localStorage predictions.
-        try {
-          await migrateLocalStorageToSupabase(LEGACY_LOCAL_USER_ID, u.id);
-        } catch (err) {
-          console.warn('[auth] localStorage migration failed:', err.message);
-        }
-      } else {
-        setProfile(null);
-      }
+      if (!u) setProfile(null);
     });
     return () => {
       mounted = false;
@@ -103,11 +95,36 @@ export default function AuthProvider({ children }) {
     };
   }, [ensureProfile]);
 
+  useEffect(() => {
+    if (!user?.id) {
+      setProfileLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setProfileLoading(true);
+    (async () => {
+      await ensureProfile(user);
+      if (cancelled) return;
+      try {
+        await migrateLocalStorageToSupabase(LEGACY_LOCAL_USER_ID, user.id);
+      } catch (err) {
+        console.warn('[auth] localStorage migration failed:', err.message);
+      } finally {
+        if (!cancelled) setProfileLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, ensureProfile]);
+
   const value = useMemo(
     () => ({
       user,
       profile,
-      loading,
+      loading: loading || profileLoading,
       signInWithEmail,
       signInWithGoogle,
       signInWithPassword,
@@ -127,7 +144,7 @@ export default function AuthProvider({ children }) {
         return p;
       },
     }),
-    [user, profile, loading],
+    [user, profile, loading, profileLoading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
