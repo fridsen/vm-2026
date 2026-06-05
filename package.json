@@ -12,6 +12,7 @@
     "test:e2e": "playwright test",
     "preview": "vite preview",
     "supabase:push": "supabase db push",
+    "supabase:verify-scoring": "supabase db query --linked -f scripts/verify-leaderboard-scoring.sql",
     "supabase:deploy": "supabase functions deploy sync-fixtures",
     "supabase:sync": "curl -fsS -X POST \"$SUPABASE_URL/functions/v1/sync-fixtures\" -H \"Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY\""
   },
