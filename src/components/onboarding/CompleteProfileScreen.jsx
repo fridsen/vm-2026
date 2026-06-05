@@ -3,29 +3,45 @@ import { useAuth } from '../../hooks/useAuth.js';
 import Field from './Field.jsx';
 import OnboardingButton from './OnboardingButton.jsx';
 
-// Fallback shown when a signed-in user has no profile yet and we couldn't
-// derive a name automatically (e.g. a Google account without a name claim).
+// Shown when a signed-in user has no profile yet or is missing first/last name
+// (e.g. Google without family_name).
 export default function CompleteProfileScreen() {
-  const { user, saveProfile } = useAuth();
+  const { user, profile, saveProfile } = useAuth();
   const meta = user?.user_metadata || {};
   const full = (meta.full_name || meta.name || '').trim();
-  const [first, ...rest] = full ? full.split(/\s+/) : [''];
-  const [firstName, setFirstName] = useState(meta.first_name || first || '');
-  const [lastName, setLastName] = useState(meta.last_name || rest.join(' ') || '');
+  const [firstFromFull, ...restFromFull] = full ? full.split(/\s+/) : [''];
+  const [firstName, setFirstName] = useState(
+    profile?.first_name || meta.first_name || firstFromFull || '',
+  );
+  const [lastName, setLastName] = useState(
+    profile?.last_name || meta.last_name || restFromFull.join(' ') || '',
+  );
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
 
   const submit = async (e) => {
     e.preventDefault();
+    const first = firstName.trim();
+    const last = lastName.trim();
+    if (first.length < 2) {
+      setError('Ange ditt förnamn.');
+      return;
+    }
+    if (last.length < 2) {
+      setError('Ange ditt efternamn.');
+      return;
+    }
     setStatus('saving');
     setError(null);
     try {
-      await saveProfile({ firstName: firstName.trim(), lastName: lastName.trim() });
+      await saveProfile({ firstName: first, lastName: last });
     } catch (err) {
       setError(err.message);
       setStatus('idle');
     }
   };
+
+  const canSubmit = firstName.trim().length >= 2 && lastName.trim().length >= 2;
 
   return (
     <>
@@ -41,13 +57,16 @@ export default function CompleteProfileScreen() {
           <Field
             label="Förnamn"
             required
-            placeholder="Namn"
+            autoComplete="given-name"
+            placeholder="Förnamn"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
           />
           <Field
             label="Efternamn"
-            placeholder="Namnsson"
+            required
+            autoComplete="family-name"
+            placeholder="Efternamn"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
           />
@@ -59,7 +78,7 @@ export default function CompleteProfileScreen() {
           <OnboardingButton
             type="submit"
             variant="primary"
-            disabled={status === 'saving' || firstName.trim().length < 2}
+            disabled={status === 'saving' || !canSubmit}
           >
             {status === 'saving' ? 'Sparar…' : 'Fortsätt'}
           </OnboardingButton>

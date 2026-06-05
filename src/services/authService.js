@@ -82,6 +82,10 @@ export async function fetchProfile(userId) {
   return data;
 }
 
+export function isProfileComplete(profile) {
+  return Boolean(profile?.first_name?.trim() && profile?.last_name?.trim());
+}
+
 // Create/update the profile. Accepts either a plain display name (legacy
 // callers) or a { firstName, lastName } object; display_name is always set
 // (and kept NOT NULL) as "First Last" for the leaderboard.

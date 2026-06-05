@@ -52,7 +52,7 @@ export default function AuthProvider({ children }) {
     let p = await fetchProfile(u.id);
     if (!p) {
       const parts = namePartsFromUser(u);
-      if (parts?.firstName) {
+      if (parts?.firstName?.trim() && parts?.lastName?.trim()) {
         try {
           p = await upsertProfile(u.id, { ...parts, email: u.email });
         } catch {

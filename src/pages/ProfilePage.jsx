@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import { usePayments } from '../hooks/usePayments.js';
+import SwishPaymentPrompt from '../components/SwishPaymentPrompt.jsx';
 import { haptics } from '../utils/haptics.js';
 
 function initialsForName(name) {
@@ -21,13 +21,13 @@ function formatSek(value) {
   }).format(value);
 }
 
-function LinkIcon() {
+function BackIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path
-        d="M9.5 14.5 14.5 9.5M10.5 6.5l1.12-1.12a4 4 0 1 1 5.66 5.66L15.5 12.82M13.5 17.5l-1.12 1.12a4 4 0 0 1-5.66-5.66L8.5 11.18"
+        d="M14 8H2m0 0 5-5M2 8l5 5"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -35,110 +35,131 @@ function LinkIcon() {
   );
 }
 
+function ChevronRightIcon() {
+  return (
+    <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden="true">
+      <path
+        d="M1 1l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ProfileRow({ label, value, badge }) {
+  return (
+    <div className="profile-row">
+      <span>{label}</span>
+      {badge ?? <strong>{value}</strong>}
+    </div>
+  );
+}
+
+function ProfileLinkRow({ to, children }) {
+  return (
+    <Link to={to} className="profile-link-row">
+      <span>{children}</span>
+      <ChevronRightIcon />
+    </Link>
+  );
+}
+
 export default function ProfilePage() {
   const { user, profile, signOut } = useAuth();
   const { entries } = useLeaderboard();
   const { myPayment, payments, entryFee, isAdmin } = usePayments();
-  const [copied, setCopied] = useState(false);
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Spelaren';
   const initials = initialsForName(displayName);
   const participantCount = entries.length || Object.keys(payments || {}).length || 0;
   const totalPot = participantCount > 0 ? entryFee * participantCount : 0;
-  const payout = useMemo(
-    () => ({
-      first: Math.round(totalPot * 0.6),
-      second: Math.round(totalPot * 0.3),
-      third: Math.round(totalPot * 0.1),
-    }),
-    [totalPot],
-  );
   const paid = Boolean(myPayment?.paid || profile?.payment_ack);
+  const showSwishPrompt = !myPayment?.paid;
+  const firstName =
+    profile?.first_name ||
+    displayName.split(/\s+/).filter(Boolean)[0] ||
+    'namn';
+  const inviteUrl = typeof window === 'undefined' ? '' : `${window.location.origin}/`;
 
-  const inviteUrl =
-    typeof window === 'undefined' ? '' : `${window.location.origin}/`;
+  async function inviteFriends() {
+    haptics.light();
+    const shareData = {
+      title: 'VM-Tipset 2026',
+      text: 'Häng med i VM-tipset!',
+      url: inviteUrl,
+    };
 
-  async function copyInviteLink() {
     try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
       await navigator.clipboard.writeText(inviteUrl);
       haptics.success();
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
-    } catch {
-      haptics.error();
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(inviteUrl);
+        haptics.success();
+      } catch {
+        haptics.error();
+      }
     }
+  }
+
+  async function handleSignOut() {
+    haptics.light();
+    await signOut();
   }
 
   return (
     <div className="profile-page tab-page-enter">
-      <header className="profile-hero">
-        <div className="profile-avatar">{initials || 'S'}</div>
-        <h1>{displayName}</h1>
+      <header className="profile-header">
+        <Link to="/" className="profile-back" aria-label="Tillbaka">
+          <BackIcon />
+        </Link>
+        <div className="profile-hero">
+          <div className="profile-avatar">{initials || 'S'}</div>
+          <h1>{displayName}</h1>
+        </div>
       </header>
 
-      <section className="profile-section">
-        <h2>Tävlingen</h2>
-        <div className="profile-card">
-          <div className="profile-row">
-            <span>Betalning</span>
-            <strong className={paid ? 'profile-paid' : 'profile-unpaid'}>
-              {paid ? '✓ Betald' : 'Ej betald'}
+      <div className="profile-card">
+        <ProfileRow
+          label="Betalning"
+          badge={
+            <strong className={paid ? 'profile-badge profile-badge--paid' : 'profile-badge profile-badge--unpaid'}>
+              {paid ? 'Betald' : 'Ej betalat'}
             </strong>
-          </div>
-          <div className="profile-row">
-            <span>Antal deltagare</span>
-            <strong>
-              {participantCount} {participantCount === 1 ? 'spelare' : 'spelare'}
-            </strong>
-          </div>
-          <div className="profile-row">
-            <span>Total pott</span>
-            <strong>{formatSek(totalPot)} kr</strong>
-          </div>
-          <div className="profile-row profile-payout-row">
-            <span>Utdelning</span>
-            <strong>
-              1a: {formatSek(payout.first)}kr · 2a: {formatSek(payout.second)}kr · 3a:{' '}
-              {formatSek(payout.third)}kr
-            </strong>
-          </div>
-        </div>
-      </section>
+          }
+        />
+        <ProfileRow
+          label="Antal deltagare"
+          value={`${participantCount} tippare`}
+        />
+        <ProfileRow label="Prispott" value={`${formatSek(totalPot)} kr`} />
+        <ProfileRow label="Fördelning prispott i %" value="50 / 30 / 20" />
+      </div>
+
+      {showSwishPrompt && <SwishPaymentPrompt firstName={firstName} />}
 
       {isAdmin && (
-        <section className="profile-section">
-          <h2>Admin</h2>
-          <div className="profile-card flex flex-col gap-2 p-4 text-sm font-bold">
-            <Link to="/admin/betalningar" className="text-green-700">
-              Betalningar och påminnelser
-            </Link>
-            <Link to="/admin/tipphistorik" className="text-green-700">
-              Tipphistorik
-            </Link>
-          </div>
-        </section>
+        <div className="profile-card">
+          <ProfileLinkRow to="/admin/betalningar">Betalning och påminnelser</ProfileLinkRow>
+          <ProfileLinkRow to="/admin/tipphistorik">Tipphistorik</ProfileLinkRow>
+        </div>
       )}
 
-      <section className="profile-section">
-        <h2>Bjud in</h2>
-        <button type="button" className="profile-invite-button" onClick={copyInviteLink}>
-          <LinkIcon />
-          <span>{copied ? 'Länk kopierad!' : 'Kopiera inbjudningslänk'}</span>
+      <div className="profile-actions">
+        <button type="button" className="profile-invite-button" onClick={inviteFriends}>
+          Bjud in vänner
         </button>
-      </section>
-
-      <section className="profile-section">
-        <h2>Konto</h2>
-        <button
-          type="button"
-          className="profile-logout-button"
-          onClick={() => {
-            haptics.light();
-            signOut();
-          }}
-        >
+        <button type="button" className="profile-logout-button" onClick={handleSignOut}>
           Logga ut
         </button>
-      </section>
+      </div>
     </div>
   );
 }

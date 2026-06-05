@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { ENTRY_FEE_SEK, SWISH_NUMBER } from '../services/paymentsService.js';
+import { formatSwishDisplay } from '../utils/swish.js';
 import onboarding1 from '../assets/onboarding/Onboarding-1.png';
 import onboarding2 from '../assets/onboarding/Onboarding-2.png';
 import onboarding3 from '../assets/onboarding/Onboarding-3.png';
@@ -37,16 +38,8 @@ export function hasCompletedAppOnboarding(userId) {
   return !shouldShowAppOnboarding(userId);
 }
 
-function formatSwishDisplay(raw) {
-  const digits = (raw || SWISH_FALLBACK).replace(/\D/g, '');
-  if (digits.length === 10 && digits.startsWith('07')) {
-    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8)}`;
-  }
-  return raw || SWISH_FALLBACK;
-}
-
 function buildSteps(firstName) {
-  const swish = formatSwishDisplay(SWISH_NUMBER);
+  const swish = formatSwishDisplay(SWISH_NUMBER, SWISH_FALLBACK);
   const message = `VM-tips ${firstName}`.trim();
 
   return [
@@ -57,7 +50,7 @@ function buildSteps(firstName) {
       title: 'Här lever tipset',
       body: (
         <p>
-          Allt du ska fylla i: matcher, grupper och topp 3 finns under{' '}
+          Allt du ska fylla i: matcher, grupper och prispallen finns under{' '}
           <strong>Mina tips</strong>. Det är din arbetsyta fram till deadline.
         </p>
       ),
@@ -69,17 +62,13 @@ function buildSteps(firstName) {
       imageAlt: 'Matcher, grupper och topp 3',
       title: 'Tre delar av tipset',
       body: (
-        <>
-          <p>
-            <strong>Matcher:</strong> Resultat och tecken i alla matcher.
-          </p>
-          <p>
-            <strong>Grupper:</strong> Rangordna lagen 1–4 i alla 12 grupper.
-          </p>
-          <p>
-            <strong>Vinnare:</strong> Välj ett lag som tar hem VM.
-          </p>
-        </>
+        <p>
+          <strong>Resultat och tecken</strong> i alla matcher
+          <br />
+          Rangordna lagen <strong>1–4</strong> i alla <strong>12 grupper</strong>
+          <br />
+          Välj vilka lag som <strong>kommer på pallen</strong> i VM.
+        </p>
       ),
       cta: 'Fortsätt',
     },
@@ -87,16 +76,16 @@ function buildSteps(firstName) {
       id: 'progress',
       image: onboarding3,
       imageAlt: 'Framsteg per flik',
-      title: 'Så här följer du läget',
+      title: 'Håll koll på din status',
       body:
-        'Rutan visar vad som gäller i den flik du är på, och cirkeln hur långt du kommit. Målet: 72 matcher, 12 grupper klara, och topp 3 i VM.',
+        'Boxen visar vad som gäller i den flik du är på, och cirkeln hur långt du kommit i respektive sektion.',
       cta: 'Fortsätt',
     },
     {
       id: 'deadline',
       image: onboarding4,
       imageAlt: 'Deadline vid första avspark',
-      title: 'När låser allt?',
+      title: 'Deadline',
       body:
         'Alla tips låses vid första avspark i gruppspelet, 11 juni kl. 21:00. Till dess kan du ändra hur många gånger du vill, efter deadline går inga ändringar.',
       cta: 'Fortsätt',
@@ -105,12 +94,12 @@ function buildSteps(firstName) {
       id: 'payment',
       image: onboarding5,
       imageAlt: 'Swish-betalning',
-      title: 'Betala insatsen',
+      title: 'Bidra till potten',
       body: (
         <>
           <p>
-            Insatsen är <strong>{FEE} kr via Swish</strong> och går till potten. Topp tre på
-            resultatlistan delar vinsten.
+            Insatsen är <strong>{FEE} kr via Swish</strong> och går till potten. Topp tre delar
+            vinsten.
           </p>
           <p>
             <strong>Nummer:</strong> {swish}

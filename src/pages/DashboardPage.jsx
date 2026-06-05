@@ -18,6 +18,8 @@ import PageHeader from '../components/PageHeader.jsx';
 import MatchCard from '../components/MatchCard.jsx';
 import PredictionSheet from '../components/PredictionSheet.jsx';
 import RulesSheet from '../components/RulesSheet.jsx';
+import SwishPaymentPrompt from '../components/SwishPaymentPrompt.jsx';
+import { usePayments } from '../hooks/usePayments.js';
 import checklistIcon from '../assets/home/checklist-icon.svg';
 import rulesIcon from '../assets/home/rules-icon.svg';
 import matchesIcon from '../assets/mina-tips/matches-icon.svg';
@@ -55,7 +57,7 @@ function BellIcon() {
   );
 }
 
-function PreWcHomeHeader({ name }) {
+function PreWcHomeHeader({ name, firstName }) {
   const initials = (name || 'Du')
     .split(/\s+/)
     .filter(Boolean)
@@ -70,7 +72,7 @@ function PreWcHomeHeader({ name }) {
         <div className="home-avatar">{initials || 'DU'}</div>
         <div>
           <div className="home-welcome">Välkommen!</div>
-          <div className="home-name">{name}</div>
+          <div className="home-name">{firstName}</div>
         </div>
       </Link>
       <button type="button" className="home-bell" aria-label="Notiser">
@@ -274,12 +276,14 @@ function RulesPreviewCard({ onOpen }) {
 function PreWcHome({
   deadlineMs,
   name,
+  firstName,
   matchCount,
   totalMatches,
   rankedGroups,
   totalGroups,
   topThreeFilled,
   onOpenRules,
+  showSwishPrompt,
 }) {
   const nextType =
     topThreeFilled < 3
@@ -292,8 +296,9 @@ function PreWcHome({
 
   return (
     <div className="home-page">
-      <PreWcHomeHeader name={name} />
+      <PreWcHomeHeader name={name} firstName={firstName} />
       <PreWcHero deadlineMs={deadlineMs} hasStartedTipping={hasStartedTipping} />
+      {showSwishPrompt && <SwishPaymentPrompt firstName={firstName} />}
       <ChecklistCard
         matchCount={matchCount}
         totalMatches={totalMatches}
@@ -461,8 +466,13 @@ export default function DashboardPage() {
   const { entries } = useLeaderboard();
   const { predictions, updateMatch } = usePredictions();
   const { user, profile } = useAuth();
+  const { myPayment } = usePayments();
   const myUserId = user?.id;
-  const myName = profile?.display_name || user?.email || 'Jimmy';
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Du';
+  const firstName =
+    profile?.first_name?.trim() ||
+    displayName.split(/\s+/).filter(Boolean)[0] ||
+    'Du';
   const [predictMatch, setPredictMatch] = useState(null);
   const [rulesOpen, setRulesOpen] = useState(false);
   const deadlineMs = globalDeadline
@@ -513,13 +523,15 @@ export default function DashboardPage() {
       ) : (
         <PreWcHome
           deadlineMs={deadlineMs}
-          name={myName}
+          name={displayName}
+          firstName={firstName}
           matchCount={predicted}
           totalMatches={totalMatches}
           rankedGroups={rankedGroups}
           totalGroups={12}
           topThreeFilled={topThreeFilled}
           onOpenRules={() => setRulesOpen(true)}
+          showSwishPrompt={!myPayment?.paid}
         />
       )}
 

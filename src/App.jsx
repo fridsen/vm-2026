@@ -12,11 +12,13 @@ import ProfilePage from './pages/ProfilePage.jsx';
 import AdminPaymentsPage from './pages/AdminPaymentsPage.jsx';
 import AdminPredictionHistoryPage from './pages/AdminPredictionHistoryPage.jsx';
 import PortraitGate from './components/PortraitGate.jsx';
+import AppUpdatePrompt from './components/AppUpdatePrompt.jsx';
 
 export default function App() {
   return (
     <AuthProvider>
       <TeamsProvider>
+        <AppUpdatePrompt />
         <AuthGate>
           <PortraitGate />
           <BrowserRouter>

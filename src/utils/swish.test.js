@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildSwishPayUrl, normalizeSwishNumber } from './swish.js';
+import { buildSwishPayUrl, formatSwishDisplay, normalizeSwishNumber } from './swish.js';
+
+describe('formatSwishDisplay', () => {
+  it('formats 10-digit Swedish mobile numbers', () => {
+    expect(formatSwishDisplay('0708312041')).toBe('070 831 20 41');
+  });
+});
 
 describe('normalizeSwishNumber', () => {
   it('converts 07 numbers to 46', () => {

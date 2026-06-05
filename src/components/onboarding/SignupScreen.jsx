@@ -6,7 +6,8 @@ import OnboardingDivider from './OnboardingDivider.jsx';
 
 export default function SignupScreen() {
   const { signUpWithPassword, signInWithGoogle } = useAuth();
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('idle'); // idle | submitting | google | sent
@@ -14,21 +15,24 @@ export default function SignupScreen() {
 
   const submit = async (e) => {
     e.preventDefault();
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    if (parts.length < 2) {
-      setError('Ange både förnamn och efternamn.');
+    const first = firstName.trim();
+    const last = lastName.trim();
+    if (first.length < 2) {
+      setError('Ange ditt förnamn.');
       return;
     }
-    const firstName = parts[0];
-    const lastName = parts.slice(1).join(' ');
+    if (last.length < 2) {
+      setError('Ange ditt efternamn.');
+      return;
+    }
     setStatus('submitting');
     setError(null);
     try {
       const { hasSession } = await signUpWithPassword({
         email,
         password,
-        firstName,
-        lastName,
+        firstName: first,
+        lastName: last,
       });
       if (!hasSession) setStatus('sent');
     } catch (err) {
@@ -63,6 +67,8 @@ export default function SignupScreen() {
   }
 
   const busy = status !== 'idle';
+  const canSubmit =
+    firstName.trim().length >= 2 && lastName.trim().length >= 2 && email && password.length >= 6;
 
   return (
     <>
@@ -75,14 +81,24 @@ export default function SignupScreen() {
           <GoogleButton onClick={google} disabled={busy} />
           <OnboardingDivider>eller registrera dig med</OnboardingDivider>
           <div className="flex flex-col gap-4">
-            <Field
-              label="Förnamn och efternamn"
-              required
-              autoComplete="name"
-              placeholder="Förnamn & efternamn"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <div className="flex gap-4">
+              <Field
+                label="Förnamn"
+                required
+                autoComplete="given-name"
+                placeholder="Förnamn"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+              <Field
+                label="Efternamn"
+                required
+                autoComplete="family-name"
+                placeholder="Efternamn"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
             <Field
               label="Emailadress"
               type="email"
@@ -108,7 +124,7 @@ export default function SignupScreen() {
         {error && <p className="font-barlow text-sm text-red-400">{error}</p>}
 
         <div className="flex flex-col items-center">
-          <OnboardingButton type="submit" variant="primary" disabled={busy}>
+          <OnboardingButton type="submit" variant="primary" disabled={busy || !canSubmit}>
             {status === 'submitting' ? 'Skapar konto…' : 'Gå med i VM-Tipset'}
           </OnboardingButton>
         </div>
