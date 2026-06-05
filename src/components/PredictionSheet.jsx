@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import clsx from 'clsx';
 import { useTeams } from '../hooks/useTeams.js';
+import { useAuth } from '../hooks/useAuth.js';
 import { useMatchAnalysis } from '../hooks/useMatchAnalysis.js';
 import { emblemForCode } from '../data/emblems.js';
 import { haptics } from '../utils/haptics.js';
@@ -10,7 +11,7 @@ import BottomSheet from './BottomSheet.jsx';
 import { hasCompletedAppOnboarding } from './AppOnboarding.jsx';
 import PredictionSheetOnboarding, {
   PREDICTION_SHEET_ONBOARDING_DELAY_MS,
-  PREDICTION_SHEET_ONBOARDING_SEEN_KEY,
+  predictionSheetOnboardingStorageKey,
   shouldShowPredictionSheetOnboarding,
 } from './PredictionSheetOnboarding.jsx';
 
@@ -270,6 +271,8 @@ export default function PredictionSheet({
   hasPrev = false,
   hasNext = false,
 }) {
+  const { user } = useAuth();
+  const userId = user?.id;
   // Scores default to a real 0-0 — that itself is a valid prediction the
   // user can save as-is. Picking a tecken alone is also enough to save.
   const [home, setHome] = useState(prediction?.home ?? 0);
@@ -317,7 +320,7 @@ export default function PredictionSheet({
       setOnboardingOpen(false);
       return undefined;
     }
-    if (!hasCompletedAppOnboarding() || !shouldShowPredictionSheetOnboarding()) {
+    if (!hasCompletedAppOnboarding(userId) || !shouldShowPredictionSheetOnboarding(userId)) {
       setOnboardingOpen(false);
       return undefined;
     }
@@ -331,11 +334,13 @@ export default function PredictionSheet({
       PREDICTION_SHEET_ONBOARDING_DELAY_MS,
     );
     return () => window.clearTimeout(timer);
-  }, [match?.id, sheetPhase]);
+  }, [match?.id, sheetPhase, userId]);
 
   function handleOnboardingComplete() {
     try {
-      window.localStorage?.setItem(PREDICTION_SHEET_ONBOARDING_SEEN_KEY, '1');
+      if (userId) {
+        window.localStorage?.setItem(predictionSheetOnboardingStorageKey(userId), '1');
+      }
     } catch {
       /* ignore unavailable storage */
     }

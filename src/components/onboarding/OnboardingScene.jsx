@@ -19,9 +19,6 @@ const FORM_PHASES = ['signup', 'login', 'complete'];
 export default function OnboardingScene({ phase, onSetScreen }) {
   const { signOut } = useAuth();
   const isForm = FORM_PHASES.includes(phase);
-  // Every form phase gets a back arrow (per design). For the pre-auth screens
-  // it returns to the landing choice; for complete there's nothing to go
-  // "back" to but sign-out, so it does that.
   const showBack = isForm;
   const goBack = () => {
     if (phase === 'signup' || phase === 'login') onSetScreen('landing');
@@ -46,13 +43,13 @@ export default function OnboardingScene({ phase, onSetScreen }) {
   return (
     <div className="fixed inset-x-0 top-0 z-50 h-[100dvh] overflow-hidden overscroll-none bg-lime">
       <div className="relative mx-auto h-full w-full max-w-[400px]">
-        {/* Back arrow (signup / login only). */}
+        {/* Back arrow — pinned near the top on form screens. */}
         <button
           type="button"
           onClick={goBack}
           aria-label="Tillbaka"
           className={clsx(
-            'onb-fade absolute left-6 top-[calc(env(safe-area-inset-top)+4.75rem)] z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black text-lime',
+            'onb-fade absolute left-6 top-[calc(env(safe-area-inset-top)+1rem)] z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black text-lime',
             showBack ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
         >
@@ -67,13 +64,21 @@ export default function OnboardingScene({ phase, onSetScreen }) {
           </svg>
         </button>
 
-        {/* Persistent logo: animates between the hero pose and the pinned pose. */}
+        {/* Logo: hero pose on landing, pinned below the back arrow on form screens. */}
         <div
-          className="onb-logo absolute left-1/2 z-10 inline-flex -translate-x-1/2"
+          className="onb-logo absolute left-1/2 z-30 inline-flex -translate-x-1/2"
           style={
             isForm
-              ? { top: 'calc(env(safe-area-inset-top) + 9.5rem)', height: '100px', width: '4.0625rem' }
-              : { top: 'calc(46% - 120px)', height: '240px' }
+              ? {
+                  top: 'calc(env(safe-area-inset-top) + 4.5rem)',
+                  height: '100px',
+                  width: '4.0625rem',
+                }
+              : {
+                  top: 'calc(46% - 120px)',
+                  height: '240px',
+                  width: '9.75rem',
+                }
           }
         >
           <Logo className="h-full w-full" />
@@ -82,7 +87,7 @@ export default function OnboardingScene({ phase, onSetScreen }) {
         {/* Landing call-to-action buttons (fade out when entering a form). */}
         <div
           className={clsx(
-            'onb-fade absolute inset-x-4 bottom-7 z-10 flex flex-col gap-3',
+            'onb-fade absolute inset-x-4 bottom-[max(1.75rem,env(safe-area-inset-bottom))] z-10 flex flex-col gap-3',
             phase === 'landing' ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
         >
@@ -94,14 +99,12 @@ export default function OnboardingScene({ phase, onSetScreen }) {
           </OnboardingButton>
         </div>
 
-        {/* Black card: grows up from the bottom of the screen. */}
+        {/* Black card: flush to screen edges, grows with content from the bottom. */}
         <div
-          className="onb-card absolute inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-10 flex max-h-[calc(100dvh-11.75rem)] flex-col gap-8 overflow-y-auto rounded-[32px] bg-black p-6"
-          style={{ transform: isForm ? 'translateY(0)' : 'translateY(120%)' }}
+          className="onb-card absolute inset-x-0 bottom-0 z-10 flex flex-col gap-8 rounded-t-[32px] bg-black p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+          style={{ transform: isForm ? 'translateY(0)' : 'translateY(100%)' }}
         >
-          {renderPhase === 'signup' && (
-            <SignupScreen onGoToLogin={() => onSetScreen('login')} />
-          )}
+          {renderPhase === 'signup' && <SignupScreen />}
           {renderPhase === 'login' && <LoginScreen />}
           {renderPhase === 'complete' && <CompleteProfileScreen />}
         </div>

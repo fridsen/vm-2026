@@ -20,16 +20,21 @@ export const APP_ONBOARDING_SHEET_DELAY_MS = 650;
 const FEE = ENTRY_FEE_SEK;
 const SWISH_FALLBACK = '070-831 20 41';
 
-export function shouldShowAppOnboarding() {
+export function appOnboardingStorageKey(userId) {
+  return userId ? `${APP_ONBOARDING_SEEN_KEY}:${userId}` : APP_ONBOARDING_SEEN_KEY;
+}
+
+export function shouldShowAppOnboarding(userId) {
+  if (!userId) return false;
   try {
-    return window.localStorage?.getItem(APP_ONBOARDING_SEEN_KEY) !== '1';
+    return window.localStorage?.getItem(appOnboardingStorageKey(userId)) !== '1';
   } catch {
     return true;
   }
 }
 
-export function hasCompletedAppOnboarding() {
-  return !shouldShowAppOnboarding();
+export function hasCompletedAppOnboarding(userId) {
+  return !shouldShowAppOnboarding(userId);
 }
 
 function formatSwishDisplay(raw) {
@@ -144,9 +149,10 @@ function StepDots({ count, activeIndex }) {
   );
 }
 
-function markComplete() {
+function markComplete(userId) {
+  if (!userId) return;
   try {
-    window.localStorage?.setItem(APP_ONBOARDING_SEEN_KEY, '1');
+    window.localStorage?.setItem(appOnboardingStorageKey(userId), '1');
   } catch {
     /* ignore unavailable storage */
   }
@@ -181,7 +187,7 @@ export default function AppOnboarding({ open, onComplete }) {
   function finishAndNavigate(target) {
     setExiting(true);
     window.setTimeout(() => {
-      markComplete();
+      markComplete(user?.id);
       onComplete?.();
       navigate(target, {
         state: {
@@ -200,7 +206,7 @@ export default function AppOnboarding({ open, onComplete }) {
       if (step.navigateTo) {
         finishAndNavigate(step.navigateTo);
       } else {
-        markComplete();
+        markComplete(user?.id);
         onComplete?.();
       }
       return;

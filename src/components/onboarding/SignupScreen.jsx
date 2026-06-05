@@ -4,7 +4,7 @@ import Field from './Field.jsx';
 import OnboardingButton, { GoogleButton } from './OnboardingButton.jsx';
 import OnboardingDivider from './OnboardingDivider.jsx';
 
-export default function SignupScreen({ onGoToLogin }) {
+export default function SignupScreen() {
   const { signUpWithPassword, signInWithGoogle } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -107,17 +107,10 @@ export default function SignupScreen({ onGoToLogin }) {
 
         {error && <p className="font-barlow text-sm text-red-400">{error}</p>}
 
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center">
           <OnboardingButton type="submit" variant="primary" disabled={busy}>
             {status === 'submitting' ? 'Skapar konto…' : 'Gå med i VM-Tipset'}
           </OnboardingButton>
-          <button
-            type="button"
-            onClick={onGoToLogin}
-            className="font-barlow text-sm font-medium tracking-[-0.14px] text-lime"
-          >
-            Jag har redan ett konto
-          </button>
         </div>
       </form>
     </>

@@ -498,7 +498,7 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-3xl">
       {tournamentStarted ? (
-        <div className="space-y-4">
+        <div className="space-y-4 pt-7">
           <PageHeader title="VM 2026" subtitle="Gruppspel · pågående" />
           <LiveView
             matches={matches}

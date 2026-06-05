@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.js';
 import AnimatedTabOutlet from './AnimatedTabOutlet.jsx';
 import AddToHomeScreenPrompt from './AddToHomeScreenPrompt.jsx';
 import AppOnboarding, {
@@ -27,23 +28,38 @@ function PhoneFrameToggle({ on, onToggle }) {
 
 export default function Layout() {
   const { phoneFrame, toggle } = usePhoneFrame();
+  const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const mainRef = useRef(null);
   const [appOnboardingOpen, setAppOnboardingOpen] = useState(false);
   const isHome = location.pathname === '/';
+  const userId = user?.id;
 
   useVisualViewportFooter(!phoneFrame);
 
+  // BrowserRouter is unmounted during auth onboarding, so the address bar can
+  // still point at /profile (or elsewhere). New users should start on Hem.
   useEffect(() => {
-    if (!shouldShowAppOnboarding()) {
+    if (!userId || !shouldShowAppOnboarding(userId)) return;
+    if (location.pathname !== '/') {
+      navigate('/', { replace: true });
+    }
+  }, [userId, location.pathname, navigate]);
+
+  useEffect(() => {
+    if (!userId || !shouldShowAppOnboarding(userId)) {
+      setAppOnboardingOpen(false);
+      return undefined;
+    }
+    if (!isHome) {
       setAppOnboardingOpen(false);
       return undefined;
     }
     if (appOnboardingOpen) return undefined;
-    const delay = isHome ? APP_ONBOARDING_DELAY_MS : 0;
-    const timer = window.setTimeout(() => setAppOnboardingOpen(true), delay);
+    const timer = window.setTimeout(() => setAppOnboardingOpen(true), APP_ONBOARDING_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [isHome, appOnboardingOpen]);
+  }, [isHome, appOnboardingOpen, userId]);
 
   useEffect(() => {
     if (phoneFrame) {

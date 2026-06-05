@@ -8,9 +8,16 @@ export const PREDICTION_SHEET_ONBOARDING_FADE_MS = 400;
 const SHEET_ROOT_SELECTOR = '[data-bottom-sheet-overlay]';
 const SCRIM = 'rgba(0, 0, 0, 0.6)';
 
-export function shouldShowPredictionSheetOnboarding() {
+export function predictionSheetOnboardingStorageKey(userId) {
+  return userId
+    ? `${PREDICTION_SHEET_ONBOARDING_SEEN_KEY}:${userId}`
+    : PREDICTION_SHEET_ONBOARDING_SEEN_KEY;
+}
+
+export function shouldShowPredictionSheetOnboarding(userId) {
+  if (!userId) return false;
   try {
-    return window.localStorage?.getItem(PREDICTION_SHEET_ONBOARDING_SEEN_KEY) !== '1';
+    return window.localStorage?.getItem(predictionSheetOnboardingStorageKey(userId)) !== '1';
   } catch {
     return true;
   }
