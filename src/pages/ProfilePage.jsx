@@ -43,7 +43,7 @@ export default function ProfilePage() {
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Spelaren';
   const initials = initialsForName(displayName);
   const participantCount = entries.length || Object.keys(payments || {}).length || 0;
-  const totalPot = entryFee && participantCount ? entryFee * participantCount : 0;
+  const totalPot = participantCount > 0 ? entryFee * participantCount : 0;
   const payout = useMemo(
     () => ({
       first: Math.round(totalPot * 0.6),
@@ -85,14 +85,14 @@ export default function ProfilePage() {
             </strong>
           </div>
           <div className="profile-row">
-            <span>Total pott</span>
-            <strong>{formatSek(totalPot)} kr</strong>
-          </div>
-          <div className="profile-row">
             <span>Antal deltagare</span>
             <strong>
               {participantCount} {participantCount === 1 ? 'spelare' : 'spelare'}
             </strong>
+          </div>
+          <div className="profile-row">
+            <span>Total pott</span>
+            <strong>{formatSek(totalPot)} kr</strong>
           </div>
           <div className="profile-row profile-payout-row">
             <span>Utdelning</span>

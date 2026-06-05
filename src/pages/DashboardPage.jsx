@@ -23,6 +23,7 @@ import rulesIcon from '../assets/home/rules-icon.svg';
 import matchesIcon from '../assets/mina-tips/matches-icon.svg';
 import groupsIcon from '../assets/mina-tips/groups-icon.svg';
 import winnerIcon from '../assets/mina-tips/winner-icon.svg';
+import { countTopThreeFilled, getTopThree } from '../utils/topThree.js';
 
 const TOTAL_GROUP_MATCHES = 72;
 
@@ -79,7 +80,7 @@ function PreWcHomeHeader({ name }) {
   );
 }
 
-function PreWcHero({ deadlineMs }) {
+function PreWcHero({ deadlineMs, hasStartedTipping }) {
   const total = Math.max(0, deadlineMs ?? 0);
   const days = Math.floor(total / 86400000);
   const hours = Math.floor((total % 86400000) / 3600000);
@@ -107,12 +108,12 @@ function PreWcHero({ deadlineMs }) {
 
         <p className="home-hero-copy">
           Tippa alla <strong>72 gruppspelsmatcher</strong>, rangordna hur{' '}
-          <strong>grupperna slutar</strong> och vilka som <strong>vinner VM</strong>.
+          <strong>grupperna slutar</strong> och vilka som <strong>blir topp 3</strong>.
         </p>
       </div>
 
       <Link to="/mina-tips" className="home-primary-cta">
-        Börja tippa nu
+        {hasStartedTipping ? 'Fortsätt tippa' : 'Börja tippa nu'}
       </Link>
     </section>
   );
@@ -131,7 +132,13 @@ function StatusPill({ children, tone = 'muted' }) {
   return <span className={clsx('home-status-pill', tone)}>{children}</span>;
 }
 
-function ChecklistCard({ matchCount, totalMatches, rankedGroups, totalGroups, winnerSelected }) {
+function ChecklistCard({
+  matchCount,
+  totalMatches,
+  rankedGroups,
+  totalGroups,
+  topThreeFilled,
+}) {
   return (
     <section className="home-card stagger-child">
       <div className="home-card-header">
@@ -147,11 +154,11 @@ function ChecklistCard({ matchCount, totalMatches, rankedGroups, totalGroups, wi
       <div className="home-list">
         <Link to="/mina-tips?tab=vinnare" className="home-list-row">
           <div>
-            <h3>01. Din vinnare</h3>
-            <p>Vilket lag vinner VM?</p>
+            <h3>01. Topp 3 i VM</h3>
+            <p>Guld, silver och brons</p>
           </div>
-          <StatusPill tone={winnerSelected ? 'done' : 'muted'}>
-            {winnerSelected ? 'Vald' : 'Ej vald'}
+          <StatusPill tone={topThreeFilled >= 3 ? 'done' : topThreeFilled > 0 ? 'blue' : 'muted'}>
+            {topThreeFilled >= 3 ? 'Klar' : `${topThreeFilled} / 3`}
           </StatusPill>
         </Link>
 
@@ -190,8 +197,8 @@ function NextPredictionCard({ type }) {
     winner: {
       to: '/mina-tips?tab=vinnare',
       icon: winnerIcon,
-      title: 'VÄLJ DITT VINNARLAG',
-      body: 'Vilket lag tar hem guldet 2026?',
+      title: 'TIPPA TOPP 3 I VM',
+      body: 'Välj guld, silver och brons.',
     },
     matches: {
       to: '/mina-tips',
@@ -238,7 +245,7 @@ function RulesPreviewCard({ onOpen }) {
         <div className="home-list-row no-action">
           <div>
             <h3>Tippa alla 3 delar</h3>
-            <p>Matcher, grupper, vinnare</p>
+            <p>Matcher, grupper, topp 3</p>
           </div>
         </div>
         <div className="home-list-row no-action">
@@ -271,25 +278,28 @@ function PreWcHome({
   totalMatches,
   rankedGroups,
   totalGroups,
-  winnerSelected,
+  topThreeFilled,
   onOpenRules,
 }) {
-  const nextType = !winnerSelected
-    ? 'winner'
-    : matchCount >= totalMatches
-      ? 'groups'
-      : 'matches';
+  const nextType =
+    topThreeFilled < 3
+      ? 'winner'
+      : matchCount >= totalMatches
+        ? 'groups'
+        : 'matches';
+  const hasStartedTipping =
+    topThreeFilled > 0 || matchCount > 0 || rankedGroups > 0;
 
   return (
     <div className="home-page">
       <PreWcHomeHeader name={name} />
-      <PreWcHero deadlineMs={deadlineMs} />
+      <PreWcHero deadlineMs={deadlineMs} hasStartedTipping={hasStartedTipping} />
       <ChecklistCard
         matchCount={matchCount}
         totalMatches={totalMatches}
         rankedGroups={rankedGroups}
         totalGroups={totalGroups}
-        winnerSelected={winnerSelected}
+        topThreeFilled={topThreeFilled}
       />
       <NextPredictionCard type={nextType} />
       <RulesPreviewCard onOpen={onOpenRules} />
@@ -465,7 +475,7 @@ export default function DashboardPage() {
   const rankedGroups = predictions
     ? Object.values(predictions.groupStandings || {}).filter((arr) => arr.length === 4).length
     : 0;
-  const winnerSelected = Boolean(predictions?.knockout?.FINAL);
+  const topThreeFilled = countTopThreeFilled(getTopThree(predictions));
   const myEntry = entries.find((e) => e.userId === myUserId);
   const sortedEntries = [...entries].sort((a, b) => b.points - a.points);
   const myRank = sortedEntries.findIndex((e) => e.userId === myUserId);
@@ -508,7 +518,7 @@ export default function DashboardPage() {
           totalMatches={totalMatches}
           rankedGroups={rankedGroups}
           totalGroups={12}
-          winnerSelected={winnerSelected}
+          topThreeFilled={topThreeFilled}
           onOpenRules={() => setRulesOpen(true)}
         />
       )}

@@ -11,7 +11,10 @@ import { supabase, unwrap } from './supabaseClient.js';
 // Swish payee + fee are not secrets — they're shown to every player. Defaults
 // keep the UI sensible if the env vars aren't set.
 export const SWISH_NUMBER = import.meta.env?.VITE_SWISH_NUMBER || '';
-export const ENTRY_FEE_SEK = Number(import.meta.env?.VITE_ENTRY_FEE_SEK || 0);
+// Default 200 kr when env is unset (matches onboarding copy). Set VITE_ENTRY_FEE_SEK in .env.local.
+const configuredFee = Number(import.meta.env?.VITE_ENTRY_FEE_SEK);
+export const ENTRY_FEE_SEK =
+  Number.isFinite(configuredFee) && configuredFee > 0 ? configuredFee : 200;
 
 // Whether the signed-in user is an admin. Backed by the SECURITY DEFINER
 // is_admin() SQL function so the allowlist itself stays private.

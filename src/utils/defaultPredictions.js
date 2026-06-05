@@ -10,9 +10,15 @@ export function defaultGroupStanding(group, matches) {
   return teamIdsInGroup(group, matches);
 }
 
-/** First team in Swedish alphabetical order (Vinnare tab when none selected). */
+/** First team in Swedish alphabetical order (podium default when none selected). */
 export function defaultWinnerTeamId(teams) {
   if (!teams?.length) return null;
   const sorted = [...teams].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
   return sorted[0]?.id ?? null;
+}
+
+/** Default podium: gold = first alphabetically, silver/bronze empty. */
+export function defaultTopThree(teams) {
+  const gold = defaultWinnerTeamId(teams);
+  return [gold, null, null];
 }

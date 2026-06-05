@@ -1,15 +1,17 @@
 // Predictions-service.
 //
 // Stores one row per (user_id, kind, key) in Supabase. In-scope kinds:
-// match, group_standing, final (VM winner). Legacy knockout/top_scorer rows
+// match, group_standing, final (VM top 3 as json array). Legacy knockout/top_scorer rows
 // may remain in the DB for history but are not loaded or saved (server RLS).
 
 import { supabase, unwrap } from './supabaseClient.js';
+import { normalizeMatchPrediction } from '../utils/matchPredictionDisplay.js';
+import { normalizeTopThree } from '../utils/topThree.js';
 
 const EMPTY = {
   matches: {},
   groupStandings: {},
-  knockout: { FINAL: null },
+  knockout: { topThree: [null, null, null] },
 };
 
 function emptyPredictions() {
@@ -27,13 +29,13 @@ async function loadAll(userId) {
   for (const r of rows) {
     switch (r.kind) {
       case 'match':
-        out.matches[r.key] = r.value;
+        out.matches[r.key] = normalizeMatchPrediction(r.value);
         break;
       case 'group_standing':
         out.groupStandings[r.key] = r.value;
         break;
       case 'final':
-        out.knockout.FINAL = r.value;
+        out.knockout.topThree = normalizeTopThree(r.value);
         break;
       default:
         break;
@@ -66,6 +68,22 @@ export async function fetchMatchPredictions(userId) {
   return (await loadAll(userId)).matches;
 }
 
+/** Match predictions for one user on a calendar day (YYYY-MM-DD, Europe/Stockholm). */
+export async function fetchUserMatchPredictionsForDay(userId, dayKey) {
+  const { data, error } = await supabase.rpc('fn_user_match_predictions_for_day', {
+    p_user_id: userId,
+    p_day: dayKey,
+  });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    matchId: row.match_id,
+    homeTeamId: row.home_team_id,
+    awayTeamId: row.away_team_id,
+    kickoff: row.kickoff,
+    prediction: row.prediction,
+  }));
+}
+
 export async function saveMatchPrediction(
   userId,
   matchId,
@@ -93,13 +111,22 @@ export async function saveGroupStandingPrediction(userId, group, teamIds) {
   return (await loadAll(userId)).groupStandings;
 }
 
-export async function saveWorldCupWinner(userId, teamId) {
-  if (teamId == null) {
+export async function saveWorldCupTopThree(userId, topThree) {
+  const normalized = normalizeTopThree(topThree);
+  if (!normalized.some(Boolean)) {
     await deletePrediction(userId, 'final', 'final');
   } else {
-    await upsertPrediction(userId, 'final', 'final', teamId);
+    await upsertPrediction(userId, 'final', 'final', normalized);
   }
   return (await loadAll(userId)).knockout;
+}
+
+/** @deprecated Use saveWorldCupTopThree */
+export async function saveWorldCupWinner(userId, teamId) {
+  if (teamId == null) {
+    return saveWorldCupTopThree(userId, [null, null, null]);
+  }
+  return saveWorldCupTopThree(userId, [teamId, null, null]);
 }
 
 export async function fetchAllPredictions(userId) {
@@ -146,12 +173,15 @@ export async function migrateLocalStorageToSupabase(localUserId, authUserId) {
       value,
     });
   }
-  if (parsed.knockout?.FINAL) {
+  const topThree = normalizeTopThree(
+    parsed.knockout?.topThree ?? parsed.knockout?.FINAL,
+  );
+  if (topThree.some(Boolean)) {
     rows.push({
       user_id: authUserId,
       kind: 'final',
       key: 'final',
-      value: parsed.knockout.FINAL,
+      value: topThree,
     });
   }
 

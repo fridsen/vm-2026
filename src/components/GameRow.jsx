@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { formatMatchPredictionLabel } from '../utils/matchPredictionDisplay.js';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { useTeams } from '../hooks/useTeams.js';
@@ -104,7 +105,7 @@ export default function GameRow({ match, now, prediction, predictionPoints, onPr
         <div className="gr-predict-strip">
           <div className="gr-prediction-label">Din tippning</div>
           <div className="gr-my-pred">
-            {prediction.home} – {prediction.away}{' '}
+            {formatMatchPredictionLabel(prediction)?.replace('-', ' – ') ?? ''}{' '}
             {predictionPoints != null && (
               <span className="ml-1 text-neutral-500">
                 {predictionPoints > 0 ? `✓ +${predictionPoints}p` : `✗ +0p`}
@@ -117,7 +118,7 @@ export default function GameRow({ match, now, prediction, predictionPoints, onPr
         <div className="gr-predict-strip">
           <div className="gr-prediction-label">Din tippning</div>
           <div className="gr-my-pred">
-            {prediction.home} – {prediction.away}
+            {formatMatchPredictionLabel(prediction)?.replace('-', ' – ')}
           </div>
         </div>
       )}

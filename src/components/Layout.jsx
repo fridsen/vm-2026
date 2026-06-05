@@ -58,7 +58,7 @@ export default function Layout() {
       <div className="phone-frame-host">
         <div className="phone-bezel">
           <div className="phone-screen">
-            <main ref={mainRef} className="flex-1 overflow-y-auto px-4 pb-6 pt-12">
+            <main ref={mainRef} className="app-main flex-1 overflow-x-clip overflow-y-auto px-4 pt-6">
               <AnimatedTabOutlet />
             </main>
             <div className="app-mobile-chrome">
@@ -84,7 +84,7 @@ export default function Layout() {
         <div className="app-shell flex min-h-dvh w-full min-w-0 flex-1 flex-col md:min-h-screen">
           <main
             ref={mainRef}
-            className="app-main w-full min-w-0 overflow-x-hidden px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:flex-1 md:px-8 md:pb-10 md:pt-8"
+            className="app-main w-full min-w-0 overflow-x-clip px-4 pt-[env(safe-area-inset-top)] md:flex-1 md:px-8 md:pt-0"
           >
             <AnimatedTabOutlet />
           </main>

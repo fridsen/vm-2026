@@ -3,7 +3,7 @@ import {
   fetchAllPredictions,
   saveMatchPrediction,
   saveGroupStandingPrediction,
-  saveWorldCupWinner,
+  saveWorldCupTopThree,
 } from '../services/predictionsService.js';
 import { useAuth } from './useAuth.js';
 
@@ -59,9 +59,9 @@ function usePredictionsImpl(userId) {
     [userId, refresh],
   );
 
-  const updateWinner = useCallback(
-    async (teamId) => {
-      await saveWorldCupWinner(userId, teamId);
+  const updateTopThree = useCallback(
+    async (topThree) => {
+      await saveWorldCupTopThree(userId, topThree);
       await refresh();
     },
     [userId, refresh],
@@ -73,6 +73,6 @@ function usePredictionsImpl(userId) {
     refresh,
     updateMatch,
     updateGroupStanding,
-    updateWinner,
+    updateTopThree,
   };
 }

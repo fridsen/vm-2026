@@ -75,7 +75,7 @@ export function scoreGroupStanding(pred, actual) {
 // SF  (semifinal,        4→2):  4p per korrekt lag vidare (max 8p)
 // Bronsmatch: rätt vinnare = 5p
 // Final: rätt finalist = 5p per lag (max 10p)
-// VM-vinnare: 20p
+// VM topp 3 (ordning): 15p / 10p / 5p
 // ============================================================
 const ADVANCE_POINTS = {
   R32: 2,
@@ -128,6 +128,22 @@ export function scoreWorldCupWinner(predTeamId, actualTeamId) {
     points: correct ? 20 : 0,
     breakdown: { correct: !!correct },
   };
+}
+
+export function scoreTopThree(pred, actual) {
+  const breakdown = { first: 0, second: 0, third: 0 };
+  const normalize = (v) => {
+    if (Array.isArray(v)) return [v[0] || null, v[1] || null, v[2] || null];
+    if (typeof v === 'string' && v) return [v, null, null];
+    return [null, null, null];
+  };
+  const p = normalize(pred);
+  const a = normalize(actual);
+  if (p[0] && p[0] === a[0]) breakdown.first = 15;
+  if (p[1] && p[1] === a[1]) breakdown.second = 10;
+  if (p[2] && p[2] === a[2]) breakdown.third = 5;
+  const points = breakdown.first + breakdown.second + breakdown.third;
+  return { points, breakdown };
 }
 
 // ============================================================
@@ -196,7 +212,8 @@ export function summarizePoints({
       (knockout.SF?.points || 0) +
       (knockout.BRONZE?.points || 0) +
       (knockout.FINAL?.points || 0) +
-      (knockout.WINNER?.points || 0);
+      (knockout.WINNER?.points || 0) +
+      (knockout.topThree?.points || 0);
   }
   const topScorerPoints = topScorers?.points || 0;
   return {

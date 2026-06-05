@@ -44,6 +44,7 @@ describe('shouldOfferAddToHomeScreen', () => {
         platform: 'iPhone',
         standalone: false,
         dismissed: false,
+        enabled: true,
       }),
     ).toBe(true);
   });

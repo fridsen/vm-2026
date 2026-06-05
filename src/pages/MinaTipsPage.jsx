@@ -7,7 +7,14 @@ import { usePredictions } from '../hooks/usePredictions.js';
 import { useTeams } from '../hooks/useTeams.js';
 import { GROUPS } from '../data/teams.js';
 import { flagImageForCode } from '../data/flagImages.js';
+import { formatMatchPredictionLabel } from '../utils/matchPredictionDisplay.js';
 import { flattenMatchesByGroup } from '../utils/matchSchedule.js';
+import {
+  countTopThreeFilled,
+  getTopThree,
+  sortTeamsForPodium,
+  toggleTopThree,
+} from '../utils/topThree.js';
 import PredictionSheet from '../components/PredictionSheet.jsx';
 import RulesSheet from '../components/RulesSheet.jsx';
 import matchesIcon from '../assets/mina-tips/matches-icon.svg';
@@ -67,14 +74,19 @@ function CircularProgress({ value, max }) {
 
 // ─── Infobox ──────────────────────────────────────────────────────────────────
 
-function Infobox({ icon, title, body, value, max }) {
+function Infobox({ icon, title, body, value, max, titleMixedCase = false }) {
   return (
     <div className="mina-infobox">
       <div className="mina-infobox-icon">
         {icon}
       </div>
       <div className="mina-infobox-copy">
-        <div className="mina-infobox-title">
+        <div
+          className={clsx(
+            'mina-infobox-title',
+            titleMixedCase && 'mina-infobox-title--mixed',
+          )}
+        >
           {title}
         </div>
         <div className="mina-infobox-body">{body}</div>
@@ -89,7 +101,7 @@ function Infobox({ icon, title, body, value, max }) {
 const TABS = [
   { id: 'matcher', label: 'Matcher' },
   { id: 'grupper', label: 'Grupper' },
-  { id: 'vinnare', label: 'Vinnare' },
+  { id: 'vinnare', label: 'Topp 3' },
 ];
 
 function SegmentBadge({ status }) {
@@ -172,16 +184,9 @@ function StatusLegend() {
 // ─── Matcher tab ──────────────────────────────────────────────────────────────
 
 function MatchPredictionValue({ prediction }) {
-  if (!prediction) return null;
-  const outcome =
-    prediction.outcome ||
-    (prediction.home > prediction.away ? '1' : prediction.home === prediction.away ? 'X' : '2');
-
-  return (
-    <span className="mina-match-prediction">
-      {prediction.home}-{prediction.away} ({outcome})
-    </span>
-  );
+  const label = formatMatchPredictionLabel(prediction);
+  if (!label) return null;
+  return <span className="mina-match-prediction">{label}</span>;
 }
 
 function MinaMatchRow({ match, prediction, onPredict }) {
@@ -432,28 +437,26 @@ function GrupperTab({ matches, predictions, updateGroupStanding, tournamentLocke
   );
 }
 
-// ─── Vinnare tab ──────────────────────────────────────────────────────────────
+// ─── Topp 3 tab ───────────────────────────────────────────────────────────────
 
-function VinnareTab({ predictions, updateWinner, tournamentLocked }) {
+const PODIUM_RANK_COLORS = ['rank-gold', 'rank-silver', 'rank-bronze'];
+
+function VinnareTab({ predictions, updateTopThree, tournamentLocked }) {
   const scrollRef = useRef(null);
   const { teams } = useTeams();
-  const currentWinner = predictions?.knockout?.FINAL ?? null;
+  const topThree = useMemo(() => getTopThree(predictions), [predictions]);
+  const filled = countTopThreeFilled(topThree);
 
-  const sortedTeams = useMemo(() => {
-    const alphabetical = [...teams].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
-    if (!currentWinner) return alphabetical;
-    const winner = alphabetical.find((t) => t.id === currentWinner);
-    if (!winner) return alphabetical;
-    return [winner, ...alphabetical.filter((t) => t.id !== currentWinner)];
-  }, [teams, currentWinner]);
+  const sortedTeams = useMemo(
+    () => sortTeamsForPodium(teams, topThree),
+    [teams, topThree],
+  );
 
-  function handleSelect(teamId) {
+  function handleToggle(teamId) {
     if (tournamentLocked) return;
-    if (teamId === currentWinner) {
-      updateWinner(null);
-    } else {
-      updateWinner(teamId);
-      // Scroll to top so the selected team (now at position 0) is visible
+    const next = toggleTopThree(topThree, teamId);
+    updateTopThree(next);
+    if (!topThree.includes(teamId)) {
       requestAnimationFrame(() => {
         scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       });
@@ -461,52 +464,41 @@ function VinnareTab({ predictions, updateWinner, tournamentLocked }) {
   }
 
   return (
-    <div ref={scrollRef} className="mina-card">
+    <div ref={scrollRef} className="mina-podium">
       <TipsLockBanner locked={tournamentLocked} />
+      <div className="mina-podium-title">
+        <span>LAG</span>
+        <span className={filled >= 3 ? 'is-complete' : ''}>
+          {filled >= 3 ? 'KLAR' : `${filled} / 3`}
+        </span>
+      </div>
       <div>
         {sortedTeams.map((team) => {
-          const selected = team.id === currentWinner;
+          const rankIdx = topThree.indexOf(team.id);
+          const isRanked = rankIdx !== -1;
+          const rankColor = isRanked ? PODIUM_RANK_COLORS[rankIdx] : null;
+          const flagImage = flagImageForCode(team.code || team.id);
           return (
             <button
               key={team.id}
               type="button"
               disabled={tournamentLocked}
-              onClick={() => handleSelect(team.id)}
-              className={clsx(
-                'mina-winner-row',
-                selected && 'is-selected',
-              )}
+              onClick={() => handleToggle(team.id)}
+              className="mina-podium-row"
             >
-              <span className="mina-match-flag" aria-hidden>
-                {team.flag}
+              <span className="mina-podium-team">
+                <span className="mina-rank-flag" aria-hidden>
+                  {flagImage ? <img src={flagImage} alt="" /> : team.flag}
+                </span>
+                <span className="mina-podium-name">{team.name}</span>
               </span>
               <span
                 className={clsx(
-                  'mina-winner-team',
-                  selected ? 'text-green-700' : 'text-neutral-900',
+                  'mina-podium-badge',
+                  rankColor,
                 )}
               >
-                {team.name}
-              </span>
-              <span
-                className={clsx(
-                  'mina-winner-radio',
-                  selected
-                    ? 'is-selected'
-                    : '',
-                )}
-              >
-                {selected && (
-                  <svg viewBox="0 0 10 10" className="h-3 w-3" fill="none">
-                    <path
-                      d="M2 5l2.5 2.5L8 3"
-                      stroke="white"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
+                {isRanked ? rankIdx + 1 : ''}
               </span>
             </button>
           );
@@ -554,7 +546,7 @@ export default function MinaTipsPage() {
   );
   const { matches, loading: matchesLoading } = useAllMatches();
   const { tournamentLocked } = useLockState();
-  const { predictions, updateMatch, updateGroupStanding, updateWinner } = usePredictions();
+  const { predictions, updateMatch, updateGroupStanding, updateTopThree } = usePredictions();
 
   const matchCount = predictions ? Object.keys(predictions.matches || {}).length : 0;
   const totalMatches = matches.length || 72;
@@ -562,7 +554,10 @@ export default function MinaTipsPage() {
     ? Object.values(predictions.groupStandings || {}).filter((arr) => arr.length === 4).length
     : 0;
   const totalGroups = GROUPS.length;
-  const winner = predictions?.knockout?.FINAL ?? null;
+  const topThreeFilled = useMemo(
+    () => countTopThreeFilled(getTopThree(predictions)),
+    [predictions],
+  );
   const tabStatuses = {
     matcher: {
       count: Math.max(0, totalMatches - matchCount),
@@ -575,9 +570,9 @@ export default function MinaTipsPage() {
       done: groupCount >= totalGroups && totalGroups > 0,
     },
     vinnare: {
-      count: 1,
-      active: false,
-      done: Boolean(winner),
+      count: Math.max(0, 3 - topThreeFilled),
+      active: topThreeFilled > 0,
+      done: topThreeFilled >= 3,
     },
   };
 
@@ -602,10 +597,11 @@ export default function MinaTipsPage() {
     },
     vinnare: {
       icon: <img src={winnerIcon} alt="" />,
-      title: 'VÄLJ DITT VINNARLAG',
-      body: 'Vilket lag tar hem guldet 2026?',
-      value: winner ? 1 : 0,
-      max: 1,
+      title: 'Tippa topp 3 i VM',
+      body: 'Vilka tar hem medaljerna',
+      value: topThreeFilled,
+      max: 3,
+      titleMixedCase: true,
     },
   }[tab];
 
@@ -673,7 +669,7 @@ export default function MinaTipsPage() {
             {tab === 'vinnare' && (
               <VinnareTab
                 predictions={predictions}
-                updateWinner={updateWinner}
+                updateTopThree={updateTopThree}
                 tournamentLocked={tournamentLocked}
               />
             )}

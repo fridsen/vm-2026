@@ -10,3 +10,16 @@ export function signFromScore(home, away) {
   if (h < a) return '2';
   return 'X';
 }
+
+/** User's 1/X/2 pick — explicit outcome wins over score-derived sign (see scoring.js). */
+export function predictionSign(prediction) {
+  if (!prediction) return null;
+  if (
+    prediction.outcome === '1' ||
+    prediction.outcome === 'X' ||
+    prediction.outcome === '2'
+  ) {
+    return prediction.outcome;
+  }
+  return signFromScore(prediction.home, prediction.away);
+}

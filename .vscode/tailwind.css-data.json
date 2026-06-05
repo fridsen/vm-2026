@@ -1,0 +1,75 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@tailwind",
+      "description": "Insert Tailwind's base, components, and utilities styles.",
+      "references": [
+        {
+          "name": "Tailwind docs — @tailwind",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#tailwind"
+        }
+      ]
+    },
+    {
+      "name": "@apply",
+      "description": "Inline existing utility classes into custom CSS.",
+      "references": [
+        {
+          "name": "Tailwind docs — @apply",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#apply"
+        }
+      ]
+    },
+    {
+      "name": "@layer",
+      "description": "Declare which Tailwind bucket (base, components, utilities) custom styles belong to.",
+      "references": [
+        {
+          "name": "Tailwind docs — @layer",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#layer"
+        }
+      ]
+    },
+    {
+      "name": "@config",
+      "description": "Point Tailwind at a specific config file when compiling this CSS.",
+      "references": [
+        {
+          "name": "Tailwind docs — @config",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#config"
+        }
+      ]
+    },
+    {
+      "name": "@screen",
+      "description": "Create media queries that reference Tailwind breakpoints by name.",
+      "references": [
+        {
+          "name": "Tailwind docs — @screen",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#screen"
+        }
+      ]
+    },
+    {
+      "name": "@theme",
+      "description": "Define design tokens for Tailwind CSS v4.",
+      "references": [
+        {
+          "name": "Tailwind docs — @theme",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#theme-directive"
+        }
+      ]
+    },
+    {
+      "name": "@utility",
+      "description": "Add custom utilities in Tailwind CSS v4.",
+      "references": [
+        {
+          "name": "Tailwind docs — @utility",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#utility-directive"
+        }
+      ]
+    }
+  ]
+}

@@ -11,12 +11,14 @@ import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import AdminPaymentsPage from './pages/AdminPaymentsPage.jsx';
 import AdminPredictionHistoryPage from './pages/AdminPredictionHistoryPage.jsx';
+import PortraitGate from './components/PortraitGate.jsx';
 
 export default function App() {
   return (
     <AuthProvider>
       <TeamsProvider>
         <AuthGate>
+          <PortraitGate />
           <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>

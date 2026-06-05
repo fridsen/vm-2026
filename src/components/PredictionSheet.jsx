@@ -451,12 +451,21 @@ export default function PredictionSheet({
 
   if (!match) return null;
 
-  const canSave = !disabled && !!outcomePick;
-  const isPredicted = !!prediction;
+  const savedHome = prediction?.home ?? 0;
+  const savedAway = prediction?.away ?? 0;
+  const savedOutcome = prediction?.outcome ?? null;
+  const isPredicted =
+    savedOutcome === '1' || savedOutcome === 'X' || savedOutcome === '2';
+  const hasChanges =
+    home !== savedHome ||
+    away !== savedAway ||
+    outcomePick !== savedOutcome;
+  const canSave =
+    !disabled && !!outcomePick && (!isPredicted || hasChanges);
   const submitLabel = saved
     ? 'Tippning sparad!'
     : isPredicted
-      ? 'Ändra din tippning'
+      ? 'Ändra tippning'
       : 'Spara tippning';
 
   const setOutcome = (next) => {

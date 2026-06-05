@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
 import { ENTRY_FEE_SEK, SWISH_NUMBER } from '../services/paymentsService.js';
 import { usePaymentReminders } from '../hooks/usePaymentReminders.js';
+import { buildSwishPayUrl } from '../utils/swish.js';
+import { haptics } from '../utils/haptics.js';
 
 export default function PaymentReminderToast() {
   const { reminders, dismiss } = usePaymentReminders();
@@ -9,6 +10,11 @@ export default function PaymentReminderToast() {
 
   const fee = ENTRY_FEE_SEK > 0 ? `${ENTRY_FEE_SEK} kr` : 'avgiften';
   const swish = SWISH_NUMBER || 'Swish-numret i appen';
+  const swishUrl = buildSwishPayUrl({
+    phone: SWISH_NUMBER,
+    amountSek: ENTRY_FEE_SEK,
+    message: 'VM-tipset',
+  });
 
   return (
     <div
@@ -25,16 +31,26 @@ export default function PaymentReminderToast() {
         )}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Link
-          to="/profile"
-          className="rounded-full bg-amber-800 px-3 py-1.5 text-xs font-bold text-white"
-        >
-          Gå till profil
-        </Link>
+        {swishUrl ? (
+          <a
+            href={swishUrl}
+            className="rounded-full bg-amber-800 px-3 py-1.5 text-xs font-bold text-white"
+            onClick={() => haptics.light()}
+          >
+            Öppna Swish
+          </a>
+        ) : (
+          <span className="rounded-full bg-amber-200 px-3 py-1.5 text-xs font-bold text-amber-900">
+            Swish-nummer saknas
+          </span>
+        )}
         <button
           type="button"
           className="rounded-full border border-amber-400 px-3 py-1.5 text-xs font-bold text-amber-900"
-          onClick={() => dismiss(latest.id)}
+          onClick={() => {
+            haptics.light();
+            dismiss(latest.id);
+          }}
         >
           Stäng
         </button>

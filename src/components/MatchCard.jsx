@@ -3,6 +3,7 @@ import { sv } from 'date-fns/locale';
 import { useTeams } from '../hooks/useTeams.js';
 import { emblemForCode } from '../data/emblems.js';
 import { broadcastForMatch } from '../data/broadcastChannels.js';
+import { formatMatchPredictionLabel } from '../utils/matchPredictionDisplay.js';
 
 function TeamBlock({ teamId }) {
   const { getTeamById } = useTeams();
@@ -28,17 +29,10 @@ function TeamBlock({ teamId }) {
   );
 }
 
-function predictionOutcome(prediction) {
-  if (!prediction) return null;
-  if (prediction.home > prediction.away) return '1';
-  if (prediction.home < prediction.away) return '2';
-  return 'X';
-}
-
 export default function MatchCard({ match, prediction, onPredict }) {
   const kickoff = new Date(match.kickoff);
   const channel = broadcastForMatch(match);
-  const outcome = predictionOutcome(prediction);
+  const predictionLabel = formatMatchPredictionLabel(prediction);
   const dateLabel = format(kickoff, 'EEE d MMMM', { locale: sv }).toUpperCase();
 
   return (
@@ -68,15 +62,9 @@ export default function MatchCard({ match, prediction, onPredict }) {
         <TeamBlock teamId={match.awayTeamId} />
       </div>
 
-      {prediction && (
+      {predictionLabel && (
         <div className="match-card-prediction">
-          Din tippning {prediction.home}-{prediction.away}
-          {outcome && (
-            <>
-              <span aria-hidden> · </span>
-              <span>({outcome})</span>
-            </>
-          )}
+          Din tippning {predictionLabel}
         </div>
       )}
     </button>

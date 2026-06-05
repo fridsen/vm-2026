@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   scoreGroupMatch,
   scoreGroupStanding,
+  scoreTopThree,
   scoreWorldCupWinner,
   summarizePoints,
 } from './scoring.js';
@@ -60,6 +61,10 @@ describe('knockout scoring', () => {
       breakdown: { correct: true },
     });
     expect(scoreWorldCupWinner('SWE', 'BRA').points).toBe(0);
+  });
+
+  it('awards 15/10/5 for top three', () => {
+    expect(scoreTopThree(['SWE', 'BRA', 'ARG'], ['SWE', 'BRA', 'FRA']).points).toBe(25);
   });
 });
 

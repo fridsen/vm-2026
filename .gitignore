@@ -30,6 +30,8 @@ Inspiration/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tailwind.css-data.json
 .idea
 .DS_Store
 *.suo

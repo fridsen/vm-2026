@@ -1,6 +1,9 @@
 export const A2HS_PROMPT_DISMISSED_KEY = 'vm-a2hs-prompt-dismissed';
 export const A2HS_SNOOZE_SESSION_KEY = 'vm-a2hs-snooze-session';
 
+/** Set true when A2HS prompt is coordinated with app onboarding (currently conflicts). */
+export const ADD_TO_HOME_PROMPT_ENABLED = false;
+
 /** @typedef {'safari' | 'chrome'} IosInstallBrowser */
 
 /**
@@ -38,7 +41,9 @@ export function shouldOfferAddToHomeScreen({
   platform = typeof navigator !== 'undefined' ? navigator.platform : '',
   standalone = isStandaloneDisplay(),
   dismissed = false,
+  enabled = ADD_TO_HOME_PROMPT_ENABLED,
 } = {}) {
+  if (!enabled) return false;
   if (standalone || dismissed) return false;
   if (!isIosDevice(userAgent, platform)) return false;
   return getIosInstallBrowser(userAgent) !== null;

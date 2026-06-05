@@ -17,7 +17,7 @@ export const APP_ONBOARDING_EXIT_MS = 520;
 /** Pause on Mina tips before PredictionSheet opens (after onboarding exit). */
 export const APP_ONBOARDING_SHEET_DELAY_MS = 650;
 
-const FEE = ENTRY_FEE_SEK || 200;
+const FEE = ENTRY_FEE_SEK;
 const SWISH_FALLBACK = '070-831 20 41';
 
 export function shouldShowAppOnboarding() {
@@ -52,7 +52,7 @@ function buildSteps(firstName) {
       title: 'Här lever tipset',
       body: (
         <p>
-          Allt du ska fylla i: matcher, grupper och vinnare finns under{' '}
+          Allt du ska fylla i: matcher, grupper och topp 3 finns under{' '}
           <strong>Mina tips</strong>. Det är din arbetsyta fram till deadline.
         </p>
       ),
@@ -61,7 +61,7 @@ function buildSteps(firstName) {
     {
       id: 'segments',
       image: onboarding2,
-      imageAlt: 'Matcher, grupper och vinnare',
+      imageAlt: 'Matcher, grupper och topp 3',
       title: 'Tre delar av tipset',
       body: (
         <>
@@ -84,7 +84,7 @@ function buildSteps(firstName) {
       imageAlt: 'Framsteg per flik',
       title: 'Så här följer du läget',
       body:
-        'Rutan visar vad som gäller i den flik du är på, och cirkeln hur långt du kommit. Målet: 72 matcher, 12 grupper klara, och 1 vinnare.',
+        'Rutan visar vad som gäller i den flik du är på, och cirkeln hur långt du kommit. Målet: 72 matcher, 12 grupper klara, och topp 3 i VM.',
       cta: 'Fortsätt',
     },
     {

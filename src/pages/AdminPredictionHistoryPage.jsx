@@ -17,7 +17,12 @@ function formatEvent(row) {
     return `${when} — Grupp ${row.key}: ${row.action}${src}`;
   }
   if (row.kind === 'final') {
-    return `${when} — Vinnare: ${row.old_value ?? '—'} → ${row.new_value ?? '—'}${src}`;
+    const fmt = (v) => {
+      if (Array.isArray(v)) return v.filter(Boolean).join(', ') || '—';
+      if (typeof v === 'string') return v;
+      return '—';
+    };
+    return `${when} — Topp 3: ${fmt(row.old_value)} → ${fmt(row.new_value)}${src}`;
   }
   return `${when} — ${row.kind} ${row.key}: ${row.action}${src}`;
 }
