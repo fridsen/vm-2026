@@ -5,32 +5,16 @@ import {
   fetchUserEntry,
 } from '../services/leaderboardService.js';
 import { useAuth } from './useAuth.js';
+import { useAppData } from './useAppData.js';
 
 export function useLeaderboard() {
-  const [entries, setEntries] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    fetchLeaderboard()
-      .then((data) => {
-        if (!mounted) return;
-        setEntries(data);
-      })
-      .catch(() => {
-        if (!mounted) return;
-        setEntries([]);
-      })
-      .finally(() => {
-        if (!mounted) return;
-        setLoading(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  return { entries, loading };
+  const { entries, leaderboardLoading, refreshLeaderboard, refreshLiveData } = useAppData();
+  return {
+    entries,
+    loading: leaderboardLoading,
+    refresh: refreshLeaderboard,
+    refreshLiveData,
+  };
 }
 
 export function useMyRank(explicitUserId) {
@@ -57,7 +41,7 @@ export function useMyRank(explicitUserId) {
         if (!mounted) return;
         setRank(r);
         setEntry(e);
-      }
+      },
     ).catch(() => {
       if (!mounted) return;
       setRank(null);

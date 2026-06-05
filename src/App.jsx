@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import AuthProvider from './components/AuthProvider.jsx';
 import TeamsProvider from './components/TeamsProvider.jsx';
 import AuthGate from './components/AuthGate.jsx';
+import AppDataProvider from './components/AppDataProvider.jsx';
 import Layout from './components/Layout.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import MatchesPage from './pages/MatchesPage.jsx';
@@ -21,6 +22,7 @@ export default function App() {
         <AppUpdatePrompt />
         <AuthGate>
           <PortraitGate />
+          <AppDataProvider>
           <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
@@ -36,6 +38,7 @@ export default function App() {
             </Route>
           </Routes>
           </BrowserRouter>
+          </AppDataProvider>
         </AuthGate>
       </TeamsProvider>
     </AuthProvider>

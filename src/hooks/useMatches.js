@@ -4,24 +4,21 @@ import {
   fetchMatchesByGroup,
   fetchKnockoutMatches,
 } from '../services/matchesService.js';
+import { useAppData } from './useAppData.js';
 
 export function useAllMatches() {
-  const [matches, setMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { groupMatches, matchesLoading, refreshMatches, refreshLiveData } = useAppData();
+  return {
+    matches: groupMatches,
+    loading: matchesLoading,
+    refresh: refreshMatches,
+    refreshLiveData,
+  };
+}
 
-  useEffect(() => {
-    let mounted = true;
-    fetchAllMatches().then((data) => {
-      if (!mounted) return;
-      setMatches(data);
-      setLoading(false);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  return { matches, loading };
+export function useKnockoutMatches() {
+  const { knockoutMatches, matchesLoading } = useAppData();
+  return { matches: knockoutMatches, loading: matchesLoading };
 }
 
 export function useGroupMatches(group) {
@@ -39,25 +36,6 @@ export function useGroupMatches(group) {
       mounted = false;
     };
   }, [group]);
-
-  return { matches, loading };
-}
-
-export function useKnockoutMatches() {
-  const [matches, setMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    fetchKnockoutMatches().then((data) => {
-      if (!mounted) return;
-      setMatches(data);
-      setLoading(false);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   return { matches, loading };
 }

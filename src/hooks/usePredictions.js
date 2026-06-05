@@ -1,75 +1,38 @@
-import { useCallback, useEffect, useState } from 'react';
-import {
-  fetchAllPredictions,
-  saveMatchPrediction,
-  saveGroupStandingPrediction,
-  saveWorldCupTopThree,
-} from '../services/predictionsService.js';
+import { useCallback } from 'react';
 import { useAuth } from './useAuth.js';
+import { useAppData } from './useAppData.js';
 
 export function usePredictions(userId) {
   const { user } = useAuth();
-  const effectiveUserId = userId || user?.id;
-  return usePredictionsImpl(effectiveUserId);
-}
-
-function usePredictionsImpl(userId) {
-  const [predictions, setPredictions] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    predictions,
+    predictionsLoading,
+    refreshPredictions,
+    updateMatch,
+    updateGroupStanding,
+    updateTopThree,
+  } = useAppData();
 
   const refresh = useCallback(async () => {
-    if (!userId) {
-      setPredictions(null);
-      setLoading(false);
-      return;
-    }
-    try {
-      const data = await fetchAllPredictions(userId);
-      setPredictions(data);
-    } catch {
-      setPredictions(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
+    await refreshPredictions();
+  }, [refreshPredictions]);
 
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) refresh();
-    });
-    return () => {
-      cancelled = true;
+  // Optional explicit userId is ignored unless it matches the signed-in user —
+  // the provider always scopes predictions to the current session.
+  if (userId && userId !== user?.id) {
+    return {
+      predictions: null,
+      loading: false,
+      refresh,
+      updateMatch: async () => {},
+      updateGroupStanding: async () => {},
+      updateTopThree: async () => {},
     };
-  }, [refresh]);
-
-  const updateMatch = useCallback(
-    async (matchId, { home, away, outcome }) => {
-      await saveMatchPrediction(userId, matchId, { home, away, outcome });
-      await refresh();
-    },
-    [userId, refresh],
-  );
-
-  const updateGroupStanding = useCallback(
-    async (group, teamIds) => {
-      await saveGroupStandingPrediction(userId, group, teamIds);
-      await refresh();
-    },
-    [userId, refresh],
-  );
-
-  const updateTopThree = useCallback(
-    async (topThree) => {
-      await saveWorldCupTopThree(userId, topThree);
-      await refresh();
-    },
-    [userId, refresh],
-  );
+  }
 
   return {
     predictions,
-    loading,
+    loading: predictionsLoading,
     refresh,
     updateMatch,
     updateGroupStanding,
