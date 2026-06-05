@@ -40,6 +40,46 @@
         Laddar…
       </div>
     </div>
+    <script>
+      (function () {
+        var root = document.getElementById('root');
+        var reloadKey = 'vm2026:hard-reload';
+
+        function showRecovery(message) {
+          if (!root || root.dataset.recovery) return;
+          root.dataset.recovery = '1';
+          root.innerHTML =
+            '<div style="display:flex;min-height:100dvh;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;background:#c7ff2e;color:#0c162a;font-family:system-ui,sans-serif;text-align:center">' +
+            '<p style="margin:0;font-size:16px;font-weight:600;max-width:20rem">' +
+            message +
+            '</p>' +
+            '<button type="button" style="border:0;border-radius:999px;background:#0c162a;color:#c7ff2e;padding:12px 20px;font-size:15px;font-weight:700">Ladda om</button>' +
+            '</div>';
+          root.querySelector('button').addEventListener('click', function () {
+            try {
+              sessionStorage.setItem(reloadKey, String(Date.now()));
+            } catch (e) {}
+            location.reload();
+          });
+        }
+
+        window.addEventListener(
+          'error',
+          function (event) {
+            if (event.target && event.target.tagName === 'SCRIPT') {
+              showRecovery('Appen kunde inte laddas. Prova att ladda om.');
+            }
+          },
+          true,
+        );
+
+        window.setTimeout(function () {
+          if (document.getElementById('boot-loader')) {
+            showRecovery('Laddningen tog för lång tid.');
+          }
+        }, 12000);
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

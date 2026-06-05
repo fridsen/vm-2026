@@ -15,8 +15,10 @@ import {
   upsertProfile,
 } from '../services/authService.js';
 import { migrateLocalStorageToSupabase } from '../services/predictionsService.js';
+import { clearSupabaseAuthStorage } from '../utils/supabaseAuthStorage.js';
 
-const AUTH_BOOTSTRAP_MS = 10_000;
+const AUTH_BOOTSTRAP_MS = 8_000;
+const PROFILE_BOOTSTRAP_MS = 8_000;
 
 function withTimeout(promise, ms, label) {
   return Promise.race([
@@ -51,7 +53,6 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(false);
 
   // Fetch the profile and, if it's missing but the user already carries a
   // name (email signup metadata or Google), create it automatically so the
@@ -87,17 +88,34 @@ export default function AuthProvider({ children }) {
 
   useEffect(() => {
     let mounted = true;
+
     (async () => {
       try {
-        const session = await withTimeout(getSession(), AUTH_BOOTSTRAP_MS, 'Session bootstrap');
+        let session;
+        try {
+          session = await withTimeout(getSession(), AUTH_BOOTSTRAP_MS, 'Session bootstrap');
+        } catch (firstErr) {
+          console.warn('[auth] session bootstrap failed, clearing cache:', firstErr.message);
+          clearSupabaseAuthStorage();
+          session = await withTimeout(getSession(), AUTH_BOOTSTRAP_MS, 'Session bootstrap retry');
+        }
+
         if (!mounted) return;
         setUser(session.user);
-        if (!session.user) setLoading(false);
+
+        if (session.user) {
+          try {
+            await withTimeout(ensureProfile(session.user), PROFILE_BOOTSTRAP_MS, 'Profile bootstrap');
+          } catch (err) {
+            console.warn('[auth] profile bootstrap failed:', err.message);
+          }
+        }
       } catch (err) {
-        console.warn('[auth] session bootstrap failed:', err.message);
-        if (!mounted) return;
-        setUser(null);
-        setLoading(false);
+        console.warn('[auth] giving up on cached session:', err.message);
+        clearSupabaseAuthStorage();
+        if (mounted) setUser(null);
+      } finally {
+        if (mounted) setLoading(false);
       }
     })();
 
@@ -107,6 +125,7 @@ export default function AuthProvider({ children }) {
       setUser(u);
       if (!u) setProfile(null);
     });
+
     return () => {
       mounted = false;
       unsub();
@@ -114,26 +133,19 @@ export default function AuthProvider({ children }) {
   }, [ensureProfile]);
 
   useEffect(() => {
-    if (!user?.id) {
-      setProfileLoading(false);
-      return undefined;
-    }
+    if (!user?.id) return undefined;
 
     let cancelled = false;
-    setProfileLoading(true);
     (async () => {
-      await ensureProfile(user);
-      if (cancelled) return;
       try {
-        await migrateLocalStorageToSupabase(LEGACY_LOCAL_USER_ID, user.id);
+        await withTimeout(ensureProfile(user), PROFILE_BOOTSTRAP_MS, 'Profile load');
       } catch (err) {
-        console.warn('[auth] localStorage migration failed:', err.message);
-      } finally {
-        if (!cancelled) {
-          setProfileLoading(false);
-          setLoading(false);
-        }
+        console.warn('[auth] profile load failed:', err.message);
       }
+      if (cancelled) return;
+      migrateLocalStorageToSupabase(LEGACY_LOCAL_USER_ID, user.id).catch((err) => {
+        console.warn('[auth] localStorage migration failed:', err.message);
+      });
     })();
 
     return () => {
@@ -145,7 +157,7 @@ export default function AuthProvider({ children }) {
     () => ({
       user,
       profile,
-      loading: loading || profileLoading,
+      loading,
       signInWithEmail,
       signInWithGoogle,
       signInWithPassword,
@@ -165,7 +177,7 @@ export default function AuthProvider({ children }) {
         return p;
       },
     }),
-    [user, profile, loading, profileLoading],
+    [user, profile, loading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

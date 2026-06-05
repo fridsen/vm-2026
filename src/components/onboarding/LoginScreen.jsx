@@ -4,6 +4,19 @@ import Field from './Field.jsx';
 import OnboardingButton, { GoogleButton } from './OnboardingButton.jsx';
 import OnboardingDivider from './OnboardingDivider.jsx';
 
+const LOGIN_TIMEOUT_MS = 15_000;
+const LOGIN_TIMEOUT_MESSAGE =
+  'Inloggningen svarar inte. Stäng fliken och försök igen. Om problemet kvarstår: Safari → Inställningar → Avancerat → Webbsitedata → sök vm-2026-seven.vercel.app → ta bort.';
+
+function withTimeout(promise, ms, message) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(message)), ms);
+    }),
+  ]);
+}
+
 export default function LoginScreen() {
   const { signInWithPassword, signInWithGoogle, sendPasswordReset } = useAuth();
   const [email, setEmail] = useState('');
@@ -16,7 +29,11 @@ export default function LoginScreen() {
     setStatus('submitting');
     setError(null);
     try {
-      await signInWithPassword(email, password);
+      await withTimeout(
+        signInWithPassword(email, password),
+        LOGIN_TIMEOUT_MS,
+        LOGIN_TIMEOUT_MESSAGE,
+      );
     } catch (err) {
       setError(err.message);
       setStatus('idle');
