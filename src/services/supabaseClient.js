@@ -22,6 +22,8 @@ export const supabase = createClient(URL, ANON, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    // Recover faster when iOS Safari leaves an orphaned navigator.lock.
+    lockAcquireTimeout: 10_000,
   },
 });
 

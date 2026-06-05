@@ -16,6 +16,17 @@ import {
 } from '../services/authService.js';
 import { migrateLocalStorageToSupabase } from '../services/predictionsService.js';
 
+const AUTH_BOOTSTRAP_MS = 10_000;
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+    }),
+  ]);
+}
+
 // Derive first/last name from whatever the auth provider gave us. Email
 // signup stores first_name/last_name directly; Google gives full_name/name.
 function namePartsFromUser(u) {
@@ -77,10 +88,17 @@ export default function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const session = await getSession();
-      if (!mounted) return;
-      setUser(session.user);
-      setLoading(false);
+      try {
+        const session = await withTimeout(getSession(), AUTH_BOOTSTRAP_MS, 'Session bootstrap');
+        if (!mounted) return;
+        setUser(session.user);
+        if (!session.user) setLoading(false);
+      } catch (err) {
+        console.warn('[auth] session bootstrap failed:', err.message);
+        if (!mounted) return;
+        setUser(null);
+        setLoading(false);
+      }
     })();
 
     // Sync updates only — async Supabase calls here deadlock signInWithPassword
@@ -111,7 +129,10 @@ export default function AuthProvider({ children }) {
       } catch (err) {
         console.warn('[auth] localStorage migration failed:', err.message);
       } finally {
-        if (!cancelled) setProfileLoading(false);
+        if (!cancelled) {
+          setProfileLoading(false);
+          setLoading(false);
+        }
       }
     })();
 
