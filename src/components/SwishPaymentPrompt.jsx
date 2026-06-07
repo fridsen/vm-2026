@@ -21,8 +21,15 @@ export default function SwishPaymentPrompt({ firstName, className }) {
       <div className="swish-payment-prompt__copy">
         <p className="swish-payment-prompt__title">Swisha för att vara med</p>
         <p className="swish-payment-prompt__body">
-          Insatsen är <strong>{fee} kr via Swish</strong> och går till potten. Swisha till:{' '}
-          {swishDisplay}
+          Insatsen är <strong>{fee} kr via Swish</strong> och går till potten.
+          {swishDisplay ? (
+            <>
+              {' '}
+              Swisha till: <strong>{swishDisplay}</strong>
+            </>
+          ) : (
+            <> Swish-nummer saknas — kontakta arrangören.</>
+          )}
         </p>
         <p className="swish-payment-prompt__body">Meddelande: {message}</p>
       </div>

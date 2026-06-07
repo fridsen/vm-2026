@@ -5,6 +5,11 @@ describe('formatSwishDisplay', () => {
   it('formats 10-digit Swedish mobile numbers', () => {
     expect(formatSwishDisplay('0708312041')).toBe('070 831 20 41');
   });
+
+  it('returns empty string when number is missing', () => {
+    expect(formatSwishDisplay('')).toBe('');
+    expect(formatSwishDisplay()).toBe('');
+  });
 });
 
 describe('normalizeSwishNumber', () => {

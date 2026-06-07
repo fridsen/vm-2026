@@ -9,7 +9,10 @@ import {
   saveGroupStandingPrediction,
   saveWorldCupTopThree,
 } from '../services/predictionsService.js';
+import { fetchLatestNews, getCachedNews, NEWS_ARTICLE_LIMIT } from '../services/newsService.js';
+import { interleaveNewsBySource } from '../utils/interleaveNewsBySource.js';
 import { liveDataPollIntervalMs } from '../utils/liveDataRefresh.js';
+import { NEWS_CACHE_TTL_MS, readNewsCache } from '../utils/newsCache.js';
 
 export default function AppDataProvider({ children }) {
   const { user } = useAuth();
@@ -24,6 +27,12 @@ export default function AppDataProvider({ children }) {
 
   const [predictions, setPredictions] = useState(null);
   const [predictionsLoading, setPredictionsLoading] = useState(Boolean(userId));
+
+  const [newsArticles, setNewsArticles] = useState(() => {
+    const cached = getCachedNews(NEWS_ARTICLE_LIMIT);
+    return cached ? interleaveNewsBySource(cached) : [];
+  });
+  const [newsLoading, setNewsLoading] = useState(() => getCachedNews(NEWS_ARTICLE_LIMIT) == null);
 
   const groupMatchesRef = useRef(groupMatches);
   groupMatchesRef.current = groupMatches;
@@ -54,6 +63,37 @@ export default function AppDataProvider({ children }) {
   const refreshLiveData = useCallback(async () => {
     await Promise.all([refreshMatches(), refreshLeaderboard()]);
   }, [refreshMatches, refreshLeaderboard]);
+
+  const refreshNews = useCallback(async ({ force = false } = {}) => {
+    try {
+      const data = await fetchLatestNews(NEWS_ARTICLE_LIMIT, { force });
+      setNewsArticles(data);
+    } catch {
+      /* keep cached headlines on transient failures */
+    } finally {
+      setNewsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const cached = readNewsCache();
+    if (cached?.fresh) {
+      setNewsArticles(interleaveNewsBySource(cached.articles.slice(0, NEWS_ARTICLE_LIMIT)));
+      setNewsLoading(false);
+      fetchLatestNews(NEWS_ARTICLE_LIMIT, { force: true })
+        .then(setNewsArticles)
+        .catch(() => {});
+      return undefined;
+    }
+
+    let mounted = true;
+    refreshNews({ force: Boolean(cached) }).finally(() => {
+      if (mounted) setNewsLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [refreshNews]);
 
   useEffect(() => {
     let mounted = true;
@@ -86,17 +126,33 @@ export default function AppDataProvider({ children }) {
 
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === 'visible') refreshLiveData();
+      if (document.visibilityState === 'visible') {
+        refreshLiveData();
+        refreshNews({ force: true });
+      }
+    };
+
+    const onFocus = () => {
+      refreshLiveData();
+      refreshNews({ force: true });
     };
 
     document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('focus', refreshLiveData);
+    window.addEventListener('focus', onFocus);
 
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('focus', refreshLiveData);
+      window.removeEventListener('focus', onFocus);
     };
-  }, [refreshLiveData]);
+  }, [refreshLiveData, refreshNews]);
+
+  useEffect(() => {
+    const pollId = window.setInterval(() => {
+      refreshNews({ force: true });
+    }, NEWS_CACHE_TTL_MS);
+
+    return () => clearInterval(pollId);
+  }, [refreshNews]);
 
   useEffect(() => {
     let pollId = null;
@@ -205,9 +261,12 @@ export default function AppDataProvider({ children }) {
       leaderboardLoading,
       predictions,
       predictionsLoading,
+      newsArticles,
+      newsLoading,
       refreshMatches,
       refreshLeaderboard,
       refreshLiveData,
+      refreshNews,
       refreshPredictions,
       updateMatch,
       updateGroupStanding,
@@ -221,9 +280,12 @@ export default function AppDataProvider({ children }) {
       leaderboardLoading,
       predictions,
       predictionsLoading,
+      newsArticles,
+      newsLoading,
       refreshMatches,
       refreshLeaderboard,
       refreshLiveData,
+      refreshNews,
       refreshPredictions,
       updateMatch,
       updateGroupStanding,

@@ -13,8 +13,9 @@
     "preview": "vite preview",
     "supabase:push": "supabase db push",
     "supabase:verify-scoring": "supabase db query --linked -f scripts/verify-leaderboard-scoring.sql",
-    "supabase:deploy": "supabase functions deploy sync-fixtures",
-    "supabase:sync": "curl -fsS -X POST \"$SUPABASE_URL/functions/v1/sync-fixtures\" -H \"Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY\""
+    "supabase:deploy": "supabase functions deploy sync-fixtures && supabase functions deploy sync-news",
+    "supabase:sync": "node scripts/invoke-edge-function.mjs sync-fixtures",
+    "supabase:sync-news": "node scripts/invoke-edge-function.mjs sync-news"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",

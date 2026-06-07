@@ -1,12 +1,10 @@
-const SWISH_DISPLAY_FALLBACK = '070 000 00 00';
-
 /** Format a Swedish mobile number for display (070 123 45 67). */
-export function formatSwishDisplay(raw, fallback = SWISH_DISPLAY_FALLBACK) {
-  const digits = (raw || fallback).replace(/\D/g, '');
+export function formatSwishDisplay(raw) {
+  const digits = String(raw || '').replace(/\D/g, '');
   if (digits.length === 10 && digits.startsWith('07')) {
     return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8)}`;
   }
-  return raw || fallback;
+  return String(raw || '').trim();
 }
 
 /** Normalize Swedish mobile / Swish number to digits (46…). */

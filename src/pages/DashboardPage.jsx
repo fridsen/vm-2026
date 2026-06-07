@@ -26,6 +26,9 @@ import matchesIcon from '../assets/mina-tips/matches-icon.svg';
 import groupsIcon from '../assets/mina-tips/groups-icon.svg';
 import winnerIcon from '../assets/mina-tips/winner-icon.svg';
 import { countTopThreeFilled, getTopThree } from '../utils/topThree.js';
+import NewsFeedCard from '../components/NewsFeedCard.jsx';
+import TippingProgressWidget from '../components/TippingProgressWidget.jsx';
+import { useNews } from '../hooks/useNews.js';
 
 const TOTAL_GROUP_MATCHES = 72;
 
@@ -43,21 +46,15 @@ function ChevronIcon() {
   );
 }
 
-function BellIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M15 17H9M18 9.8C18 8.25 17.37 6.76 16.24 5.67C15.12 4.58 13.59 4 12 4C10.41 4 8.88 4.58 7.76 5.67C6.63 6.76 6 8.25 6 9.8C6 12.3 5.4 14.02 4.72 15.12C4.28 15.84 4.06 16.2 4.07 16.3C4.08 16.41 4.1 16.45 4.19 16.52C4.27 16.6 4.63 16.6 5.35 16.6H18.65C19.37 16.6 19.73 16.6 19.81 16.52C19.9 16.45 19.92 16.41 19.93 16.3C19.94 16.2 19.72 15.84 19.28 15.12C18.6 14.02 18 12.3 18 9.8Z"
-        stroke="#0C162A"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function PreWcHomeHeader({ name, firstName }) {
+function PreWcHomeHeader({
+  name,
+  firstName,
+  matchCount,
+  totalMatches,
+  rankedGroups,
+  totalGroups,
+  topThreeFilled,
+}) {
   const initials = (name || 'Du')
     .split(/\s+/)
     .filter(Boolean)
@@ -75,9 +72,13 @@ function PreWcHomeHeader({ name, firstName }) {
           <div className="home-name">{firstName}</div>
         </div>
       </Link>
-      <button type="button" className="home-bell" aria-label="Notiser">
-        <BellIcon />
-      </button>
+      <TippingProgressWidget
+        matchCount={matchCount}
+        totalMatches={totalMatches}
+        rankedGroups={rankedGroups}
+        totalGroups={totalGroups}
+        topThreeFilled={topThreeFilled}
+      />
     </header>
   );
 }
@@ -284,6 +285,8 @@ function PreWcHome({
   topThreeFilled,
   onOpenRules,
   showSwishPrompt,
+  newsArticles,
+  newsLoading,
 }) {
   const nextType =
     topThreeFilled < 3
@@ -296,7 +299,15 @@ function PreWcHome({
 
   return (
     <div className="home-page">
-      <PreWcHomeHeader name={name} firstName={firstName} />
+      <PreWcHomeHeader
+        name={name}
+        firstName={firstName}
+        matchCount={matchCount}
+        totalMatches={totalMatches}
+        rankedGroups={rankedGroups}
+        totalGroups={totalGroups}
+        topThreeFilled={topThreeFilled}
+      />
       <PreWcHero deadlineMs={deadlineMs} hasStartedTipping={hasStartedTipping} />
       {showSwishPrompt && <SwishPaymentPrompt firstName={firstName} />}
       <ChecklistCard
@@ -308,11 +319,22 @@ function PreWcHome({
       />
       <NextPredictionCard type={nextType} />
       <RulesPreviewCard onOpen={onOpenRules} />
+      <NewsFeedCard articles={newsArticles} loading={newsLoading} />
     </div>
   );
 }
 
-function LiveView({ matches, now, predictions, onPredict, myEntry, myRank, totalPlayers }) {
+function LiveView({
+  matches,
+  now,
+  predictions,
+  onPredict,
+  myEntry,
+  myRank,
+  totalPlayers,
+  newsArticles,
+  newsLoading,
+}) {
   // Date ticker — next N days that have matches
   const days = useMemo(() => {
     const todayKey = format(new Date(now), 'yyyy-MM-dd');
@@ -456,6 +478,8 @@ function LiveView({ matches, now, predictions, onPredict, myEntry, myRank, total
           ))}
         </div>
       )}
+
+      <NewsFeedCard articles={newsArticles} loading={newsLoading} />
     </div>
   );
 }
@@ -467,6 +491,7 @@ export default function DashboardPage() {
   const { predictions, updateMatch } = usePredictions();
   const { user, profile } = useAuth();
   const { myPayment } = usePayments();
+  const { articles: newsArticles, loading: newsLoading } = useNews();
   const myUserId = user?.id;
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Du';
   const firstName =
@@ -518,6 +543,8 @@ export default function DashboardPage() {
             myEntry={myEntry}
             myRank={myRank}
             totalPlayers={entries.length}
+            newsArticles={newsArticles}
+            newsLoading={newsLoading}
           />
         </div>
       ) : (
@@ -532,6 +559,8 @@ export default function DashboardPage() {
           topThreeFilled={topThreeFilled}
           onOpenRules={() => setRulesOpen(true)}
           showSwishPrompt={!myPayment?.paid}
+          newsArticles={newsArticles}
+          newsLoading={newsLoading}
         />
       )}
 

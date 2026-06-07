@@ -8,9 +8,10 @@
 
 import { supabase, unwrap } from './supabaseClient.js';
 
-// Swish payee + fee are not secrets — they're shown to every player. Defaults
-// keep the UI sensible if the env vars aren't set.
-export const SWISH_NUMBER = import.meta.env?.VITE_SWISH_NUMBER || '';
+// Swish payee + fee are not secrets — they're shown to every player.
+// Override per deploy with VITE_SWISH_NUMBER; default matches production pot.
+export const SWISH_NUMBER =
+  import.meta.env?.VITE_SWISH_NUMBER?.trim() || '0708312041';
 // Default 200 kr when env is unset (matches onboarding copy). Set VITE_ENTRY_FEE_SEK in .env.local.
 const configuredFee = Number(import.meta.env?.VITE_ENTRY_FEE_SEK);
 export const ENTRY_FEE_SEK =

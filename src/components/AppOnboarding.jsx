@@ -19,8 +19,6 @@ export const APP_ONBOARDING_EXIT_MS = 520;
 export const APP_ONBOARDING_SHEET_DELAY_MS = 650;
 
 const FEE = ENTRY_FEE_SEK;
-const SWISH_FALLBACK = '070-831 20 41';
-
 export function appOnboardingStorageKey(userId) {
   return userId ? `${APP_ONBOARDING_SEEN_KEY}:${userId}` : APP_ONBOARDING_SEEN_KEY;
 }
@@ -39,7 +37,7 @@ export function hasCompletedAppOnboarding(userId) {
 }
 
 function buildSteps(firstName) {
-  const swish = formatSwishDisplay(SWISH_NUMBER, SWISH_FALLBACK);
+  const swish = formatSwishDisplay(SWISH_NUMBER);
   const message = `VM-tips ${firstName}`.trim();
 
   return [

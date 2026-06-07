@@ -34,3 +34,7 @@ secure_password_change = false
 [edge_runtime]
 enabled = true
 policy = "per_worker"
+
+# Invoked by pg_cron via pg_net without a JWT; only upserts public RSS headlines.
+[functions.sync-news]
+verify_jwt = false
