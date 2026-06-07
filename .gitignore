@@ -17,6 +17,9 @@ dist-ssr
 !.env.example
 *.local
 
+# Local prediction exports (contain user data)
+backups/
+
 # Supabase CLI runtime state
 supabase/.branches
 supabase/.temp

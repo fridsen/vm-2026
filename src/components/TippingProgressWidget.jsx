@@ -134,7 +134,9 @@ export default function TippingProgressWidget({
     const anchor = anchorRef.current?.getBoundingClientRect();
     const host = overlayPortalTarget()?.getBoundingClientRect();
     const content =
-      anchorRef.current?.closest('.home-page')?.getBoundingClientRect() ?? host;
+      anchorRef.current?.closest('.app-tab-shell')?.getBoundingClientRect() ??
+      anchorRef.current?.closest('.home-page')?.getBoundingClientRect() ??
+      host;
     if (!anchor || !host) return null;
     return { anchor, host, content };
   }

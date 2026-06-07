@@ -70,10 +70,6 @@ export default function MatchesPage() {
   if (loading) {
     return (
       <div className="matches-page">
-        <header className="matches-hero">
-          <h1>Matcher</h1>
-          <p>Laddar…</p>
-        </header>
         <div className="card p-8 text-center text-neutral-500">Laddar matcher…</div>
       </div>
     );
@@ -81,11 +77,6 @@ export default function MatchesPage() {
 
   return (
     <div className="matches-page">
-      <header className="matches-hero">
-        <h1>Matcher</h1>
-        <p>Alla matcher i svensk tid</p>
-      </header>
-
       <div className="matches-date-carousel" aria-label="Välj matchdag">
         {days.map((day) => {
           const selected = day.dayKey === activeDay;

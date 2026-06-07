@@ -116,10 +116,6 @@ export default function GroupStandingsPage() {
 
   return (
     <div className="tables-page">
-      <header className="tables-hero">
-        <h1>Tabeller</h1>
-        <p>Grupper och slutspel</p>
-      </header>
       <StageSegmentedControl value={tab} onChange={setTab} />
 
       {tab === 'grupper' ? (

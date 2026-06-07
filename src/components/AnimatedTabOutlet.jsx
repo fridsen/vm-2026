@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { isTabNavRoute, tabRouteIndex } from '../constants/navTabs.js';
+import AppTabHeader from './AppTabHeader.jsx';
 
 export default function AnimatedTabOutlet() {
   const { pathname } = useLocation();
@@ -28,11 +29,22 @@ export default function AnimatedTabOutlet() {
     slide === -1 && 'tab-slide-panel--from-left',
   );
 
+  const isTab = isTabNavRoute(pathname);
+
   return (
     <div className="tab-slide-viewport">
-      <div key={pathname} className={panelClass}>
-        <Outlet />
-      </div>
+      {isTab ? (
+        <div className="app-tab-shell">
+          <AppTabHeader />
+          <div key={pathname} className={panelClass}>
+            <Outlet />
+          </div>
+        </div>
+      ) : (
+        <div key={pathname} className={panelClass}>
+          <Outlet />
+        </div>
+      )}
     </div>
   );
 }

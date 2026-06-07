@@ -14,7 +14,6 @@ import {
   getMatchDayKey,
   flattenMatchesByGroup,
 } from '../utils/matchSchedule.js';
-import PageHeader from '../components/PageHeader.jsx';
 import MatchCard from '../components/MatchCard.jsx';
 import PredictionSheet from '../components/PredictionSheet.jsx';
 import RulesSheet from '../components/RulesSheet.jsx';
@@ -27,7 +26,6 @@ import groupsIcon from '../assets/mina-tips/groups-icon.svg';
 import winnerIcon from '../assets/mina-tips/winner-icon.svg';
 import { countTopThreeFilled, getTopThree } from '../utils/topThree.js';
 import NewsFeedCard from '../components/NewsFeedCard.jsx';
-import TippingProgressWidget from '../components/TippingProgressWidget.jsx';
 import { useNews } from '../hooks/useNews.js';
 
 const TOTAL_GROUP_MATCHES = 72;
@@ -43,43 +41,6 @@ function ChevronIcon() {
         strokeLinejoin="round"
       />
     </svg>
-  );
-}
-
-function PreWcHomeHeader({
-  name,
-  firstName,
-  matchCount,
-  totalMatches,
-  rankedGroups,
-  totalGroups,
-  topThreeFilled,
-}) {
-  const initials = (name || 'Du')
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-
-  return (
-    <header className="home-topbar">
-      <Link to="/profile" className="home-profile" aria-label="Öppna profil">
-        <div className="home-avatar">{initials || 'DU'}</div>
-        <div>
-          <div className="home-welcome">Välkommen!</div>
-          <div className="home-name">{firstName}</div>
-        </div>
-      </Link>
-      <TippingProgressWidget
-        matchCount={matchCount}
-        totalMatches={totalMatches}
-        rankedGroups={rankedGroups}
-        totalGroups={totalGroups}
-        topThreeFilled={topThreeFilled}
-      />
-    </header>
   );
 }
 
@@ -276,7 +237,6 @@ function RulesPreviewCard({ onOpen }) {
 
 function PreWcHome({
   deadlineMs,
-  name,
   firstName,
   matchCount,
   totalMatches,
@@ -299,15 +259,6 @@ function PreWcHome({
 
   return (
     <div className="home-page">
-      <PreWcHomeHeader
-        name={name}
-        firstName={firstName}
-        matchCount={matchCount}
-        totalMatches={totalMatches}
-        rankedGroups={rankedGroups}
-        totalGroups={totalGroups}
-        topThreeFilled={topThreeFilled}
-      />
       <PreWcHero deadlineMs={deadlineMs} hasStartedTipping={hasStartedTipping} />
       {showSwishPrompt && <SwishPaymentPrompt firstName={firstName} />}
       <ChecklistCard
@@ -533,8 +484,7 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-3xl">
       {tournamentStarted ? (
-        <div className="space-y-4 pt-7">
-          <PageHeader title="VM 2026" subtitle="Gruppspel · pågående" />
+        <div className="space-y-4">
           <LiveView
             matches={matches}
             now={now}
@@ -550,7 +500,6 @@ export default function DashboardPage() {
       ) : (
         <PreWcHome
           deadlineMs={deadlineMs}
-          name={displayName}
           firstName={firstName}
           matchCount={predicted}
           totalMatches={totalMatches}

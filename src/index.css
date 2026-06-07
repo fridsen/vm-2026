@@ -403,60 +403,7 @@
   .mina-page {
     width: 100%;
     margin: 0 auto;
-    padding: 28px 0 0;
-  }
-  @media (min-width: 768px) {
-    .mina-page {
-      padding-top: 28px;
-    }
-  }
-  .mina-hero {
-    position: relative;
-    min-height: 62px;
-    margin-bottom: 24px;
-  }
-  .mina-hero-copy {
-    width: 310px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .mina-hero h1 {
-    margin: 0;
-    font-family: 'Bebas Neue', 'DM Sans', system-ui, sans-serif;
-    font-size: 38px;
-    font-weight: 400;
-    line-height: 38px;
-    letter-spacing: 0.01em;
-    text-transform: uppercase;
-    color: #0c162a;
-  }
-  .mina-hero p {
-    margin-top: 4px;
-    font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
-    font-size: 15px;
-    line-height: 20px;
-    color: rgba(12, 22, 42, 0.8);
-  }
-  .mina-help-button {
-    position: absolute;
-    right: 4px;
-    top: -4px;
-    display: flex;
-    height: 40px;
-    width: 40px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    background: #fff;
-    font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: #0c162a;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  }
-  .mina-help-button img {
-    height: 15px;
-    width: 10px;
+    padding: 0;
   }
   .mina-segmented {
     position: relative;
@@ -2028,30 +1975,8 @@
     width: 100%;
     max-width: 358px;
     margin: 0 auto;
-    padding: 28px 0 0;
+    padding: 0;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
-  }
-  .matches-hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 24px;
-    text-align: center;
-  }
-  .matches-hero h1 {
-    font-family: 'Bebas Neue', 'DM Sans', system-ui, sans-serif;
-    font-size: 38px;
-    font-weight: 400;
-    line-height: 38px;
-    text-transform: uppercase;
-    color: #0c162a;
-  }
-  .matches-hero p {
-    font-size: 15px;
-    font-weight: 400;
-    line-height: 20px;
-    color: rgba(12, 22, 42, 0.8);
   }
   .matches-date-carousel {
     display: flex;
@@ -2516,6 +2441,73 @@
     transition: stroke-dashoffset 1s ease;
   }
 
+  /* ─── APP TAB SHELL ────────────────────────────────────────── */
+  .app-tab-header {
+    display: flex;
+    width: 100%;
+  }
+  .app-tab-shell {
+    display: flex;
+    width: 100%;
+    max-width: 358px;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0 auto;
+    padding: 28px 0 0;
+    font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
+  }
+  .app-tab-header--page {
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .app-tab-info-btn {
+    display: flex;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 100px;
+    background: #fff;
+    padding: 8px;
+    cursor: pointer;
+  }
+  .app-tab-info-btn img {
+    width: 24px;
+    height: 24px;
+  }
+  .app-tab-hero {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding-top: 8px;
+    text-align: center;
+  }
+  .app-tab-hero-title {
+    margin: 0;
+    width: 100%;
+    font-family: 'Bebas Neue', 'DM Sans', system-ui, sans-serif;
+    font-size: 38px;
+    font-weight: 400;
+    line-height: 38px;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: #0c162a;
+  }
+  .app-tab-hero-subtitle {
+    margin: 0;
+    width: 100%;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 20px;
+    color: rgba(12, 22, 42, 0.8);
+  }
+
   /* ─── PRE-WC HOME ──────────────────────────────────────────── */
   .home-page {
     display: flex;
@@ -2524,7 +2516,7 @@
     flex-direction: column;
     gap: 12px;
     margin: 0 auto;
-    padding: 28px 0 0;
+    padding: 0;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
   }
   .home-topbar {
@@ -3214,30 +3206,8 @@
     width: 100%;
     max-width: 358px;
     margin: 0 auto;
-    padding: 28px 0 0;
+    padding: 0;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
-  }
-  .tables-hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 24px;
-    text-align: center;
-  }
-  .tables-hero h1 {
-    font-family: 'Bebas Neue', 'DM Sans', system-ui, sans-serif;
-    font-size: 38px;
-    font-weight: 400;
-    line-height: 38px;
-    text-transform: uppercase;
-    color: #0c162a;
-  }
-  .tables-hero p {
-    font-size: 15px;
-    font-weight: 400;
-    line-height: 20px;
-    color: rgba(12, 22, 42, 0.8);
   }
   .tables-card-list {
     display: flex;
@@ -3491,30 +3461,8 @@
     width: 100%;
     max-width: 358px;
     margin: 0 auto;
-    padding: 28px 0 var(--app-card-shadow-bleed);
+    padding: 0 0 var(--app-card-shadow-bleed);
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
-  }
-  .leaderboard-hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 24px;
-    text-align: center;
-  }
-  .leaderboard-hero h1 {
-    font-family: 'Bebas Neue', 'DM Sans', system-ui, sans-serif;
-    font-size: 38px;
-    font-weight: 400;
-    line-height: 38px;
-    text-transform: uppercase;
-    color: #0c162a;
-  }
-  .leaderboard-hero p {
-    font-size: 15px;
-    font-weight: 400;
-    line-height: 20px;
-    color: rgba(12, 22, 42, 0.8);
   }
   .leaderboard-toggle {
     margin-bottom: 12px;

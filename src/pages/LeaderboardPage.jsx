@@ -45,11 +45,6 @@ export default function LeaderboardPage() {
 
   return (
     <div className="leaderboard-page">
-      <header className="leaderboard-hero">
-        <h1>Leaderboard</h1>
-        <p>Vem vinner VM-tipset 2026</p>
-      </header>
-
       {loading ? (
         <div className="lb-empty">Laddar…</div>
       ) : sorted.length === 0 ? (

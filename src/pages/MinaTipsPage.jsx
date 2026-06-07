@@ -16,11 +16,9 @@ import {
   toggleTopThree,
 } from '../utils/topThree.js';
 import PredictionSheet from '../components/PredictionSheet.jsx';
-import RulesSheet from '../components/RulesSheet.jsx';
 import matchesIcon from '../assets/mina-tips/matches-icon.svg';
 import groupsIcon from '../assets/mina-tips/groups-icon.svg';
 import winnerIcon from '../assets/mina-tips/winner-icon.svg';
-import helpIcon from '../assets/mina-tips/help-icon.svg';
 
 function TipsLockBanner({ locked }) {
   if (!locked) return null;
@@ -521,7 +519,6 @@ export default function MinaTipsPage() {
   const landedFromAppOnboarding = location.state?.fromAppOnboarding === true;
   const prevTabRef = useRef(tab);
   const [tabSlide, setTabSlide] = useState(0);
-  const [rulesOpen, setRulesOpen] = useState(false);
 
   useEffect(() => {
     const prev = prevTabRef.current;
@@ -616,26 +613,6 @@ export default function MinaTipsPage() {
         landedFromAppOnboarding && 'mina-page--from-app-onboarding',
       )}
     >
-      {/* Hero */}
-      <header className="mina-hero">
-        <div className="mina-hero-copy">
-          <h1>
-            Dina Tips
-          </h1>
-          <p>
-            Alla dina tips samlade på ett ställe
-          </p>
-        </div>
-        <button
-          type="button"
-          aria-label="Hjälp"
-          onClick={() => setRulesOpen(true)}
-          className="mina-help-button"
-        >
-          <img src={helpIcon} alt="" />
-        </button>
-      </header>
-
       <SegmentedControl value={tab} onChange={handleTabChange} statuses={tabStatuses} />
 
       <StatusLegend />
@@ -676,7 +653,6 @@ export default function MinaTipsPage() {
           </div>
         </div>
       )}
-      <RulesSheet open={rulesOpen} onClose={() => setRulesOpen(false)} />
     </div>
   );
 }
