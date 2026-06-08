@@ -271,7 +271,7 @@ export default function PredictionSheet({
   hasPrev = false,
   hasNext = false,
 }) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const userId = user?.id;
   // Scores default to a real 0-0 — that itself is a valid prediction the
   // user can save as-is. Picking a tecken alone is also enough to save.
@@ -320,7 +320,7 @@ export default function PredictionSheet({
       setOnboardingOpen(false);
       return undefined;
     }
-    if (!hasCompletedAppOnboarding(userId) || !shouldShowPredictionSheetOnboarding(userId)) {
+    if (!hasCompletedAppOnboarding(userId, profile) || !shouldShowPredictionSheetOnboarding(userId)) {
       setOnboardingOpen(false);
       return undefined;
     }
@@ -334,7 +334,7 @@ export default function PredictionSheet({
       PREDICTION_SHEET_ONBOARDING_DELAY_MS,
     );
     return () => window.clearTimeout(timer);
-  }, [match?.id, sheetPhase, userId]);
+  }, [match?.id, sheetPhase, userId, profile]);
 
   function handleOnboardingComplete() {
     try {

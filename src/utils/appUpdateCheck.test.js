@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  buildHardReloadUrl,
   getLoadedEntryAsset,
   hasRemoteAppUpdate,
   parseEntryAssetFromHtml,
@@ -25,6 +26,13 @@ describe('getLoadedEntryAsset', () => {
       ],
     };
     expect(getLoadedEntryAsset(doc)).toBe('/assets/index-abc123.js');
+  });
+});
+
+describe('buildHardReloadUrl', () => {
+  it('adds a cache-busting query param', () => {
+    const url = buildHardReloadUrl('https://example.com/matcher?tab=grupper');
+    expect(url).toMatch(/^https:\/\/example\.com\/matcher\?tab=grupper&__app_reload=\d+$/);
   });
 });
 

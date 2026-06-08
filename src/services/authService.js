@@ -127,3 +127,15 @@ export async function setPaymentAck(userId) {
   );
   return data;
 }
+
+export async function setAppOnboardingSeen(userId) {
+  const data = unwrap(
+    await supabase
+      .from('profiles')
+      .update({ app_onboarding_seen: true })
+      .eq('id', userId)
+      .select()
+      .single(),
+  );
+  return data;
+}

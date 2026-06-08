@@ -59,7 +59,9 @@
             try {
               sessionStorage.setItem(reloadKey, String(Date.now()));
             } catch (e) {}
-            location.reload();
+            var url = new URL(location.href);
+            url.searchParams.set('__app_reload', String(Date.now()));
+            location.replace(url.toString());
           });
         }
 

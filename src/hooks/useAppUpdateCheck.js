@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { hasRemoteAppUpdate } from '../utils/appUpdateCheck.js';
+import { hasRemoteAppUpdate, performHardAppReload } from '../utils/appUpdateCheck.js';
 import { isStandaloneDisplay } from '../utils/iosInstall.js';
 
 export const APP_UPDATE_SNOOZE_KEY = 'vm2026:appUpdateSnooze';
@@ -47,7 +47,12 @@ export function useAppUpdateCheck() {
   }, []);
 
   const reload = useCallback(() => {
-    window.location.reload();
+    try {
+      window.sessionStorage?.removeItem(APP_UPDATE_SNOOZE_KEY);
+    } catch {
+      /* ignore */
+    }
+    performHardAppReload();
   }, []);
 
   return { updateAvailable, dismiss, reload };

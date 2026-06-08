@@ -6,6 +6,7 @@ import {
   getSession,
   onAuthStateChange,
   sendPasswordReset,
+  setAppOnboardingSeen,
   setPaymentAck,
   signInWithEmail,
   signInWithGoogle,
@@ -15,6 +16,10 @@ import {
   upsertProfile,
 } from '../services/authService.js';
 import { migrateLocalStorageToSupabase } from '../services/predictionsService.js';
+import {
+  readLocalAppOnboardingSeen,
+  writeLocalAppOnboardingSeen,
+} from '../utils/appOnboardingStorage.js';
 import { clearSupabaseAuthStorage } from '../utils/supabaseAuthStorage.js';
 
 const AUTH_BOOTSTRAP_MS = 8_000;
@@ -153,6 +158,33 @@ export default function AuthProvider({ children }) {
     };
   }, [user?.id, ensureProfile]);
 
+  // iOS pinned web apps use a separate localStorage partition from Safari.
+  // Keep profile.app_onboarding_seen as the source of truth across installs.
+  useEffect(() => {
+    if (!user?.id || !profile) return undefined;
+
+    if (profile.app_onboarding_seen) {
+      writeLocalAppOnboardingSeen(user.id);
+      return undefined;
+    }
+
+    if (!readLocalAppOnboardingSeen(user.id)) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const updated = await setAppOnboardingSeen(user.id);
+        if (!cancelled) setProfile(updated);
+      } catch (err) {
+        console.warn('[auth] app onboarding sync failed:', err.message);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, profile?.app_onboarding_seen]);
+
   const value = useMemo(
     () => ({
       user,
@@ -175,6 +207,9 @@ export default function AuthProvider({ children }) {
         const p = await setPaymentAck(user.id);
         setProfile(p);
         return p;
+      },
+      refreshProfile: (nextProfile) => {
+        if (nextProfile) setProfile(nextProfile);
       },
     }),
     [user, profile, loading],

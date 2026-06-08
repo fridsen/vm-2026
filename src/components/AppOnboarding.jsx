@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { setAppOnboardingSeen } from '../services/authService.js';
 import { ENTRY_FEE_SEK, SWISH_NUMBER } from '../services/paymentsService.js';
 import { formatSwishDisplay } from '../utils/swish.js';
 import onboarding1 from '../assets/onboarding/Onboarding-1.png';
@@ -12,28 +13,28 @@ import onboarding4 from '../assets/onboarding/Onboarding-4.png';
 import onboarding5 from '../assets/onboarding/Onboarding-5.png';
 import onboarding6 from '../assets/onboarding/Onboarding-6.png';
 
-export const APP_ONBOARDING_SEEN_KEY = 'vm2026:appOnboardingSeen:v1';
+import {
+  readLocalAppOnboardingSeen,
+  writeLocalAppOnboardingSeen,
+} from '../utils/appOnboardingStorage.js';
+
+export { APP_ONBOARDING_SEEN_KEY, appOnboardingStorageKey } from '../utils/appOnboardingStorage.js';
 export const APP_ONBOARDING_DELAY_MS = 700;
 export const APP_ONBOARDING_EXIT_MS = 520;
 /** Pause on Mina tips before PredictionSheet opens (after onboarding exit). */
 export const APP_ONBOARDING_SHEET_DELAY_MS = 650;
 
 const FEE = ENTRY_FEE_SEK;
-export function appOnboardingStorageKey(userId) {
-  return userId ? `${APP_ONBOARDING_SEEN_KEY}:${userId}` : APP_ONBOARDING_SEEN_KEY;
-}
 
-export function shouldShowAppOnboarding(userId) {
+export function shouldShowAppOnboarding(userId, profile) {
   if (!userId) return false;
-  try {
-    return window.localStorage?.getItem(appOnboardingStorageKey(userId)) !== '1';
-  } catch {
-    return true;
-  }
+  if (profile?.app_onboarding_seen) return false;
+  if (readLocalAppOnboardingSeen(userId)) return false;
+  return true;
 }
 
-export function hasCompletedAppOnboarding(userId) {
-  return !shouldShowAppOnboarding(userId);
+export function hasCompletedAppOnboarding(userId, profile) {
+  return !shouldShowAppOnboarding(userId, profile);
 }
 
 function buildSteps(firstName) {
@@ -136,18 +137,20 @@ function StepDots({ count, activeIndex }) {
   );
 }
 
-function markComplete(userId) {
+async function markComplete(userId, refreshProfile) {
   if (!userId) return;
+  writeLocalAppOnboardingSeen(userId);
   try {
-    window.localStorage?.setItem(appOnboardingStorageKey(userId), '1');
+    const updated = await setAppOnboardingSeen(userId);
+    refreshProfile?.(updated);
   } catch {
-    /* ignore unavailable storage */
+    /* offline / migration pending — local flag still prevents repeat on this device */
   }
 }
 
 export default function AppOnboarding({ open, onComplete }) {
   const navigate = useNavigate();
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const firstName =
     profile?.first_name || (profile?.display_name || user?.email || '').split(/\s+/)[0] || '';
   const steps = buildSteps(firstName);
@@ -174,7 +177,7 @@ export default function AppOnboarding({ open, onComplete }) {
   function finishAndNavigate(target) {
     setExiting(true);
     window.setTimeout(() => {
-      markComplete(user?.id);
+      void markComplete(user?.id, refreshProfile);
       onComplete?.();
       navigate(target, {
         state: {
@@ -193,7 +196,7 @@ export default function AppOnboarding({ open, onComplete }) {
       if (step.navigateTo) {
         finishAndNavigate(step.navigateTo);
       } else {
-        markComplete(user?.id);
+        void markComplete(user?.id, refreshProfile);
         onComplete?.();
       }
       return;

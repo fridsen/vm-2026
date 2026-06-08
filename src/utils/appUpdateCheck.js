@@ -49,3 +49,18 @@ export async function hasRemoteAppUpdate({
   const latest = await fetchLatest();
   return Boolean(latest && latest !== loadedAsset);
 }
+
+/** Build a navigation URL that bypasses iOS standalone / bfcache HTML caching. */
+export function buildHardReloadUrl(href = typeof window !== 'undefined' ? window.location.href : '') {
+  const url = new URL(href);
+  url.searchParams.set('__app_reload', String(Date.now()));
+  return url.toString();
+}
+
+/**
+ * Force-fetch a fresh index.html + entry bundle. Plain reload() is unreliable
+ * in pinned iOS web apps and can leave the tab on a stale shell.
+ */
+export function performHardAppReload(href = typeof window !== 'undefined' ? window.location.href : '') {
+  window.location.replace(buildHardReloadUrl(href));
+}

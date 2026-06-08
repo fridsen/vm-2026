@@ -28,7 +28,7 @@ function PhoneFrameToggle({ on, onToggle }) {
 
 export default function Layout() {
   const { phoneFrame, toggle } = usePhoneFrame();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const mainRef = useRef(null);
@@ -41,14 +41,14 @@ export default function Layout() {
   // BrowserRouter is unmounted during auth onboarding, so the address bar can
   // still point at /profile (or elsewhere). New users should start on Hem.
   useEffect(() => {
-    if (!userId || !shouldShowAppOnboarding(userId)) return;
+    if (!userId || !shouldShowAppOnboarding(userId, profile)) return;
     if (location.pathname !== '/') {
       navigate('/', { replace: true });
     }
-  }, [userId, location.pathname, navigate]);
+  }, [userId, profile, location.pathname, navigate]);
 
   useEffect(() => {
-    if (!userId || !shouldShowAppOnboarding(userId)) {
+    if (!userId || !shouldShowAppOnboarding(userId, profile)) {
       setAppOnboardingOpen(false);
       return undefined;
     }
@@ -59,7 +59,7 @@ export default function Layout() {
     if (appOnboardingOpen) return undefined;
     const timer = window.setTimeout(() => setAppOnboardingOpen(true), APP_ONBOARDING_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [isHome, appOnboardingOpen, userId]);
+  }, [isHome, appOnboardingOpen, userId, profile]);
 
   useEffect(() => {
     if (phoneFrame) {
