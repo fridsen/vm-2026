@@ -30,7 +30,7 @@ har handskriven text i `src/data/matchAnalysis.js` (matchad via lagkoder).
 
 ```
 src/
-  components/   # Delade UI-komponenter (Layout, NavBar, MatchCard, LockBadge, ScoreInput)
+  components/   # Delade UI-komponenter (Layout, NavBar, MatchCard, PredictionSheet, …)
   pages/        # En fil per vy (sex vyer)
   data/         # Statisk team-metadata + kuraterad matchanalys
   services/     # Dataaccess mot Supabase

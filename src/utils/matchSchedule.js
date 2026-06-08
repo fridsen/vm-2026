@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
 import { GROUPS } from '../data/teams.js';
 
 /** Approximate match length (90 min + extra time / halftime). */
@@ -19,57 +18,8 @@ export function getMatchState(match, now) {
   return MATCH_STATE.FINISHED;
 }
 
-export function isMatchLive(match, now) {
-  return getMatchState(match, now) === MATCH_STATE.LIVE;
-}
-
-export function isMatchFinished(match, now) {
-  return getMatchState(match, now) === MATCH_STATE.FINISHED;
-}
-
 export function getMatchDayKey(kickoffIso) {
   return format(new Date(kickoffIso), 'yyyy-MM-dd');
-}
-
-export function buildScheduleDays(matches, now) {
-  const byDay = new Map();
-
-  for (const match of matches) {
-    const dayKey = getMatchDayKey(match.kickoff);
-    if (!byDay.has(dayKey)) {
-      byDay.set(dayKey, []);
-    }
-    byDay.get(dayKey).push(match);
-  }
-
-  const todayKey = format(new Date(now), 'yyyy-MM-dd');
-
-  return [...byDay.entries()]
-    .map(([dayKey, dayMatches]) => {
-      const date = new Date(`${dayKey}T12:00:00`);
-      const isLive = dayMatches.some((m) => isMatchLive(m, now));
-      const hasUpcoming = dayMatches.some((m) => !isMatchFinished(m, now));
-
-      return {
-        dayKey,
-        date,
-        dateLabel: format(date, 'EEE d MMM', { locale: sv }),
-        dayNum: format(date, 'd'),
-        weekday: format(date, 'EEE', { locale: sv }),
-        count: dayMatches.length,
-        isLive,
-        isToday: dayKey === todayKey,
-        hasUpcoming,
-        matches: dayMatches,
-      };
-    })
-    .filter((d) => d.hasUpcoming || d.isLive)
-    .filter((d) => d.dayKey >= todayKey || d.isLive)
-    .sort((a, b) => a.dayKey.localeCompare(b.dayKey));
-}
-
-export function formatMatchCount(count) {
-  return count === 1 ? '1 match' : `${count} matcher`;
 }
 
 /**

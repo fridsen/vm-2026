@@ -57,17 +57,6 @@ export async function fetchAllMatches() {
   return sortByKickoff(rows.map(rowToMatch));
 }
 
-export async function fetchMatchesByGroup(group) {
-  const rows = unwrap(
-    await supabase
-      .from('matches')
-      .select('*')
-      .eq('group', group)
-      .order('kickoff'),
-  );
-  return sortByKickoff(rows.map(rowToMatch));
-}
-
 export async function fetchMatch(id) {
   const { data, error } = await supabase
     .from('matches')

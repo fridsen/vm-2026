@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import clsx from 'clsx';
 import { useKnockoutMatches } from '../hooks/useMatches.js';
 import { useTeams } from '../hooks/useTeams.js';
-import PageHeader from '../components/PageHeader.jsx';
 
 const ROUND_LABELS = {
   R32: 'Sextondelsfinal',
@@ -146,15 +145,6 @@ export function KnockoutContent() {
             </div>
           </div>
         )}
-    </div>
-  );
-}
-
-export default function KnockoutPage() {
-  return (
-    <div className="mx-auto max-w-3xl space-y-3">
-      <PageHeader title="Slutspel" subtitle="Från sextondelsfinal till final" />
-      <KnockoutContent />
     </div>
   );
 }
