@@ -450,7 +450,10 @@ export default function PredictionSheet({
         onNext();
       }, 450);
     } else {
-      savedTimer.current = setTimeout(() => setSaved(false), 1200);
+      // Last match in the sheet — confirm save, then dismiss.
+      savedTimer.current = setTimeout(() => {
+        onClose?.();
+      }, 800);
     }
   };
 

@@ -25,6 +25,7 @@ import matchesIcon from '../assets/mina-tips/matches-icon.svg';
 import groupsIcon from '../assets/mina-tips/groups-icon.svg';
 import winnerIcon from '../assets/mina-tips/winner-icon.svg';
 import { countTopThreeFilled, getTopThree } from '../utils/topThree.js';
+import { getTippingProgress } from '../utils/tippingProgress.js';
 import NewsFeedCard from '../components/NewsFeedCard.jsx';
 import { useNews } from '../hooks/useNews.js';
 
@@ -261,22 +262,34 @@ function PreWcHome({
         ? 'groups'
         : topThreeFilled < 3
           ? 'winner'
-          : 'matches';
+          : null;
   const hasStartedTipping =
     topThreeFilled > 0 || matchCount > 0 || rankedGroups > 0;
+  const { matchesDone, groupsDone, topThreeDone } = getTippingProgress({
+    matchCount,
+    totalMatches,
+    rankedGroups,
+    totalGroups,
+    topThreeFilled,
+  });
+  const tippingComplete = matchesDone && groupsDone && topThreeDone;
 
   return (
     <div className="home-page">
       <PreWcHero deadlineMs={deadlineMs} hasStartedTipping={hasStartedTipping} />
       {showSwishPrompt && <SwishPaymentPrompt firstName={firstName} />}
-      <ChecklistCard
-        matchCount={matchCount}
-        totalMatches={totalMatches}
-        rankedGroups={rankedGroups}
-        totalGroups={totalGroups}
-        topThreeFilled={topThreeFilled}
-      />
-      <NextPredictionCard type={nextType} />
+      {!tippingComplete && (
+        <>
+          <ChecklistCard
+            matchCount={matchCount}
+            totalMatches={totalMatches}
+            rankedGroups={rankedGroups}
+            totalGroups={totalGroups}
+            topThreeFilled={topThreeFilled}
+          />
+          {nextType ? <NextPredictionCard type={nextType} /> : null}
+        </>
+      )}
       <RulesPreviewCard onOpen={onOpenRules} />
       <NewsFeedCard articles={newsArticles} loading={newsLoading} />
     </div>
