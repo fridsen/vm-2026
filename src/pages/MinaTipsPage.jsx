@@ -294,7 +294,7 @@ function MatcherTab({
               <div className="mina-card-title">
                 <span>GRUPP {g}</span>
                 <span className={allDone ? 'is-complete' : ''}>
-                  {allDone ? 'KLAR' : `${predicted} / ${games.length}`}
+                  {predicted} / {games.length}
                 </span>
               </div>
               {games.map((m) => (
@@ -353,7 +353,7 @@ function GroupRankCard({ group, matches, groupStandings, onToggleRank, tournamen
       <div className="mina-card-title">
         <span>GRUPP {group}</span>
         <span className={allDone ? 'is-complete' : ''}>
-          {allDone ? 'KLAR' : `${ranked.length} / ${allTeams.length}`}
+          {ranked.length} / {allTeams.length}
         </span>
       </div>
       <div>
@@ -467,7 +467,7 @@ function VinnareTab({ predictions, updateTopThree, tournamentLocked }) {
       <div className="mina-podium-title">
         <span>LAG</span>
         <span className={filled >= 3 ? 'is-complete' : ''}>
-          {filled >= 3 ? 'KLAR' : `${filled} / 3`}
+          {filled} / 3
         </span>
       </div>
       <div>

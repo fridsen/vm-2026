@@ -92,8 +92,14 @@ function Unit({ val, label }) {
   );
 }
 
-function StatusPill({ children, tone = 'muted' }) {
+function StatusPill({ children, tone = 'empty' }) {
   return <span className={clsx('home-status-pill', tone)}>{children}</span>;
+}
+
+function progressPillTone(current, total) {
+  if (current === 0) return 'empty';
+  if (current >= total) return 'done';
+  return 'progress';
 }
 
 function ChecklistCard({
@@ -104,7 +110,7 @@ function ChecklistCard({
   topThreeFilled,
 }) {
   return (
-    <section className="home-card stagger-child">
+    <section className="home-card home-card-widget stagger-child">
       <div className="home-card-header">
         <div>
           <h2>Checklista</h2>
@@ -116,33 +122,33 @@ function ChecklistCard({
       </div>
 
       <div className="home-list">
-        <Link to="/mina-tips?tab=vinnare" className="home-list-row">
-          <div>
-            <h3>01. Topp 3 i VM</h3>
-            <p>Guld, silver och brons</p>
-          </div>
-          <StatusPill tone={topThreeFilled >= 3 ? 'done' : topThreeFilled > 0 ? 'blue' : 'muted'}>
-            {topThreeFilled >= 3 ? 'Klar' : `${topThreeFilled} / 3`}
-          </StatusPill>
-        </Link>
-
         <Link to="/mina-tips" className="home-list-row">
           <div>
-            <h3>02. Gruppspelet</h3>
+            <h3>01. Gruppspelet</h3>
             <p>Tippa resultat och tecken i matcherna</p>
           </div>
-          <StatusPill tone={matchCount > 0 ? 'blue' : 'muted'}>
+          <StatusPill tone={progressPillTone(matchCount, totalMatches)}>
             {matchCount} / {totalMatches}
           </StatusPill>
         </Link>
 
         <Link to="/mina-tips?tab=grupper" className="home-list-row">
           <div>
-            <h3>03. Rangordna lagen</h3>
-            <p>Hur slutar grupperna?</p>
+            <h3>02. Rangordna lagen</h3>
+            <p>Hur slutar grupperna</p>
           </div>
-          <StatusPill tone={rankedGroups > 0 ? 'blue' : 'muted'}>
+          <StatusPill tone={progressPillTone(rankedGroups, totalGroups)}>
             {rankedGroups} / {totalGroups}
+          </StatusPill>
+        </Link>
+
+        <Link to="/mina-tips?tab=vinnare" className="home-list-row">
+          <div>
+            <h3>03. Topp 3 i VM</h3>
+            <p>Vilka tar hem medaljerna?</p>
+          </div>
+          <StatusPill tone={progressPillTone(topThreeFilled, 3)}>
+            {topThreeFilled} / 3
           </StatusPill>
         </Link>
       </div>
@@ -194,7 +200,7 @@ function NextPredictionCard({ type }) {
 
 function RulesPreviewCard({ onOpen }) {
   return (
-    <section className="home-card stagger-child">
+    <section className="home-card home-card-widget stagger-child">
       <div className="home-card-header">
         <div>
           <h2>Regler och poäng</h2>
@@ -209,7 +215,7 @@ function RulesPreviewCard({ onOpen }) {
         <div className="home-list-row no-action">
           <div>
             <h3>Tippa alla 3 delar</h3>
-            <p>Matcher, grupper, topp 3</p>
+            <p>Matcher, grupper & topp 3</p>
           </div>
         </div>
         <div className="home-list-row no-action">
@@ -249,11 +255,13 @@ function PreWcHome({
   newsLoading,
 }) {
   const nextType =
-    topThreeFilled < 3
-      ? 'winner'
-      : matchCount >= totalMatches
+    matchCount < totalMatches
+      ? 'matches'
+      : rankedGroups < totalGroups
         ? 'groups'
-        : 'matches';
+        : topThreeFilled < 3
+          ? 'winner'
+          : 'matches';
   const hasStartedTipping =
     topThreeFilled > 0 || matchCount > 0 || rankedGroups > 0;
 

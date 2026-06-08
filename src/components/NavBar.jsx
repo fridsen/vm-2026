@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Hem', end: true, icon: ICONS.home },
   { to: '/mina-tips', label: 'Mina tips', icon: ICONS.tips },
   { to: '/matcher', label: 'Matcher', icon: ICONS.matches },
-  { to: '/grupper', label: 'Tabeller', icon: ICONS.groups },
+  { to: '/grupper', label: 'Grupper', icon: ICONS.groups },
   { to: '/leaderboard', label: 'Leaderboard', icon: ICONS.leaderboard },
 ];
 

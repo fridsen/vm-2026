@@ -19,7 +19,7 @@ export default function PaymentReminderToast() {
   return (
     <div
       className="fixed left-4 right-4 z-[55] mx-auto max-w-lg rounded-2xl border border-amber-300 bg-amber-50 p-4 shadow-card md:left-auto md:right-8"
-      style={{ bottom: 'calc(var(--mobile-tab-bar-height, 4.5rem) + env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
+      style={{ bottom: 'calc(var(--app-tab-bar-height, 72px) + env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
       role="status"
     >
       <p className="text-sm font-semibold text-amber-900">Betalningspåminnelse</p>

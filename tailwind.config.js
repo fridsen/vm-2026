@@ -5,19 +5,19 @@ export default {
     extend: {
       colors: {
         // Page background colour (the soft periwinkle "screen body").
-        canvas: '#EDEEF6',
+        canvas: 'var(--page-bg)',
         // White cards and elevated surfaces.
-        surface: '#FFFFFF',
+        surface: 'var(--color-white)',
         'surface-2': '#F5F6FC',
         // The atmosphere ring around the phone-frame preview.
-        atmosphere: '#D8DBE8',
+        atmosphere: 'var(--bg-atmosphere)',
 
         // Brand accent — solid near-black ink. Anything wearing the
         // `accent` background gets white text via `accent.foreground`.
         accent: {
-          DEFAULT: '#0C0C14',
-          dark: '#000000',
-          foreground: '#FFFFFF',
+          DEFAULT: 'var(--color-accent)',
+          dark: 'var(--color-black)',
+          foreground: 'var(--color-white)',
         },
 
         // "Pitch" ramp — repurposed as a navy → ink scale. Old class
@@ -30,22 +30,22 @@ export default {
           200: '#E0E2EE',
           300: '#C0C3D8',
           400: '#6B6E88',
-          500: '#1A1B2E',
-          600: '#0C0C14',
+          500: 'var(--color-body)',
+          600: 'var(--color-accent)',
           700: '#06060B',
         },
 
         // Prediction-sheet design tokens (scoped to the redesigned sheet).
         ink: {
-          DEFAULT: '#0C162A', // text/primary
-          muted: '#60748D', // text/secondary
-          faint: '#A9B5C4', // text/tertiary
+          DEFAULT: 'var(--text-primary)',
+          muted: 'var(--text-secondary)',
+          faint: 'var(--text-tertiary)',
         },
-        sheet: '#F0F5F9', // bg/container
+        sheet: 'var(--bg-container)',
         'submit-disabled': '#9E9EA1',
 
         // Onboarding flow accent (signup/login/payment screens).
-        lime: '#C7FF2E',
+        lime: 'var(--color-lime)',
       },
       fontFamily: {
         sans: ['DM Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
