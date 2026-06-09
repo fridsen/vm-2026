@@ -17,6 +17,24 @@ const configuredFee = Number(import.meta.env?.VITE_ENTRY_FEE_SEK);
 export const ENTRY_FEE_SEK =
   Number.isFinite(configuredFee) && configuredFee > 0 ? configuredFee : 200;
 
+/** Share of gross pot retained for administration before winner payouts. */
+export const PRIZE_POOL_ADMIN_FEE_PCT = 5;
+
+export function grossPotSek(entryFeeSek, participantCount) {
+  if (!participantCount || !entryFeeSek) return 0;
+  return entryFeeSek * participantCount;
+}
+
+export function adminFeeSek(entryFeeSek, participantCount) {
+  const gross = grossPotSek(entryFeeSek, participantCount);
+  return Math.round(gross * (PRIZE_POOL_ADMIN_FEE_PCT / 100));
+}
+
+/** Distributable prize pool after the admin fee is deducted. */
+export function prizePoolSek(entryFeeSek, participantCount) {
+  return grossPotSek(entryFeeSek, participantCount) - adminFeeSek(entryFeeSek, participantCount);
+}
+
 // Whether the signed-in user is an admin. Backed by the SECURITY DEFINER
 // is_admin() SQL function so the allowlist itself stays private.
 export async function fetchIsAdmin() {

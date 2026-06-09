@@ -3,6 +3,11 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import { usePayments } from '../hooks/usePayments.js';
 import SwishPaymentPrompt from '../components/SwishPaymentPrompt.jsx';
+import {
+  adminFeeSek,
+  prizePoolSek,
+  PRIZE_POOL_ADMIN_FEE_PCT,
+} from '../services/paymentsService.js';
 import { haptics } from '../utils/haptics.js';
 
 function initialsForName(name) {
@@ -74,7 +79,8 @@ export default function ProfilePage() {
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Spelaren';
   const initials = initialsForName(displayName);
   const participantCount = entries.length || Object.keys(payments || {}).length || 0;
-  const totalPot = participantCount > 0 ? entryFee * participantCount : 0;
+  const totalPot = prizePoolSek(entryFee, participantCount);
+  const adminFee = adminFeeSek(entryFee, participantCount);
   const paid = Boolean(myPayment?.paid || profile?.payment_ack);
   const showSwishPrompt = !myPayment?.paid;
   const firstName =
@@ -140,6 +146,10 @@ export default function ProfilePage() {
           value={`${participantCount} tippare`}
         />
         <ProfileRow label="Prispott" value={`${formatSek(totalPot)} kr`} />
+        <ProfileRow
+          label="Administrationsavgift"
+          value={`${PRIZE_POOL_ADMIN_FEE_PCT}% (${formatSek(adminFee)} kr)`}
+        />
         <ProfileRow label="Fördelning prispott i %" value="50 / 30 / 20" />
       </div>
 
