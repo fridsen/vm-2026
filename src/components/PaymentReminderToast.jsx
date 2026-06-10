@@ -1,12 +1,14 @@
 import { ENTRY_FEE_SEK, SWISH_NUMBER } from '../services/paymentsService.js';
 import { usePaymentReminders } from '../hooks/usePaymentReminders.js';
+import { usePayments } from '../hooks/usePayments.js';
 import { buildSwishPayUrl } from '../utils/swish.js';
 import { haptics } from '../utils/haptics.js';
 
 export default function PaymentReminderToast() {
+  const { myPayment } = usePayments();
   const { reminders, dismiss } = usePaymentReminders();
   const latest = reminders[0];
-  if (!latest) return null;
+  if (myPayment?.paid || !latest) return null;
 
   const fee = ENTRY_FEE_SEK > 0 ? `${ENTRY_FEE_SEK} kr` : 'avgiften';
   const swish = SWISH_NUMBER || 'Swish-numret i appen';

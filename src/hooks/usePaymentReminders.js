@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../services/supabaseClient.js';
 import { useAuth } from './useAuth.js';
+import { usePayments } from './usePayments.js';
 
 export function usePaymentReminders() {
   const { user } = useAuth();
+  const { myPayment } = usePayments();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,6 +16,16 @@ export function usePaymentReminders() {
       return;
     }
     try {
+      if (myPayment?.paid) {
+        // Stale in-app reminders persist after admin marks the player paid.
+        await supabase
+          .from('payment_reminders')
+          .update({ read_at: new Date().toISOString() })
+          .eq('user_id', user.id)
+          .is('read_at', null);
+        setReminders([]);
+        return;
+      }
       const { data, error } = await supabase
         .from('payment_reminders')
         .select('*')
@@ -27,7 +39,7 @@ export function usePaymentReminders() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, myPayment?.paid]);
 
   useEffect(() => {
     refresh();
