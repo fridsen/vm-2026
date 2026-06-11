@@ -8,7 +8,6 @@ export default function RulesSheet({ open, onClose }) {
       onClose={onClose}
       labelledBy="rules-title"
       padded={false}
-      maxWidth="max-w-[390px]"
       className="mina-rules-sheet"
     >
       <h2 id="rules-title">Regler och poäng</h2>

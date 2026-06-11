@@ -503,7 +503,6 @@ export default function PredictionSheet({
       onPhaseChange={setSheetPhase}
       lockDismiss={onboardingOpen}
       padded={false}
-      maxWidth="max-w-[390px]"
       bg="sheet"
       overlay={
         onboardingOpen ? (

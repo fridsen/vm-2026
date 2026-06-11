@@ -100,7 +100,7 @@ export default function Layout() {
         <div className="app-shell flex min-h-dvh w-full min-w-0 flex-1 flex-col md:min-h-screen">
           <main
             ref={mainRef}
-            className="app-main w-full min-w-0 overflow-x-clip px-4 pt-[env(safe-area-inset-top)] md:flex-1 md:px-8 md:pt-0"
+            className="app-main w-full min-w-0 overflow-x-clip px-4 pt-[env(safe-area-inset-top)] md:flex-1 md:pt-0"
           >
             <AnimatedTabOutlet />
           </main>

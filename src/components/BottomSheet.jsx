@@ -13,7 +13,8 @@ export default function BottomSheet({
   labelledBy,
   className,
   padded = true,
-  maxWidth = 'max-w-[420px]',
+  /** Optional max-width utility, e.g. `max-w-lg`. Omit for full width with inline padding. */
+  maxWidth,
   /** `surface` = white cards; `sheet` = prediction-sheet container (#F0F5F9). */
   bg = 'surface',
   /** Rendered above the sheet panel (e.g. in-sheet spotlight onboarding). */

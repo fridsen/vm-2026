@@ -8,6 +8,7 @@
   --app-main-nav-gap: 24px;
   --app-card-shadow-bleed: 12px;
   --app-tab-bar-total: calc(var(--app-tab-bar-height) + var(--app-main-nav-gap));
+  --app-inline-padding: 16px;
 
   /* Core */
   --color-white: #ffffff;
@@ -312,14 +313,13 @@
   .app-bottom-nav-inner {
     display: flex;
     width: 100%;
-    max-width: 390px;
     min-height: var(--app-tab-bar-height);
     box-sizing: border-box;
     align-items: flex-start;
     justify-content: space-between;
     gap: 0;
     background: var(--color-white);
-    padding: 12px 12px max(18px, env(safe-area-inset-bottom));
+    padding: 12px var(--app-inline-padding) max(18px, env(safe-area-inset-bottom));
   }
   .app-bottom-nav-item {
     display: flex;
@@ -1144,8 +1144,15 @@
     overflow-y: visible;
     padding-bottom: var(--app-card-shadow-bleed);
   }
-  .tab-slide-viewport:has(.live-matches) {
+  .tab-slide-viewport:has(.live-matches),
+  .tab-slide-viewport:has(.matches-date-carousel) {
     overflow-x: visible;
+  }
+  @media (min-width: 768px) {
+    .tab-slide-viewport:has(.live-matches),
+    .tab-slide-viewport:has(.matches-date-carousel) {
+      overflow-x: clip;
+    }
   }
   .tab-slide-panel,
   .mina-tab-panel {
@@ -1314,19 +1321,26 @@
   /* ─── MATCHES PAGE ─────────────────────────────────────────── */
   .matches-page {
     width: 100%;
-    max-width: 358px;
-    margin: 0 auto;
     padding: 0;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
   }
   .matches-date-carousel {
     display: flex;
     gap: 6px;
-    margin: 0 -16px 25px;
+    width: calc(100% + 2 * var(--app-inline-padding));
+    margin-inline: calc(-1 * var(--app-inline-padding));
+    margin-bottom: 25px;
     overflow-x: auto;
-    scroll-padding-inline: 16px;
-    padding: 0 16px;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: var(--app-inline-padding);
+    padding: 0 var(--app-inline-padding);
     scrollbar-width: none;
+  }
+  @media (max-width: 767px) {
+    .matches-date-carousel {
+      width: 100vw;
+      margin-inline: calc(50% - 50vw);
+    }
   }
   .matches-date-carousel::-webkit-scrollbar {
     display: none;
@@ -1531,7 +1545,7 @@
 
   /* ─── DATE TICKER ─────────────────────────────────────────── */
   .date-ticker {
-    @apply -mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 md:-mx-8 md:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+    @apply -mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
   }
   .date-chip {
     @apply flex shrink-0 cursor-pointer flex-col items-center gap-0.5 rounded-2xl border border-black/5 bg-black/5 px-3 py-2 transition-colors;
@@ -1603,19 +1617,21 @@
   .app-tab-shell {
     display: flex;
     width: 100%;
-    max-width: 358px;
     flex-direction: column;
     gap: 12px;
-    margin: 0 auto;
     padding: 28px 0 0;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
   }
   .app-tab-header--page {
-    align-items: flex-start;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    align-items: start;
+    column-gap: 12px;
     margin-bottom: 24px;
   }
   .app-tab-info-btn {
+    grid-column: 1;
+    grid-row: 1;
     display: flex;
     width: 48px;
     height: 48px;
@@ -1634,8 +1650,9 @@
   }
   .app-tab-hero {
     display: flex;
+    grid-column: 2;
+    grid-row: 1;
     min-width: 0;
-    flex: 1 1 0;
     flex-direction: column;
     align-items: center;
     gap: 4px;
@@ -1666,10 +1683,8 @@
   .home-page {
     display: flex;
     width: 100%;
-    max-width: 358px;
     flex-direction: column;
     gap: 12px;
-    margin: 0 auto;
     padding: 0;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
   }
@@ -2315,8 +2330,6 @@
   /* ─── TABLES PAGE ──────────────────────────────────────────── */
   .tables-page {
     width: 100%;
-    max-width: 358px;
-    margin: 0 auto;
     padding: 0;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
   }
@@ -2527,8 +2540,6 @@
   /* ─── LEADERBOARD ─────────────────────────────────────────── */
   .leaderboard-page {
     width: 100%;
-    max-width: 358px;
-    margin: 0 auto;
     padding: 0 0 var(--app-card-shadow-bleed);
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
   }
@@ -2700,8 +2711,14 @@
 
   /* ─── LIVE DASHBOARD ──────────────────────────────────────── */
   .live-matches {
-    width: 100vw;
-    margin-inline: calc(50% - 50vw);
+    width: calc(100% + 2 * var(--app-inline-padding));
+    margin-inline: calc(-1 * var(--app-inline-padding));
+  }
+  @media (max-width: 767px) {
+    .live-matches {
+      width: 100vw;
+      margin-inline: calc(50% - 50vw);
+    }
   }
   .live-matches-scroll {
     display: flex;
@@ -2709,14 +2726,8 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    scroll-padding-inline: 16px;
-    padding: 0 16px 2px;
-  }
-  @media (min-width: 768px) {
-    .live-matches-scroll {
-      scroll-padding-inline: 32px;
-      padding: 0 32px 2px;
-    }
+    scroll-padding-inline: var(--app-inline-padding);
+    padding: 0 var(--app-inline-padding) 2px;
   }
   .live-matches-scroll::-webkit-scrollbar {
     display: none;
@@ -3246,7 +3257,7 @@
   .lb-overlay-panel {
     position: relative;
     display: flex;
-    width: min(358px, 100%);
+    width: 100%;
     max-height: min(80vh, 520px);
     flex-direction: column;
     overflow: hidden;
@@ -3408,10 +3419,8 @@
   .profile-page {
     display: flex;
     width: 100%;
-    max-width: 358px;
     flex-direction: column;
     gap: 12px;
-    margin: 0 auto;
     padding: 28px 0 0;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
   }
@@ -3596,13 +3605,12 @@
     display: flex;
     width: 100%;
     justify-content: center;
-    padding: 0 14px 10px;
+    padding: 0 var(--app-inline-padding) 10px;
     pointer-events: none;
   }
   .a2hs-float-card {
     position: relative;
     width: 100%;
-    max-width: 358px;
     border-radius: 16px;
     background: #1a1f28;
     padding: 14px 14px 12px;
@@ -3848,7 +3856,10 @@
 }
 
 @layer utilities {
-  .app-main:has(.live-matches) {
-    overflow-x: visible;
+  @media (max-width: 767px) {
+    .app-main:has(.live-matches),
+    .app-main:has(.matches-date-carousel) {
+      overflow-x: visible;
+    }
   }
 }
