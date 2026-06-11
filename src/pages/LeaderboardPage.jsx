@@ -5,7 +5,9 @@ import { useAllMatches } from '../hooks/useMatches.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import {
   latestFinishedMatchId,
+  ranksFromEntries,
   resolveRankMovements,
+  sortLeaderboardEntries,
 } from '../utils/leaderboardMovement.js';
 
 const TOP_FIVE_COUNT = 5;
@@ -20,8 +22,7 @@ function LeaderboardDivider() {
   );
 }
 
-function LeaderboardEntryRow({ entry, index, movements, selected, rowRefs, openPlayer }) {
-  const rank = index + 1;
+function LeaderboardEntryRow({ entry, rank, movements, selected, rowRefs, openPlayer }) {
   return (
     <LeaderboardRow
       ref={(node) => {
@@ -44,14 +45,9 @@ export default function LeaderboardPage() {
   const rowRefs = useRef({});
   const [selected, setSelected] = useState(null);
 
-  const sorted = useMemo(
-    () =>
-      [...entries].sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        return (a.name ?? '').localeCompare(b.name ?? '', 'sv');
-      }),
-    [entries],
-  );
+  const sorted = useMemo(() => sortLeaderboardEntries(entries), [entries]);
+
+  const ranks = useMemo(() => ranksFromEntries(sorted), [sorted]);
 
   const anchorMatchId = useMemo(() => latestFinishedMatchId(matches), [matches]);
 
@@ -81,11 +77,11 @@ export default function LeaderboardPage() {
         <div className="lb-empty">Inga deltagare ännu</div>
       ) : (
         <div className="lb-list">
-          {sorted.slice(0, TOP_FIVE_COUNT).map((entry, index) => (
+          {sorted.slice(0, TOP_FIVE_COUNT).map((entry) => (
             <LeaderboardEntryRow
               key={entry.userId}
               entry={entry}
-              index={index}
+              rank={ranks[entry.userId]}
               movements={movements}
               selected={selected}
               rowRefs={rowRefs}
@@ -95,11 +91,11 @@ export default function LeaderboardPage() {
           {sorted.length > TOP_FIVE_COUNT ? (
             <>
               <LeaderboardDivider />
-              {sorted.slice(TOP_FIVE_COUNT).map((entry, index) => (
+              {sorted.slice(TOP_FIVE_COUNT).map((entry) => (
                 <LeaderboardEntryRow
                   key={entry.userId}
                   entry={entry}
-                  index={index + TOP_FIVE_COUNT}
+                  rank={ranks[entry.userId]}
                   movements={movements}
                   selected={selected}
                   rowRefs={rowRefs}

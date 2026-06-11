@@ -4,6 +4,12 @@ import { useTeams } from '../hooks/useTeams.js';
 import { emblemForCode } from '../data/emblems.js';
 import { broadcastForMatch } from '../data/broadcastChannels.js';
 import { formatMatchPredictionLabel } from '../utils/matchPredictionDisplay.js';
+import {
+  MATCH_STATE,
+  displayScore,
+  getMatchState,
+  liveMatchMinute,
+} from '../utils/matchSchedule.js';
 
 function TeamBlock({ teamId }) {
   const { getTeamById } = useTeams();
@@ -29,11 +35,14 @@ function TeamBlock({ teamId }) {
   );
 }
 
-export default function MatchCard({ match, prediction, onPredict }) {
+export default function MatchCard({ match, prediction, onPredict, now = Date.now() }) {
   const kickoff = new Date(match.kickoff);
   const channel = broadcastForMatch(match);
   const predictionLabel = formatMatchPredictionLabel(prediction);
   const dateLabel = format(kickoff, 'EEE d MMMM', { locale: sv }).toUpperCase();
+  const state = getMatchState(match, now);
+  const scoreLine = displayScore(match);
+  const score = scoreLine != null ? `${scoreLine.home} - ${scoreLine.away}` : null;
 
   return (
     <button
@@ -46,16 +55,33 @@ export default function MatchCard({ match, prediction, onPredict }) {
         <TeamBlock teamId={match.homeTeamId} />
 
         <div className="match-card-center">
-          <div className="match-card-group">Grupp {match.group}</div>
-          <div className="match-card-date">{dateLabel}</div>
-          <div className="match-card-time">{format(kickoff, 'HH:mm', { locale: sv })}</div>
-          {channel && (
-            <div
-              className={`match-card-channel is-${channel.id}`}
-              aria-label={`Sänds på ${channel.label}`}
-            >
-              <img src={channel.logo} alt={channel.label} />
-            </div>
+          {state === MATCH_STATE.UPCOMING ? (
+            <>
+              <div className="match-card-group">Grupp {match.group}</div>
+              <div className="match-card-date">{dateLabel}</div>
+              <div className="match-card-time">{format(kickoff, 'HH:mm', { locale: sv })}</div>
+              {channel && (
+                <div
+                  className={`match-card-channel is-${channel.id}`}
+                  aria-label={`Sänds på ${channel.label}`}
+                >
+                  <img src={channel.logo} alt={channel.label} />
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="match-card-group">Grupp {match.group}</div>
+              <div className="match-card-scoreline">{score}</div>
+              {state === MATCH_STATE.LIVE ? (
+                <div className="match-card-badge match-card-badge--live">
+                  <span>LIVE</span>
+                  <span>{liveMatchMinute(match, now)}&apos;</span>
+                </div>
+              ) : (
+                <div className="match-card-badge match-card-badge--ft">FULLTID</div>
+              )}
+            </>
           )}
         </div>
 

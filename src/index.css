@@ -1144,6 +1144,9 @@
     overflow-y: visible;
     padding-bottom: var(--app-card-shadow-bleed);
   }
+  .tab-slide-viewport:has(.live-matches) {
+    overflow-x: visible;
+  }
   .tab-slide-panel,
   .mina-tab-panel {
     animation-duration: 0.34s;
@@ -1471,6 +1474,34 @@
     font-weight: 700;
     line-height: 24px;
     color: var(--text-primary);
+  }
+  .match-card-scoreline {
+    margin-top: 3px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: normal;
+    color: var(--text-primary);
+  }
+  .match-card-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+    border-radius: 100px;
+    padding: 3px 8px;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 10px;
+    text-transform: uppercase;
+  }
+  .match-card-badge--live {
+    gap: 4px;
+    background: rgba(255, 45, 85, 0.12);
+    color: var(--colors-pink, #ff2d55);
+  }
+  .match-card-badge--ft {
+    background: #f3f1f1;
+    color: #818181;
   }
   .match-card-channel {
     display: flex;
@@ -2661,6 +2692,518 @@
     font-size: 15px;
     color: rgba(12, 22, 42, 0.55);
   }
+  .lb-rank.is-user {
+    background: rgba(200, 237, 0, 0.15);
+    font-weight: 600;
+    color: var(--color-status-done);
+  }
+
+  /* ─── LIVE DASHBOARD ──────────────────────────────────────── */
+  .live-matches {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+  .live-matches-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-padding-inline: 16px;
+    padding: 0 16px 2px;
+  }
+  @media (min-width: 768px) {
+    .live-matches-scroll {
+      scroll-padding-inline: 32px;
+      padding: 0 32px 2px;
+    }
+  }
+  .live-matches-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .live-matches-single {
+    display: flex;
+  }
+  .live-matches-empty {
+    padding: 24px 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .live-match-card {
+    display: block;
+    flex: 0 0 320px;
+    border-radius: 20px;
+    padding: 16px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    background: var(--color-white);
+  }
+  .live-match-card--single {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+  .live-match-score {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .live-match-team {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .live-match-emblem {
+    display: flex;
+    width: 50px;
+    height: 50px;
+    align-items: center;
+    justify-content: center;
+  }
+  .live-match-emblem img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .live-match-team-name {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--text-primary);
+  }
+  .live-match-center {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+  }
+  .live-match-meta {
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+  }
+  .live-match-date {
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 10px;
+    color: var(--text-secondary);
+  }
+  .live-match-time {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: normal;
+    color: var(--text-primary);
+  }
+  .live-match-scoreline {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: normal;
+    color: var(--text-primary);
+  }
+  .live-match-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100px;
+    padding: 3px 8px;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 10px;
+    text-transform: uppercase;
+  }
+  .live-match-badge--live {
+    gap: 4px;
+    background: rgba(255, 45, 85, 0.12);
+    color: var(--colors-pink, #ff2d55);
+  }
+  .live-match-badge--ft {
+    background: #f3f1f1;
+    color: #818181;
+  }
+  .live-match-channel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .live-match-channel img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+  }
+  .live-points-card {
+    display: flex;
+    gap: 24px;
+    align-items: flex-end;
+    border-radius: 20px;
+    background: var(--color-white);
+    padding: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  .live-points-total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .live-points-heading {
+    width: 100%;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 16px;
+    color: var(--text-primary);
+    text-align: center;
+  }
+  .live-points-value {
+    width: 100%;
+    font-family: 'Bebas Neue', 'DM Sans', system-ui, sans-serif;
+    font-size: 80px;
+    font-weight: 400;
+    line-height: 72px;
+    color: var(--text-primary);
+    text-align: center;
+  }
+  .live-points-breakdown {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .live-points-category {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .live-points-category-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .live-points-category-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 13px;
+    color: var(--text-tertiary, #a9b5c4);
+  }
+  .live-points-dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: 50%;
+  }
+  .live-points-dot.is-dark {
+    background: #3d3d4e;
+  }
+  .live-points-dot.is-mid {
+    background: #9196a9;
+  }
+  .live-points-dot.is-light {
+    background: #c5c9d4;
+  }
+  .live-points-category-value {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 13px;
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+  .live-points-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.06);
+  }
+  .live-stats-row {
+    display: flex;
+    gap: 12px;
+  }
+  .live-stat-card {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 158px;
+    border-radius: 20px;
+    padding: 16px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+  .live-stat-card--position {
+    background: var(--color-white);
+  }
+  .live-stat-card--movement {
+    background: #cffe56;
+  }
+  .live-stat-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 16px;
+    color: var(--text-primary);
+  }
+  .live-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-black, #000);
+    color: var(--color-lime, #c7ff2e);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .live-stat-movement-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+  .live-stat-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .live-stat-value {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 48px;
+    color: var(--text-primary);
+  }
+  .live-stat-card--movement .live-stat-value {
+    color: var(--color-black, #000);
+  }
+  .live-stat-sub {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 14px;
+  }
+  .live-stat-sub--muted {
+    color: #b1b2b1;
+    white-space: nowrap;
+  }
+  .live-stat-card--movement .live-stat-sub--muted {
+    color: rgba(12, 22, 42, 0.5);
+  }
+  .live-ppm-card {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    border-radius: 20px;
+    background: var(--color-white);
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    overflow: visible;
+  }
+  .live-ppm-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 16px;
+    color: var(--text-primary);
+  }
+  .live-ppm-scroll {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -4px;
+    padding: 28px 4px 0;
+  }
+  .live-ppm-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .live-ppm-track {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    width: max-content;
+    min-width: 100%;
+  }
+  .live-ppm-bar-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 12px;
+    flex-shrink: 0;
+  }
+  .live-ppm-bar-btn {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: default;
+  }
+  .live-ppm-bar-btn:not(:disabled) {
+    cursor: pointer;
+  }
+  .live-ppm-bar-btn:not(:disabled):focus-visible {
+    outline: 2px solid var(--color-lime, #c7ff2e);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .live-ppm-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    z-index: 2;
+    border-radius: 8px;
+    background: var(--text-primary, #0c162a);
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    color: var(--color-white, #fff);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .live-ppm-tooltip.is-align-center {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .live-ppm-tooltip.is-align-start {
+    left: 0;
+    transform: none;
+  }
+  .live-ppm-tooltip.is-align-end {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+  .live-ppm-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    transform: rotate(45deg);
+    background: var(--text-primary, #0c162a);
+  }
+  .live-ppm-tooltip.is-align-center::after {
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .live-ppm-tooltip.is-align-start::after {
+    left: 6px;
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .live-ppm-tooltip.is-align-end::after {
+    left: auto;
+    right: 6px;
+    transform: translateX(50%) rotate(45deg);
+  }
+  .live-ppm-bar {
+    position: relative;
+    width: 12px;
+    height: 70px;
+    border-radius: 4px;
+    background: #e2e4f1;
+    overflow: hidden;
+  }
+  .live-ppm-bar-fill {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 4px;
+    background: var(--color-black, #000);
+  }
+  .live-ppm-bar-fill.is-perfect {
+    background: var(--color-lime, #c7ff2e);
+  }
+  .live-ppm-label {
+    font-size: 8px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--text-primary);
+    opacity: 0.9;
+    text-align: center;
+    width: 12px;
+  }
+  .live-lb-snippet {
+    display: block;
+    border-radius: 20px;
+    background: var(--color-white);
+    padding: 20px 16px 12px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  .live-lb-title {
+    margin-bottom: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 14px;
+    letter-spacing: 1.32px;
+    text-transform: uppercase;
+    color: #aeaeb9;
+  }
+  .live-lb-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .live-lb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 52px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .live-lb-row:last-child {
+    border-bottom: none;
+  }
+  .live-lb-left {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 12px;
+  }
+  .live-lb-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: normal;
+    color: var(--text-primary);
+  }
+  .live-lb-points {
+    flex-shrink: 0;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 23px;
+    color: var(--color-black);
+  }
+
   .lb-row.is-selected {
     opacity: 0;
   }
@@ -3301,5 +3844,11 @@
       animation: none !important;
       transition: none !important;
     }
+  }
+}
+
+@layer utilities {
+  .app-main:has(.live-matches) {
+    overflow-x: visible;
   }
 }

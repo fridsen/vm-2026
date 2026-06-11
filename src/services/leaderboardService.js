@@ -3,6 +3,7 @@
 // supabase/migrations/20260601000000_initial_schema.sql.
 
 import { supabase, unwrap } from './supabaseClient.js';
+import { rankForUser } from '../utils/leaderboardMovement.js';
 
 function rowToEntry(r) {
   return {
@@ -28,9 +29,8 @@ export async function fetchLeaderboard() {
 }
 
 export async function fetchLeaderboardRank(userId) {
-  const sorted = await fetchLeaderboard();
-  const index = sorted.findIndex((e) => e.userId === userId);
-  return index === -1 ? null : index + 1;
+  const entries = await fetchLeaderboard();
+  return rankForUser(entries, userId);
 }
 
 export async function fetchUserEntry(userId) {

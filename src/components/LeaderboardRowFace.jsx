@@ -8,9 +8,9 @@ function rankTier(rank) {
   return 'default';
 }
 
-export function RankBadge({ rank }) {
+export function RankBadge({ rank, className }) {
   return (
-    <div className={clsx('lb-rank', `is-${rankTier(rank)}`)} aria-hidden>
+    <div className={clsx('lb-rank', `is-${rankTier(rank)}`, className)} aria-hidden>
       {rank}
     </div>
   );

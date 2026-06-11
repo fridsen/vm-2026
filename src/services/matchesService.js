@@ -6,11 +6,14 @@ import { groupMatchScheduleForTeams } from '../data/groupMatchSchedule.js';
 
 export const KNOCKOUT_ROUNDS = ['R32', 'R16', 'QF', 'SF', 'BRONZE', 'FINAL'];
 
+function scoresFromRow(r) {
+  if (r.home_score == null || r.away_score == null) return null;
+  return { home: r.home_score, away: r.away_score };
+}
+
 function rowToMatch(r) {
-  const result =
-    r.home_score != null && r.away_score != null
-      ? { home: r.home_score, away: r.away_score }
-      : null;
+  const scores = scoresFromRow(r);
+  const isFinished = r.status === 'finished';
   const schedule = groupMatchScheduleForTeams(r.home_team_id, r.away_team_id);
 
   return {
@@ -21,17 +24,17 @@ function rowToMatch(r) {
     homeTeamId: r.home_team_id,
     awayTeamId: r.away_team_id,
     venue: schedule?.venue ?? r.venue ?? null,
-    result,
+    result: isFinished ? scores : null,
+    liveScore: !isFinished && scores && r.status === 'in_play' ? scores : null,
+    liveMinute: r.status === 'in_play' ? r.live_minute ?? null : null,
     status: r.status,
     broadcastChannel: r.broadcast_channel ?? r.channel ?? r.tv_channel ?? schedule?.channel ?? null,
   };
 }
 
 function rowToKnockout(r) {
-  const result =
-    r.home_score != null && r.away_score != null
-      ? { home: r.home_score, away: r.away_score }
-      : null;
+  const scores = scoresFromRow(r);
+  const isFinished = r.status === 'finished';
   return {
     id: r.id,
     round: r.round,
@@ -41,7 +44,9 @@ function rowToKnockout(r) {
     awayTeamId: r.away_team_id,
     homeSource: r.home_source,
     awaySource: r.away_source,
-    result,
+    result: isFinished ? scores : null,
+    liveScore: !isFinished && scores && r.status === 'in_play' ? scores : null,
+    liveMinute: r.status === 'in_play' ? r.live_minute ?? null : null,
     status: r.status,
   };
 }

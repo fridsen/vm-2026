@@ -5,6 +5,7 @@
 //   GET /v4/competitions/WC/teams
 //   GET /v4/competitions/WC/matches
 //   GET /v4/competitions/WC/scorers
+//   GET /v4/matches?competitions=WC&dateFrom=…&dateTo=…   (live / today sync)
 //
 // Returns 403 with descriptive json when the WC competition is not unlocked
 // for the API key. We surface that as a thrown error so the sync function
@@ -19,6 +20,24 @@ import type {
 
 const BASE = 'https://api.football-data.org/v4';
 const COMPETITION = 'WC';
+
+type ApiMatch = {
+  id: number;
+  utcDate: string;
+  status: string;
+  stage: string;
+  group: string | null;
+  matchday: number | null;
+  homeTeam: { id: number | null };
+  awayTeam: { id: number | null };
+  score?: {
+    fullTime?: { home: number | null; away: number | null };
+    halfTime?: { home: number | null; away: number | null };
+    regularTime?: { home: number | null; away: number | null };
+  };
+};
+
+type MatchesResp = { matches: ApiMatch[] };
 
 // Group letter is included in the matches endpoint as a `group` string like
 // "GROUP_A". We strip the prefix before comparing.
@@ -79,8 +98,52 @@ function statusFromApi(s: string): ProviderFixture['status'] {
     case 'CANCELLED':
       return 'cancelled';
     default:
+      // SCHEDULED, TIMED, and anything unknown → scheduled
       return 'scheduled';
   }
+}
+
+/** Best available score from football-data.org (live scores land in fullTime). */
+function scoresFromApi(
+  score: ApiMatch['score'],
+): { homeScore: number | null; awayScore: number | null } {
+  const parts = [
+    score?.fullTime,
+    score?.regularTime,
+    score?.halfTime,
+  ];
+  for (const part of parts) {
+    if (part?.home != null && part?.away != null) {
+      return { homeScore: part.home, awayScore: part.away };
+    }
+  }
+  return { homeScore: null, awayScore: null };
+}
+
+function mapMatch(m: ApiMatch): ProviderFixture {
+  const isGroup = m.stage === 'GROUP_STAGE';
+  const knockout = isGroup ? null : knockoutFromStage(m.stage);
+  const { homeScore, awayScore } = scoresFromApi(m.score);
+
+  return {
+    externalId: String(m.id),
+    stage: isGroup ? 'group' : 'knockout',
+    group: isGroup ? letterFromGroup(m.group) ?? undefined : undefined,
+    groupRound: isGroup ? m.matchday ?? undefined : undefined,
+    knockoutRound: knockout ?? undefined,
+    kickoff: m.utcDate,
+    homeTeamExternalId:
+      m.homeTeam?.id != null ? String(m.homeTeam.id) : null,
+    awayTeamExternalId:
+      m.awayTeam?.id != null ? String(m.awayTeam.id) : null,
+    homeScore,
+    awayScore,
+    status: statusFromApi(m.status),
+  };
+}
+
+function utcToday(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 export class FootballDataProvider implements FootballProvider {
@@ -113,7 +176,6 @@ export class FootballDataProvider implements FootballProvider {
         id: number;
         name: string;
         tla: string | null;
-        // Group not on the team object — derived from fixtures below.
       }>;
     };
     const json = await this.get<Resp>(`/competitions/${COMPETITION}/teams`);
@@ -126,43 +188,33 @@ export class FootballDataProvider implements FootballProvider {
   }
 
   async fetchFixtures(): Promise<ProviderFixture[]> {
-    type Resp = {
-      matches: Array<{
-        id: number;
-        utcDate: string;
-        status: string;
-        stage: string;
-        group: string | null;
-        matchday: number | null;
-        homeTeam: { id: number | null };
-        awayTeam: { id: number | null };
-        score: {
-          fullTime: { home: number | null; away: number | null };
-        };
-      }>;
-    };
-    const json = await this.get<Resp>(`/competitions/${COMPETITION}/matches`);
+    const json = await this.get<MatchesResp>(
+      `/competitions/${COMPETITION}/matches`,
+    );
+    return json.matches.map(mapMatch);
+  }
 
-    return json.matches.map((m): ProviderFixture => {
-      const isGroup = m.stage === 'GROUP_STAGE';
-      const knockout = isGroup ? null : knockoutFromStage(m.stage);
-
-      return {
-        externalId: String(m.id),
-        stage: isGroup ? 'group' : 'knockout',
-        group: isGroup ? letterFromGroup(m.group) ?? undefined : undefined,
-        groupRound: isGroup ? m.matchday ?? undefined : undefined,
-        knockoutRound: knockout ?? undefined,
-        kickoff: m.utcDate,
-        homeTeamExternalId:
-          m.homeTeam?.id != null ? String(m.homeTeam.id) : null,
-        awayTeamExternalId:
-          m.awayTeam?.id != null ? String(m.awayTeam.id) : null,
-        homeScore: m.score?.fullTime?.home ?? null,
-        awayScore: m.score?.fullTime?.away ?? null,
-        status: statusFromApi(m.status),
-      };
-    });
+  /**
+   * Today's WC matches from the competition list.
+   * The date-filtered /matches endpoint often returns empty for WC; filter
+   * client-side instead. Scores may still be null while TIMED — use
+   * api-football live sync as the primary live source when configured.
+   */
+  async fetchLiveFixtures(): Promise<ProviderFixture[]> {
+    const today = utcToday();
+    const json = await this.get<MatchesResp>(
+      `/competitions/${COMPETITION}/matches`,
+    );
+    return json.matches
+      .filter((m) => m.utcDate.startsWith(today))
+      .filter(
+        (m) =>
+          m.status === 'IN_PLAY' ||
+          m.status === 'PAUSED' ||
+          m.status === 'FINISHED' ||
+          scoresFromApi(m.score).homeScore != null,
+      )
+      .map(mapMatch);
   }
 
   async fetchTopScorers(): Promise<ProviderTopScorer[]> {

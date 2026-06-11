@@ -11,7 +11,8 @@ export function tournamentMayBeLive(groupMatches, now = Date.now()) {
 export function hasMatchInLiveWindow(groupMatches, now = Date.now()) {
   if (!groupMatches?.length) return false;
   return groupMatches.some((m) => {
-    if (m.result != null) return false;
+    if (m.status === 'in_play') return true;
+    if (m.result != null || m.status === 'finished') return false;
     const kickoff = new Date(m.kickoff).getTime();
     return now >= kickoff && now < kickoff + MATCH_DURATION_MS;
   });
@@ -20,5 +21,6 @@ export function hasMatchInLiveWindow(groupMatches, now = Date.now()) {
 /** Poll interval while the tournament is active (ms). */
 export function liveDataPollIntervalMs(groupMatches, now = Date.now()) {
   if (!tournamentMayBeLive(groupMatches, now)) return null;
+  if (groupMatches.some((m) => m.status === 'in_play')) return 15_000;
   return hasMatchInLiveWindow(groupMatches, now) ? 30_000 : 60_000;
 }

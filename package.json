@@ -16,6 +16,7 @@
     "supabase:verify-deadline": "supabase db query --linked -f scripts/verify-deadline.sql",
     "supabase:deploy": "supabase functions deploy sync-fixtures && supabase functions deploy sync-news",
     "supabase:sync": "node scripts/invoke-edge-function.mjs sync-fixtures",
+    "supabase:sync-live": "node scripts/invoke-edge-function.mjs sync-fixtures mode=live",
     "supabase:sync-news": "node scripts/invoke-edge-function.mjs sync-news",
     "supabase:backup-predictions": "node scripts/backup-predictions.mjs",
     "supabase:backup-predictions:snapshot": "node scripts/backup-predictions.mjs --snapshot"

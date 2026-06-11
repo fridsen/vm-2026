@@ -65,6 +65,11 @@ The app passes `redirectTo` from `getAuthRedirectUrl()` (`src/utils/authRedirect
      FOOTBALL_PROVIDER=football-data \
      FOOTBALL_DATA_API_KEY=...           # or API_FOOTBALL_KEY
    ```
+   Get a free key at [football-data.org](https://www.football-data.org/client/register).
+   The default provider is **football-data.org** (`FOOTBALL_PROVIDER=football-data`).
+   For **live scores during matches**, also set `API_FOOTBALL_KEY` (api-sports.io) —
+   football-data.org often stays `TIMED` with null goals while games are in progress;
+   live sync merges api-football `/fixtures?live=all` into today's matches.
 7. Deploy the sync function:
    ```bash
    supabase functions deploy sync-fixtures
@@ -100,8 +105,12 @@ described in the plan only existed during the cutover and has been removed.
 4. **Turn on lock enforcement.** Apply
    `20260601000001_prediction_locks.sql`. From this point predictions cannot
    be edited past their respective deadlines, even by direct API calls.
-5. **Schedule the cron.** Apply `20260601000002_sync_cron.sql`. The function
-   now runs every 10 minutes.
+5. **Schedule the cron.** Apply `20260601000002_sync_cron.sql` (full sync every
+   10 minutes) and `20260625000000_sync_live_cron.sql` (today's live scores
+   every 2 minutes via `sync-fixtures?mode=live`).
+   Apply `20260625000001_scoring_finished_matches_only.sql` so points and
+   leaderboard only update when `status = 'finished'` (live scores are display-only).
+   Manual live poll: `npm run supabase:sync-live`.
 
 ## Entry-fee / payment tracking (Level 2, manual Swish)
 

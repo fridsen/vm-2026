@@ -52,7 +52,7 @@ describe('leaderboardMovement', () => {
     expect(moves).toEqual({});
     expect(loadRankSnapshot()).toEqual({
       matchId: 'm1',
-      ranks: { a: 1, b: 2, c: 3 },
+      ranks: { a: 1, b: 2, c: 2 },
       priorMatchId: null,
       priorRanks: null,
     });
@@ -66,13 +66,30 @@ describe('leaderboardMovement', () => {
       { userId: 'b', name: 'Bertil', points: 8 },
     ];
     const moves = resolveRankMovements(reshuffled, 'm2');
-    expect(moves).toEqual({ c: 2, a: -1, b: -1 });
+    expect(moves).toEqual({ c: 1, a: -1, b: -1 });
 
     const again = resolveRankMovements(reshuffled, 'm2');
-    expect(again).toEqual({ c: 2, a: -1, b: -1 });
+    expect(again).toEqual({ c: 1, a: -1, b: -1 });
   });
 
-  it('ties break alphabetically in sv locale', () => {
-    expect(ranksFromEntries(entries)).toEqual({ a: 1, b: 2, c: 3 });
+  it('assigns the same competition rank to tied players', () => {
+    expect(ranksFromEntries(entries)).toEqual({ a: 1, b: 2, c: 2 });
+    expect(
+      ranksFromEntries([
+        { userId: 'a', name: 'Anna', points: 6 },
+        { userId: 'b', name: 'Bertil', points: 6 },
+        { userId: 'c', name: 'Cecilia', points: 6 },
+        { userId: 'd', name: 'David', points: 4 },
+      ]),
+    ).toEqual({ a: 1, b: 1, c: 1, d: 4 });
+  });
+
+  it('sorts tied players alphabetically in sv locale', () => {
+    expect(
+      ranksFromEntries([
+        { userId: 'b', name: 'Bertil', points: 8 },
+        { userId: 'c', name: 'Cecilia', points: 8 },
+      ]),
+    ).toEqual({ b: 1, c: 1 });
   });
 });

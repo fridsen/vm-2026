@@ -111,6 +111,7 @@ export default function MatchesPage() {
             <MatchCard
               key={match.id}
               match={match}
+              now={now}
               prediction={predictions?.matches?.[match.id]}
               onPredict={groupLocked ? undefined : () => setPredictMatch(match)}
             />
@@ -121,12 +122,6 @@ export default function MatchesPage() {
           </div>
         )}
       </div>
-
-      {groupLocked && (
-        <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-center text-sm text-amber-800">
-          Tippningen är låst sedan första gruppspelsmatchen startade.
-        </div>
-      )}
 
       <PredictionSheet
         match={predictMatch}

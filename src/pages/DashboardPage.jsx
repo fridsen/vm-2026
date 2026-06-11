@@ -1,20 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
 import clsx from 'clsx';
 import { useAllMatches } from '../hooks/useMatches.js';
 import { useLockState } from '../hooks/useLockState.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import { usePredictions } from '../hooks/usePredictions.js';
 import { useAuth } from '../hooks/useAuth.js';
-import {
-  MATCH_STATE,
-  getMatchState,
-  getMatchDayKey,
-  flattenMatchesByGroup,
-} from '../utils/matchSchedule.js';
-import MatchCard from '../components/MatchCard.jsx';
+import { flattenMatchesByGroup } from '../utils/matchSchedule.js';
+import LiveDashboard from '../components/live/LiveDashboard.jsx';
 import PredictionSheet from '../components/PredictionSheet.jsx';
 import RulesSheet from '../components/RulesSheet.jsx';
 import SwishPaymentPrompt from '../components/SwishPaymentPrompt.jsx';
@@ -297,166 +290,6 @@ function PreWcHome({
   );
 }
 
-function LiveView({
-  matches,
-  now,
-  predictions,
-  onPredict,
-  myEntry,
-  myRank,
-  totalPlayers,
-  newsArticles,
-  newsLoading,
-}) {
-  // Date ticker — next N days that have matches
-  const days = useMemo(() => {
-    const todayKey = format(new Date(now), 'yyyy-MM-dd');
-    const byDay = new Map();
-    for (const m of matches) {
-      const dk = getMatchDayKey(m.kickoff);
-      if (!byDay.has(dk)) byDay.set(dk, []);
-      byDay.get(dk).push(m);
-    }
-    return [...byDay.entries()]
-      .filter(([dk]) => dk >= todayKey)
-      .slice(0, 7)
-      .map(([dk, dayMatches]) => {
-        const date = new Date(`${dk}T12:00:00`);
-        const hasLive = dayMatches.some((m) => getMatchState(m, now) === MATCH_STATE.LIVE);
-        return {
-          dayKey: dk,
-          date,
-          isToday: dk === todayKey,
-          hasLive,
-        };
-      });
-  }, [matches, now]);
-
-  const todaysMatches = useMemo(() => {
-    const todayKey = format(new Date(now), 'yyyy-MM-dd');
-    return matches
-      .filter((m) => getMatchDayKey(m.kickoff) === todayKey)
-      .filter((m) => getMatchState(m, now) !== MATCH_STATE.FINISHED)
-      .sort((a, b) => a.kickoff.localeCompare(b.kickoff));
-  }, [matches, now]);
-
-  const upcomingMatches = useMemo(() => {
-    if (todaysMatches.length > 0) return todaysMatches;
-    return matches
-      .filter((m) => getMatchState(m, now) === MATCH_STATE.UPCOMING)
-      .sort((a, b) => a.kickoff.localeCompare(b.kickoff))
-      .slice(0, 3);
-  }, [matches, todaysMatches, now]);
-
-  const liveCount = upcomingMatches.filter(
-    (m) => getMatchState(m, now) === MATCH_STATE.LIVE,
-  ).length;
-  const predCount = predictions ? Object.keys(predictions.matches || {}).length : 0;
-  const correctCount = useMemo(() => {
-    if (!predictions?.matches) return 0;
-    let n = 0;
-    for (const m of matches) {
-      const pred = predictions.matches[m.id];
-      if (!pred || !m.result) continue;
-      if (pred.home === m.result.home && pred.away === m.result.away) n++;
-    }
-    return n;
-  }, [matches, predictions]);
-  const finishedPredictionCount = useMemo(() => {
-    if (!predictions?.matches) return 0;
-    return matches.filter((m) => m.result && predictions.matches[m.id]).length;
-  }, [matches, predictions]);
-  const accuracy = finishedPredictionCount
-    ? Math.round((correctCount / finishedPredictionCount) * 100)
-    : 0;
-
-  return (
-    <div className="space-y-3">
-      {/* Date ticker */}
-      <div className="date-ticker">
-        {days.map((d) => (
-          <Link
-            key={d.dayKey}
-            to="/matcher"
-            className={clsx('date-chip stagger-child', d.isToday && 'today')}
-          >
-            <div className="d-day">{format(d.date, 'd')}</div>
-            <div className="d-label">
-              {d.isToday ? 'Idag' : format(d.date, 'EEE', { locale: sv })}
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      {/* Predict banner */}
-      {upcomingMatches.length > 0 && (
-        <Link to="/matcher" className="predict-banner stagger-child">
-          <div className="relative z-10">
-            <div className="pb-eyebrow">⚡ Missa inte</div>
-            <div className="pb-headline">
-              {todaysMatches.length > 0
-                ? `${todaysMatches.length} matcher idag`
-                : `Nästa: ${format(new Date(upcomingMatches[0].kickoff), 'd MMM', { locale: sv })}`}
-            </div>
-            <div className="pb-count">Tippa nu →</div>
-          </div>
-          <div className="pb-cta relative z-10">Tippa</div>
-        </Link>
-      )}
-
-      {/* Stats grid */}
-      <div className="section-label">Din statistik</div>
-      <div className="stats-grid">
-        <Link to="/leaderboard" className="stat-card stagger-child">
-          <div className="sc-label">Placering</div>
-          <div className="sc-value">{myRank === -1 ? '–' : `#${myRank + 1}`}</div>
-          <div className="sc-sub">av {totalPlayers}</div>
-        </Link>
-        <Link to="/leaderboard" className="stat-card stagger-child">
-          <div className="sc-label">Poäng</div>
-          <div className="sc-value">{myEntry?.points ?? 0}</div>
-          <div className="sc-sub">denna turnering</div>
-        </Link>
-      </div>
-
-      <div className="stats-grid">
-        <div className="stat-card stagger-child">
-          <div className="sc-label">Träffsäkerhet</div>
-          <div className="sc-value">{accuracy}</div>
-          <div className="sc-sub">% rätt</div>
-        </div>
-        <Link to="/matcher" className="stat-card stagger-child">
-          <div className="sc-label">Tippade</div>
-          <div className="sc-value">{predCount}</div>
-          <div className="sc-sub">av {TOTAL_GROUP_MATCHES} matcher</div>
-        </Link>
-      </div>
-
-      {/* Today's matches */}
-      <div className="section-label">
-        {todaysMatches.length > 0 ? 'Dagens matcher' : 'Närmaste matcher'}
-        {liveCount > 0 && <span className="ml-2 text-red-600">· {liveCount} live</span>}
-      </div>
-      {upcomingMatches.length === 0 ? (
-        <div className="card p-6 text-center text-sm text-neutral-500">Inga matcher idag.</div>
-      ) : (
-        <div>
-          {upcomingMatches.map((m) => (
-            <MatchCard
-              key={m.id}
-              match={m}
-              prediction={predictions?.matches?.[m.id]}
-              onPredict={() => onPredict(m)}
-            />
-          ))}
-        </div>
-      )}
-
-      <NewsFeedCard articles={newsArticles} loading={newsLoading} />
-    </div>
-  );
-}
-
 export default function DashboardPage() {
   const { matches } = useAllMatches();
   const { now, globalDeadline, groupLocked } = useLockState();
@@ -485,8 +318,6 @@ export default function DashboardPage() {
     : 0;
   const topThreeFilled = countTopThreeFilled(getTopThree(predictions));
   const myEntry = entries.find((e) => e.userId === myUserId);
-  const sortedEntries = [...entries].sort((a, b) => b.points - a.points);
-  const myRank = sortedEntries.findIndex((e) => e.userId === myUserId);
 
   // All matches in the same order they're shown on the page (group A→L,
   // kickoff within each group). The bottom-sheet arrows walk this list so
@@ -504,21 +335,18 @@ export default function DashboardPage() {
       : null;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <>
       {tournamentStarted ? (
-        <div className="space-y-4">
-          <LiveView
-            matches={matches}
-            now={now}
-            predictions={predictions}
-            onPredict={(m) => setPredictMatch(m)}
-            myEntry={myEntry}
-            myRank={myRank}
-            totalPlayers={entries.length}
-            newsArticles={newsArticles}
-            newsLoading={newsLoading}
-          />
-        </div>
+        <LiveDashboard
+          matches={matches}
+          now={now}
+          predictions={predictions}
+          entries={entries}
+          myUserId={myUserId}
+          myEntry={myEntry}
+          newsArticles={newsArticles}
+          newsLoading={newsLoading}
+        />
       ) : (
         <PreWcHome
           deadlineMs={deadlineMs}
@@ -549,6 +377,6 @@ export default function DashboardPage() {
         onNext={() => nextMatch && setPredictMatch(nextMatch)}
       />
       <RulesSheet open={rulesOpen} onClose={() => setRulesOpen(false)} />
-    </div>
+    </>
   );
 }

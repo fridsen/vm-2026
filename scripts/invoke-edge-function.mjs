@@ -2,6 +2,7 @@
  * Invoke a Supabase Edge Function using secrets from .env.local.
  *
  * Usage: node scripts/invoke-edge-function.mjs sync-news
+ *        node scripts/invoke-edge-function.mjs sync-fixtures mode=live
  */
 
 import { readFileSync } from 'node:fs';
@@ -40,7 +41,8 @@ if (!url || !key) {
   process.exit(1);
 }
 
-const endpoint = `${url.replace(/\/$/, '')}/functions/v1/${fn}`;
+const query = process.argv[3] ? `?${process.argv[3]}` : '';
+const endpoint = `${url.replace(/\/$/, '')}/functions/v1/${fn}${query}`;
 const res = await fetch(endpoint, {
   method: 'POST',
   headers: {

@@ -3,21 +3,35 @@ const STORAGE_KEY = 'vm2026:leaderboardRankSnapshot:v1';
 /** Latest finished group match id (kickoff order), or null. */
 export function latestFinishedMatchId(matches) {
   const finished = (matches ?? [])
-    .filter((m) => m.status === 'finished' || m.result != null)
+    .filter((m) => m.status === 'finished')
     .sort((a, b) => b.kickoff.localeCompare(a.kickoff));
   return finished[0]?.id ?? null;
 }
 
-export function ranksFromEntries(entries) {
-  const sorted = [...(entries ?? [])].sort((a, b) => {
+export function sortLeaderboardEntries(entries) {
+  return [...(entries ?? [])].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     return (a.name ?? '').localeCompare(b.name ?? '', 'sv');
   });
+}
+
+/** Competition ranking: tied players share a rank; next rank skips (1,1,1,4,…). */
+export function ranksFromEntries(entries) {
+  const sorted = sortLeaderboardEntries(entries);
   const ranks = {};
+  let rank = 1;
   for (let i = 0; i < sorted.length; i += 1) {
-    ranks[sorted[i].userId] = i + 1;
+    if (i > 0 && sorted[i].points < sorted[i - 1].points) {
+      rank = i + 1;
+    }
+    ranks[sorted[i].userId] = rank;
   }
   return ranks;
+}
+
+export function rankForUser(entries, userId) {
+  if (!userId) return null;
+  return ranksFromEntries(entries)[userId] ?? null;
 }
 
 export function loadRankSnapshot() {

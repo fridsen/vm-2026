@@ -12,6 +12,7 @@ import {
 import { fetchLatestNews, getCachedNews, NEWS_ARTICLE_LIMIT } from '../services/newsService.js';
 import { interleaveNewsBySource } from '../utils/interleaveNewsBySource.js';
 import { liveDataPollIntervalMs } from '../utils/liveDataRefresh.js';
+import { latestFinishedMatchId } from '../utils/leaderboardMovement.js';
 import { NEWS_CACHE_TTL_MS, readNewsCache } from '../utils/newsCache.js';
 
 export default function AppDataProvider({ children }) {
@@ -60,9 +61,25 @@ export default function AppDataProvider({ children }) {
     }
   }, []);
 
+  /** Refresh match scores for live cards; leaderboard only when a match finishes. */
   const refreshLiveData = useCallback(async () => {
-    await Promise.all([refreshMatches(), refreshLeaderboard()]);
-  }, [refreshMatches, refreshLeaderboard]);
+    const prevAnchor = latestFinishedMatchId(groupMatchesRef.current);
+    try {
+      const [group, knockout] = await Promise.all([fetchAllMatches(), fetchKnockoutMatches()]);
+      setGroupMatches(group);
+      setKnockoutMatches(knockout);
+      const nextAnchor = latestFinishedMatchId(group);
+      if (nextAnchor !== prevAnchor) {
+        const data = await fetchLeaderboard();
+        setEntries(data);
+      }
+    } catch {
+      /* keep cached data on transient failures */
+    } finally {
+      setMatchesLoading(false);
+      setLeaderboardLoading(false);
+    }
+  }, []);
 
   const refreshNews = useCallback(async ({ force = false } = {}) => {
     try {
@@ -167,6 +184,7 @@ export default function AppDataProvider({ children }) {
         return;
       }
       if (pollId) clearInterval(pollId);
+      refreshLiveData();
       pollId = window.setInterval(() => {
         refreshLiveData();
       }, ms);

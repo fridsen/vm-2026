@@ -5,6 +5,7 @@ import {
   flattenMatchesByGroup,
   getMatchDayKey,
   getMatchState,
+  liveMatchMinute,
 } from './matchSchedule.js';
 
 describe('match state', () => {
@@ -26,6 +27,43 @@ describe('match state', () => {
     expect(getMatchState({ ...match, result: { home: 1, away: 0 } }, Date.now())).toBe(
       MATCH_STATE.FINISHED,
     );
+  });
+
+  it('trusts football-data in_play status over kickoff window', () => {
+    const beforeKickoff = new Date('2026-06-11T20:59:00+02:00').getTime();
+    expect(
+      getMatchState({ ...match, status: 'in_play', liveScore: { home: 1, away: 0 } }, beforeKickoff),
+    ).toBe(MATCH_STATE.LIVE);
+  });
+
+  it('uses synced live minute when available', () => {
+    expect(
+      liveMatchMinute({
+        kickoff: '2026-06-11T21:00:00+02:00',
+        liveMinute: 78,
+      }),
+    ).toBe(78);
+  });
+
+  it('estimates live minute with halftime break when sync minute is missing', () => {
+    const kickoff = '2026-06-11T21:00:00+02:00';
+    const at40 = new Date('2026-06-11T21:40:00+02:00').getTime();
+    const atHalftime = new Date('2026-06-11T22:00:00+02:00').getTime();
+    const at80 = new Date('2026-06-11T22:35:00+02:00').getTime();
+
+    expect(liveMatchMinute({ kickoff }, at40)).toBe(40);
+    expect(liveMatchMinute({ kickoff }, atHalftime)).toBe(45);
+    expect(liveMatchMinute({ kickoff }, at80)).toBe(80);
+  });
+
+  it('does not treat live scores as final results', () => {
+    const live = {
+      kickoff: '2026-06-11T21:00:00+02:00',
+      status: 'in_play',
+      liveScore: { home: 0, away: 0 },
+      result: null,
+    };
+    expect(getMatchState(live, Date.now())).toBe(MATCH_STATE.LIVE);
   });
 });
 

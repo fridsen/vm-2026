@@ -11,11 +11,48 @@ export const MATCH_STATE = {
 };
 
 export function getMatchState(match, now) {
-  if (match.result != null) return MATCH_STATE.FINISHED;
+  if (match.status === 'finished' || match.result != null) {
+    return MATCH_STATE.FINISHED;
+  }
+  if (match.status === 'in_play') return MATCH_STATE.LIVE;
+  if (match.status === 'postponed' || match.status === 'cancelled') {
+    return MATCH_STATE.UPCOMING;
+  }
   const kickoff = new Date(match.kickoff).getTime();
   if (now < kickoff) return MATCH_STATE.UPCOMING;
   if (now < kickoff + MATCH_DURATION_MS) return MATCH_STATE.LIVE;
   return MATCH_STATE.FINISHED;
+}
+
+const HALFTIME_BREAK_MS = 15 * 60 * 1000;
+const FIRST_HALF_MS = 45 * 60 * 1000;
+
+/** Live minute from api-football sync, or kickoff estimate with halftime pause. */
+export function liveMatchMinute(match, now = Date.now()) {
+  if (match.liveMinute != null) {
+    return Math.min(120, Math.max(1, match.liveMinute));
+  }
+
+  const kickoff = new Date(match.kickoff).getTime();
+  const elapsedMs = now - kickoff;
+  if (elapsedMs < FIRST_HALF_MS) {
+    return Math.max(1, Math.floor(elapsedMs / 60000));
+  }
+  if (elapsedMs < FIRST_HALF_MS + HALFTIME_BREAK_MS) {
+    return 45;
+  }
+  return Math.min(90, Math.floor((elapsedMs - HALFTIME_BREAK_MS) / 60000));
+}
+
+/** Display score from football-data.org sync or local schedule fallback. */
+export function displayScore(match) {
+  if (match.result != null) {
+    return { home: match.result.home, away: match.result.away };
+  }
+  if (match.liveScore != null) {
+    return { home: match.liveScore.home, away: match.liveScore.away };
+  }
+  return null;
 }
 
 export function getMatchDayKey(kickoffIso) {

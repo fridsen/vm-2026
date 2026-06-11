@@ -41,5 +41,7 @@ export interface FootballProvider {
   readonly name: string;
   fetchTeams(): Promise<ProviderTeam[]>;
   fetchFixtures(): Promise<ProviderFixture[]>;
+  /** Optional lightweight poll for today's live scores (football-data.org). */
+  fetchLiveFixtures?(): Promise<ProviderFixture[]>;
   fetchTopScorers(): Promise<ProviderTopScorer[]>;
 }
