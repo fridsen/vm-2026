@@ -1,23 +1,16 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
-import { useLockState } from '../hooks/useLockState.js';
-import { useTippingProgressStats } from '../hooks/useTippingProgressStats.js';
 import { getTabHeaderMeta } from '../constants/navTabs.js';
-import TippingProgressWidget from './TippingProgressWidget.jsx';
 import RulesSheet from './RulesSheet.jsx';
 import infoIcon from '../assets/info-icon.svg';
 
 export default function AppTabHeader() {
   const { pathname } = useLocation();
   const { user, profile } = useAuth();
-  const { now, globalDeadline, tournamentLocked } = useLockState();
-  const stats = useTippingProgressStats();
   const meta = getTabHeaderMeta(pathname);
   const isHome = pathname === '/';
   const [rulesOpen, setRulesOpen] = useState(false);
-  const deadlineMs = globalDeadline ? new Date(globalDeadline).getTime() - now : null;
-  const tournamentStarted = tournamentLocked || (deadlineMs != null && deadlineMs <= 0);
 
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Du';
   const firstName =
@@ -42,7 +35,6 @@ export default function AppTabHeader() {
             <div className="home-name">{firstName}</div>
           </div>
         </Link>
-        {!tournamentStarted && <TippingProgressWidget {...stats} />}
       </header>
     );
   }
@@ -62,7 +54,6 @@ export default function AppTabHeader() {
           <h1 className="app-tab-hero-title">{meta?.title}</h1>
           {meta?.subtitle ? <p className="app-tab-hero-subtitle">{meta.subtitle}</p> : null}
         </div>
-        <TippingProgressWidget {...stats} />
       </header>
       <RulesSheet open={rulesOpen} onClose={() => setRulesOpen(false)} />
     </>
