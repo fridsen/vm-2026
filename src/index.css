@@ -67,6 +67,8 @@
   html,
   body {
     @apply overflow-x-hidden;
+    max-width: 100%;
+    overscroll-behavior-x: none;
   }
   body {
     @apply w-full font-sans;
@@ -92,12 +94,16 @@
   }
   #root {
     @apply w-full min-w-0;
+    max-width: 100%;
+    overflow-x: clip;
   }
   @media (max-width: 767px) {
     #root,
     .app-layout,
     .app-shell {
       background-color: var(--page-bg);
+      max-width: 100%;
+      overflow-x: clip;
     }
   }
 }
@@ -1144,15 +1150,10 @@
     overflow-y: visible;
     padding-bottom: var(--app-card-shadow-bleed);
   }
+  /* Let carousels paint into app-main padding; app-main stays overflow-x clip so the page cannot pan sideways. */
   .tab-slide-viewport:has(.live-matches),
   .tab-slide-viewport:has(.matches-date-carousel) {
     overflow-x: visible;
-  }
-  @media (min-width: 768px) {
-    .tab-slide-viewport:has(.live-matches),
-    .tab-slide-viewport:has(.matches-date-carousel) {
-      overflow-x: clip;
-    }
   }
   .tab-slide-panel,
   .mina-tab-panel {
@@ -1332,15 +1333,10 @@
     margin-bottom: 25px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
     scroll-padding-inline: var(--app-inline-padding);
     padding: 0 var(--app-inline-padding);
     scrollbar-width: none;
-  }
-  @media (max-width: 767px) {
-    .matches-date-carousel {
-      width: 100vw;
-      margin-inline: calc(50% - 50vw);
-    }
   }
   .matches-date-carousel::-webkit-scrollbar {
     display: none;
@@ -2714,17 +2710,12 @@
     width: calc(100% + 2 * var(--app-inline-padding));
     margin-inline: calc(-1 * var(--app-inline-padding));
   }
-  @media (max-width: 767px) {
-    .live-matches {
-      width: 100vw;
-      margin-inline: calc(50% - 50vw);
-    }
-  }
   .live-matches-scroll {
     display: flex;
     gap: 10px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
     scrollbar-width: none;
     scroll-padding-inline: var(--app-inline-padding);
     padding: 0 var(--app-inline-padding) 2px;
@@ -3851,15 +3842,6 @@
     .prediction-sheet-onboarding {
       animation: none !important;
       transition: none !important;
-    }
-  }
-}
-
-@layer utilities {
-  @media (max-width: 767px) {
-    .app-main:has(.live-matches),
-    .app-main:has(.matches-date-carousel) {
-      overflow-x: visible;
     }
   }
 }
