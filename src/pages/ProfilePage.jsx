@@ -5,6 +5,7 @@ import { usePayments } from '../hooks/usePayments.js';
 import SwishPaymentPrompt from '../components/SwishPaymentPrompt.jsx';
 import {
   adminFeeSek,
+  formatPrizePayoutPcts,
   prizePoolSek,
   PRIZE_POOL_ADMIN_FEE_PCT,
 } from '../services/paymentsService.js';
@@ -150,7 +151,7 @@ export default function ProfilePage() {
           label="Administrationsavgift"
           value={`${PRIZE_POOL_ADMIN_FEE_PCT}% (${formatSek(adminFee)} kr)`}
         />
-        <ProfileRow label="Fördelning prispott i %" value="50 / 30 / 20" />
+        <ProfileRow label="Fördelning prispott i %" value={formatPrizePayoutPcts()} />
       </div>
 
       {showSwishPrompt && <SwishPaymentPrompt firstName={firstName} />}

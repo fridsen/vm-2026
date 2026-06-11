@@ -1,11 +1,16 @@
 import clsx from 'clsx';
 
-export function RankBadge({ rank }) {
-  const tier =
-    rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : 'default';
+function rankTier(rank) {
+  if (rank === 1) return 'gold';
+  if (rank === 2) return 'silver';
+  if (rank === 3) return 'bronze';
+  if (rank === 4 || rank === 5) return 'podium';
+  return 'default';
+}
 
+export function RankBadge({ rank }) {
   return (
-    <div className={clsx('lb-rank', `is-${tier}`)} aria-hidden>
+    <div className={clsx('lb-rank', `is-${rankTier(rank)}`)} aria-hidden>
       {rank}
     </div>
   );

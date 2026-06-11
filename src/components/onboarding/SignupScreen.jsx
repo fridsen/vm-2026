@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth.js';
+import { useRegistrationOpen } from '../../hooks/useRegistrationOpen.js';
 import Field from './Field.jsx';
 import OnboardingButton, { GoogleButton } from './OnboardingButton.jsx';
 import OnboardingDivider from './OnboardingDivider.jsx';
 
 export default function SignupScreen() {
   const { signUpWithPassword, signInWithGoogle } = useAuth();
+  const { registrationClosed } = useRegistrationOpen();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -51,6 +53,19 @@ export default function SignupScreen() {
       setStatus('idle');
     }
   };
+
+  if (registrationClosed) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-6 text-center">
+        <h1 className="font-display text-[32px] leading-8 tracking-[-0.32px] text-lime">
+          Anmälan stängd
+        </h1>
+        <p className="font-barlow text-base text-white/80">
+          Tippningen låstes vid första avspark. Har du redan ett konto kan du logga in.
+        </p>
+      </div>
+    );
+  }
 
   if (status === 'sent') {
     return (

@@ -53,6 +53,12 @@ The app passes `redirectTo` from `getAuthRedirectUrl()` (`src/utils/authRedirect
    ```
    Secrets for reminders: `RESEND_API_KEY`, `REMINDER_FROM_EMAIL`, optional `ENTRY_FEE_SEK`, `SWISH_NUMBER`.
 5. Verify locks: run `scripts/verify-prediction-locks.sql` in the SQL editor.
+6. **Deadline signup lock** (`20260610220000_registration_lock.sql`): after first
+   kickoff, new accounts are blocked. Enable the auth hook in the Dashboard:
+   **Authentication → Hooks → before-user-created** → Postgres function
+   `hook_reject_signup_after_deadline`. Local dev picks this up from
+   `supabase/config.toml`. Verify with `select public.fn_registration_open();`
+   (should be `false` after deadline).
 6. Set Edge Function secrets:
    ```bash
    supabase secrets set \

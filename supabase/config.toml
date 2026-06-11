@@ -31,6 +31,13 @@ double_confirm_changes = true
 enable_confirmations = false
 secure_password_change = false
 
+# Block new accounts after fn_global_deadline() (enable in hosted project too:
+# Dashboard → Authentication → Hooks → before-user-created → Postgres function
+# hook_reject_signup_after_deadline).
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/hook_reject_signup_after_deadline"
+
 [edge_runtime]
 enabled = true
 policy = "per_worker"

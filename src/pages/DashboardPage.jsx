@@ -19,6 +19,7 @@ import PredictionSheet from '../components/PredictionSheet.jsx';
 import RulesSheet from '../components/RulesSheet.jsx';
 import SwishPaymentPrompt from '../components/SwishPaymentPrompt.jsx';
 import { usePayments } from '../hooks/usePayments.js';
+import { formatPrizePayoutPcts } from '../services/paymentsService.js';
 import checklistIcon from '../assets/home/checklist-icon.svg';
 import rulesIcon from '../assets/home/rules-icon.svg';
 import matchesIcon from '../assets/mina-tips/matches-icon.svg';
@@ -228,7 +229,7 @@ function RulesPreviewCard({ onOpen }) {
         <div className="home-list-row no-action">
           <div>
             <h3>Pottens fördelning</h3>
-            <p>Topp tre enligt 50/30/20 regeln</p>
+            <p>Topp fem enligt {formatPrizePayoutPcts()} regeln</p>
           </div>
         </div>
       </div>

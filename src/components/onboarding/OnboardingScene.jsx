@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { useAuth } from '../../hooks/useAuth.js';
+import { useRegistrationOpen } from '../../hooks/useRegistrationOpen.js';
 import Logo from './Logo.jsx';
 import OnboardingButton from './OnboardingButton.jsx';
 import SignupScreen from './SignupScreen.jsx';
@@ -18,12 +19,17 @@ const FORM_PHASES = ['signup', 'login', 'complete'];
 //   - the black card slides up (grows) from the bottom of the screen.
 export default function OnboardingScene({ phase, onSetScreen }) {
   const { signOut } = useAuth();
+  const { registrationClosed } = useRegistrationOpen();
   const isForm = FORM_PHASES.includes(phase);
   const showBack = isForm;
   const goBack = () => {
     if (phase === 'signup' || phase === 'login') onSetScreen('landing');
     else signOut();
   };
+
+  useEffect(() => {
+    if (registrationClosed && phase === 'signup') onSetScreen('landing');
+  }, [registrationClosed, phase, onSetScreen]);
 
   // Keep the last form phase so the card still has content while it slides back
   // down to the landing screen (the card stays mounted across all phases).
@@ -91,9 +97,15 @@ export default function OnboardingScene({ phase, onSetScreen }) {
             phase === 'landing' ? 'opacity-100' : 'pointer-events-none opacity-0',
           )}
         >
-          <OnboardingButton variant="dark" onClick={() => onSetScreen('signup')}>
-            Gå med i VM-Tipset
-          </OnboardingButton>
+          {registrationClosed ? (
+            <p className="text-center font-barlow text-sm leading-5 text-black/70">
+              Anmälan är stängd sedan första avspark. Befintliga konton kan fortfarande logga in.
+            </p>
+          ) : (
+            <OnboardingButton variant="dark" onClick={() => onSetScreen('signup')}>
+              Gå med i VM-Tipset
+            </OnboardingButton>
+          )}
           <OnboardingButton variant="outline-dark" onClick={() => onSetScreen('login')}>
             Logga in
           </OnboardingButton>

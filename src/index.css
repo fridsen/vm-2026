@@ -1490,7 +1490,7 @@
   }
   .match-card-prediction {
     width: 100%;
-    background: var(--bg-box);
+    border-top: 0.5px solid rgba(12, 22, 42, 0.08);
     padding: 10px 16px;
     font-size: 12px;
     font-weight: 500;
@@ -2518,6 +2518,44 @@
     padding: 10px 12px;
     box-shadow: var(--shadow-card);
   }
+  .lb-row.is-top-five {
+    border: 1px solid transparent;
+  }
+  .lb-row.is-rank-1 {
+    border-color: rgba(233, 185, 115, 0.3);
+  }
+  .lb-row.is-rank-2 {
+    border-color: rgba(180, 180, 180, 0.3);
+  }
+  .lb-row.is-rank-3 {
+    border-color: rgba(181, 91, 71, 0.3);
+  }
+  .lb-row.is-rank-4,
+  .lb-row.is-rank-5 {
+    border-color: rgba(200, 237, 0, 0.15);
+  }
+  .lb-divider {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+  }
+  .lb-divider-line {
+    height: 1px;
+    flex: 1 1 auto;
+    border-radius: 100px;
+    background: rgba(0, 0, 0, 0.12);
+  }
+  .lb-divider-label {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 12px;
+    text-transform: uppercase;
+    color: #aeaeb8;
+    white-space: nowrap;
+  }
   .lb-row-left {
     display: flex;
     min-width: 0;
@@ -2558,6 +2596,11 @@
     font-weight: 600;
     color: #b55b47;
   }
+  .lb-rank.is-podium {
+    background: rgba(200, 237, 0, 0.15);
+    font-weight: 600;
+    color: var(--color-status-done);
+  }
   .lb-rank.is-default {
     background: var(--bg-box);
     font-weight: 600;
@@ -2568,14 +2611,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: normal;
     color: var(--text-primary);
+  }
+  .lb-row.is-rank-1 .lb-name {
+    font-size: 16px;
+    font-weight: 500;
   }
   .lb-points {
     min-width: 2ch;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 600;
     line-height: 23px;
     color: var(--color-black);
@@ -2593,12 +2640,12 @@
     line-height: 16px;
   }
   .lb-movement.is-up {
-    background: #ebfaf2;
-    color: var(--color-success);
+    background: var(--bg-status-done);
+    color: var(--color-status-done);
   }
   .lb-movement.is-down {
-    background: #faebeb;
-    color: #ba0a0a;
+    background: var(--bg-status-empty);
+    color: var(--color-status-empty);
   }
   .lb-movement svg {
     width: 14px;

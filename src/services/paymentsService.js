@@ -20,6 +20,13 @@ export const ENTRY_FEE_SEK =
 /** Share of gross pot retained for administration before winner payouts. */
 export const PRIZE_POOL_ADMIN_FEE_PCT = 5;
 
+/** Winner payout shares for places 1–5 (must sum to 100). */
+export const PRIZE_PAYOUT_PCTS = [40, 25, 15, 10, 5];
+
+export function formatPrizePayoutPcts(pcts = PRIZE_PAYOUT_PCTS) {
+  return pcts.join(' / ');
+}
+
 export function grossPotSek(entryFeeSek, participantCount) {
   if (!participantCount || !entryFeeSek) return 0;
   return entryFeeSek * participantCount;

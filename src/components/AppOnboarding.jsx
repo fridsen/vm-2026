@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { setAppOnboardingSeen } from '../services/authService.js';
-import { ENTRY_FEE_SEK, SWISH_NUMBER } from '../services/paymentsService.js';
+import { ENTRY_FEE_SEK, formatPrizePayoutPcts, SWISH_NUMBER } from '../services/paymentsService.js';
 import { formatSwishDisplay } from '../utils/swish.js';
 import onboarding1 from '../assets/onboarding/Onboarding-1.png';
 import onboarding2 from '../assets/onboarding/Onboarding-2.png';
@@ -97,8 +97,8 @@ function buildSteps(firstName) {
       body: (
         <>
           <p>
-            Insatsen är <strong>{FEE} kr via Swish</strong> och går till potten. Topp tre delar
-            vinsten.
+            Insatsen är <strong>{FEE} kr via Swish</strong> och går till potten. Topp fem delar
+            vinsten ({formatPrizePayoutPcts()}).
           </p>
           <p>
             <strong>Nummer:</strong> {swish}

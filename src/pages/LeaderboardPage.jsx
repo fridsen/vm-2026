@@ -8,6 +8,36 @@ import {
   resolveRankMovements,
 } from '../utils/leaderboardMovement.js';
 
+const TOP_FIVE_COUNT = 5;
+
+function LeaderboardDivider() {
+  return (
+    <div className="lb-divider" aria-hidden>
+      <span className="lb-divider-line" />
+      <span className="lb-divider-label">Utanför topp 5</span>
+      <span className="lb-divider-line" />
+    </div>
+  );
+}
+
+function LeaderboardEntryRow({ entry, index, movements, selected, rowRefs, openPlayer }) {
+  const rank = index + 1;
+  return (
+    <LeaderboardRow
+      ref={(node) => {
+        if (node) rowRefs.current[entry.userId] = node;
+        else delete rowRefs.current[entry.userId];
+      }}
+      rank={rank}
+      name={entry.name}
+      points={entry.points}
+      movement={movements[entry.userId]}
+      onPress={() => openPlayer(entry, rank)}
+      className={selected?.userId === entry.userId ? 'is-selected' : undefined}
+    />
+  );
+}
+
 export default function LeaderboardPage() {
   const { entries, loading } = useLeaderboard();
   const { matches } = useAllMatches();
@@ -51,21 +81,33 @@ export default function LeaderboardPage() {
         <div className="lb-empty">Inga deltagare ännu</div>
       ) : (
         <div className="lb-list">
-          {sorted.map((entry, index) => (
-            <LeaderboardRow
+          {sorted.slice(0, TOP_FIVE_COUNT).map((entry, index) => (
+            <LeaderboardEntryRow
               key={entry.userId}
-              ref={(node) => {
-                if (node) rowRefs.current[entry.userId] = node;
-                else delete rowRefs.current[entry.userId];
-              }}
-              rank={index + 1}
-              name={entry.name}
-              points={entry.points}
-              movement={movements[entry.userId]}
-              onPress={() => openPlayer(entry, index + 1)}
-              className={selected?.userId === entry.userId ? 'is-selected' : undefined}
+              entry={entry}
+              index={index}
+              movements={movements}
+              selected={selected}
+              rowRefs={rowRefs}
+              openPlayer={openPlayer}
             />
           ))}
+          {sorted.length > TOP_FIVE_COUNT ? (
+            <>
+              <LeaderboardDivider />
+              {sorted.slice(TOP_FIVE_COUNT).map((entry, index) => (
+                <LeaderboardEntryRow
+                  key={entry.userId}
+                  entry={entry}
+                  index={index + TOP_FIVE_COUNT}
+                  movements={movements}
+                  selected={selected}
+                  rowRefs={rowRefs}
+                  openPlayer={openPlayer}
+                />
+              ))}
+            </>
+          ) : null}
         </div>
       )}
 
