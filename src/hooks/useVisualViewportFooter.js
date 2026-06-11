@@ -4,8 +4,10 @@ const MOBILE_MQ = '(max-width: 767px)';
 
 /**
  * iOS Safari: position:fixed uses the layout viewport; pin the tab bar stack to
- * the visual viewport bottom when browser chrome shows/hides. vmkollen avoids
- * the white band with a solid body background — we do both.
+ * the visual viewport bottom when browser chrome shows/hides (resize only).
+ * Do not listen to visualViewport scroll — that fights pull-to-refresh rubber
+ * banding and makes the bar slide up while content moves down (vmkollen .bnav
+ * uses fixed bottom without scroll-driven repositioning).
  */
 export function useVisualViewportFooter(enabled = true) {
   useEffect(() => {
@@ -46,9 +48,7 @@ export function useVisualViewportFooter(enabled = true) {
 
       apply();
       window.visualViewport.addEventListener('resize', schedule);
-      window.visualViewport.addEventListener('scroll', schedule);
       window.addEventListener('resize', schedule);
-      window.addEventListener('scroll', schedule, { passive: true });
       window.addEventListener('orientationchange', schedule);
 
       if (typeof ResizeObserver !== 'undefined') {
@@ -71,9 +71,7 @@ export function useVisualViewportFooter(enabled = true) {
       document.documentElement.style.removeProperty('--vv-bottom-gap');
       chrome = null;
       window.visualViewport?.removeEventListener('resize', schedule);
-      window.visualViewport?.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
-      window.removeEventListener('scroll', schedule);
       window.removeEventListener('orientationchange', schedule);
     };
 

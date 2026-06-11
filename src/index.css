@@ -278,7 +278,7 @@
     justify-content: flex-end;
     background: var(--color-white);
     pointer-events: none;
-    /* top + --vv-bottom-gap from useVisualViewportFooter on mobile */
+    /* top + --vv-bottom-gap from useVisualViewportFooter (resize only, not scroll) */
   }
   @media (max-width: 767px) {
     .app-mobile-chrome {
