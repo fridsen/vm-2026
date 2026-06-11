@@ -5,7 +5,7 @@ project_id = "vm-2026"
 [api]
 enabled = true
 port = 54321
-schemas = ["public"]
+schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
@@ -20,8 +20,16 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "http://localhost:5173"
-additional_redirect_urls = ["http://localhost:5173"]
+# Production site URL — keep in sync with Vercel / custom domain.
+site_url = "https://vm-2026-seven.vercel.app"
+additional_redirect_urls = [
+  "http://localhost:5173",
+  "http://localhost:5173/**",
+  "https://vm-2026-seven.vercel.app",
+  "https://vm-2026-seven.vercel.app/**",
+  "https://fridsen.com/**",
+  "https://www.fridsen.com/**",
+]
 jwt_expiry = 3600
 enable_signup = true
 
@@ -31,9 +39,11 @@ double_confirm_changes = true
 enable_confirmations = false
 secure_password_change = false
 
-# Block new accounts after fn_global_deadline() (enable in hosted project too:
-# Dashboard → Authentication → Hooks → before-user-created → Postgres function
-# hook_reject_signup_after_deadline).
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+# Block new accounts after fn_global_deadline() (hosted + local).
 [auth.hook.before_user_created]
 enabled = true
 uri = "pg-functions://postgres/public/hook_reject_signup_after_deadline"
