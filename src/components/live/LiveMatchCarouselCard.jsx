@@ -36,7 +36,13 @@ export default function LiveMatchCarouselCard({ match, now, single }) {
   const kickoff = new Date(match.kickoff);
   const channel = broadcastForMatch(match);
   const scoreLine = displayScore(match);
-  const score = scoreLine != null ? `${scoreLine.home} - ${scoreLine.away}` : null;
+  const awaitingScore = state === MATCH_STATE.LIVE && scoreLine == null;
+  const score =
+    scoreLine != null
+      ? `${scoreLine.home} - ${scoreLine.away}`
+      : awaitingScore
+        ? '–'
+        : null;
 
   return (
     <Link

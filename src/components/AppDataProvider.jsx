@@ -12,6 +12,7 @@ import {
 import { fetchLatestNews, getCachedNews, NEWS_ARTICLE_LIMIT } from '../services/newsService.js';
 import { interleaveNewsBySource } from '../utils/interleaveNewsBySource.js';
 import { liveDataPollIntervalMs } from '../utils/liveDataRefresh.js';
+import { hasStaleLiveMatches } from '../utils/staleLiveMatches.js';
 import {
   finishedMatchesSignature,
   latestFinishedMatchId,
@@ -183,10 +184,16 @@ export default function AppDataProvider({ children }) {
     let pollId = null;
 
     const syncPollInterval = () => {
-      const ms = liveDataPollIntervalMs(
+      const stale = hasStaleLiveMatches(
         groupMatchesRef.current,
         knockoutMatchesRef.current,
       );
+      const ms = stale
+        ? 10_000
+        : liveDataPollIntervalMs(
+            groupMatchesRef.current,
+            knockoutMatchesRef.current,
+          );
       if (!ms) {
         if (pollId) {
           clearInterval(pollId);

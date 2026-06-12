@@ -12,6 +12,7 @@ import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import AdminPaymentsPage from './pages/AdminPaymentsPage.jsx';
 import AdminPredictionHistoryPage from './pages/AdminPredictionHistoryPage.jsx';
+import AdminSyncPage from './pages/AdminSyncPage.jsx';
 import PortraitGate from './components/PortraitGate.jsx';
 import AppUpdatePrompt from './components/AppUpdatePrompt.jsx';
 
@@ -34,6 +35,7 @@ export default function App() {
               <Route path="leaderboard" element={<LeaderboardPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="admin/betalningar" element={<AdminPaymentsPage />} />
+              <Route path="admin/sync" element={<AdminSyncPage />} />
               <Route path="admin/tipphistorik" element={<AdminPredictionHistoryPage />} />
             </Route>
           </Routes>

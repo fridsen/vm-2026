@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { usePayments } from '../hooks/usePayments.js';
 import { ENTRY_FEE_SEK, SWISH_NUMBER, setPaid } from '../services/paymentsService.js';
 import { fetchPaymentStatus, sendPaymentReminder } from '../services/adminService.js';
@@ -62,7 +62,12 @@ export default function AdminPaymentsPage() {
   return (
     <div className="tab-page-enter max-w-3xl">
       <header className="mb-6">
-        <h1 className="text-2xl font-black text-neutral-900">Admin — Betalningar</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl font-black text-neutral-900">Admin — Betalningar</h1>
+          <Link to="/admin/sync" className="text-sm font-medium text-neutral-600">
+            Matchsync
+          </Link>
+        </div>
         <p className="mt-1 text-sm text-neutral-600">
           Obetalda spelare. Swish: {SWISH_NUMBER || '—'}, avgift: {ENTRY_FEE_SEK || '—'} kr
         </p>

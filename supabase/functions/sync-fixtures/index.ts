@@ -46,6 +46,8 @@ import {
   PRE_MATCH_MS,
   type KickoffRow,
 } from '../_shared/liveSyncWindow.ts';
+import { buildHealthCheck } from '../_shared/healthCheck.ts';
+import { recordSyncHealth } from '../_shared/syncHealth.ts';
 
 interface SyncReport {
   ok: boolean;
@@ -492,6 +494,40 @@ async function syncFull(): Promise<SyncReport> {
   };
 }
 
+async function runAndRecord(
+  mode: 'live' | 'full',
+  run: () => Promise<SyncReport>,
+): Promise<SyncReport> {
+  const env = Deno.env.toObject();
+  const supabase = createClient(
+    env.SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } },
+  );
+  try {
+    const report = await run();
+    await recordSyncHealth(supabase, report);
+    return report;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const failed: SyncReport = {
+      ok: false,
+      mode,
+      provider: 'unknown',
+      teams: 0,
+      groupMatches: 0,
+      knockoutMatches: 0,
+      players: 0,
+      topScorers: 0,
+      liveUpdated: 0,
+      durationMs: 0,
+      error: message,
+    };
+    await recordSyncHealth(supabase, failed);
+    throw err;
+  }
+}
+
 Deno.serve(async (req) => {
   // Allow GET for human triggering and POST for scheduled invocations.
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -499,8 +535,27 @@ Deno.serve(async (req) => {
   }
   try {
     const url = new URL(req.url);
-    const mode = url.searchParams.get('mode') === 'live' ? 'live' : 'full';
-    const report = mode === 'live' ? await syncLive() : await syncFull();
+    const modeParam = url.searchParams.get('mode');
+    const env = Deno.env.toObject();
+    const supabase = createClient(
+      env.SUPABASE_URL!,
+      env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } },
+    );
+
+    if (modeParam === 'health') {
+      const check = await buildHealthCheck(supabase);
+      return new Response(JSON.stringify(check, null, 2), {
+        status: check.healthy ? 200 : 503,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    const mode = modeParam === 'live' ? 'live' : 'full';
+    const report = await runAndRecord(
+      mode,
+      mode === 'live' ? syncLive : syncFull,
+    );
     return new Response(JSON.stringify(report, null, 2), {
       headers: { 'content-type': 'application/json' },
     });

@@ -159,6 +159,7 @@ export default function ProfilePage() {
       {isAdmin && (
         <div className="profile-card">
           <ProfileLinkRow to="/admin/betalningar">Betalning och påminnelser</ProfileLinkRow>
+          <ProfileLinkRow to="/admin/sync">Matchsync (hälsa)</ProfileLinkRow>
           <ProfileLinkRow to="/admin/tipphistorik">Tipphistorik</ProfileLinkRow>
         </div>
       )}
