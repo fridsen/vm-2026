@@ -12,13 +12,13 @@ function rowToMatch(r) {
   return {
     id: r.id,
     result: isFinished ? scores : null,
-    liveScore: !isFinished && scores && r.status === 'in_play' ? scores : null,
+    liveScore: !isFinished && scores ? scores : null,
     status: r.status,
   };
 }
 
 describe('matchesService row mapping', () => {
-  it('exposes live scores only while in_play', () => {
+  it('exposes live scores while in_play', () => {
     const live = rowToMatch({
       id: 'm1',
       status: 'in_play',
@@ -27,6 +27,17 @@ describe('matchesService row mapping', () => {
     });
     expect(live.liveScore).toEqual({ home: 1, away: 0 });
     expect(live.result).toBeNull();
+  });
+
+  it('exposes live scores when provider lags on status but scores are present', () => {
+    const lagging = rowToMatch({
+      id: 'm1',
+      status: 'scheduled',
+      home_score: 0,
+      away_score: 1,
+    });
+    expect(lagging.liveScore).toEqual({ home: 0, away: 1 });
+    expect(lagging.result).toBeNull();
   });
 
   it('exposes result only when finished with both scores', () => {

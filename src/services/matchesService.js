@@ -25,8 +25,9 @@ function rowToMatch(r) {
     awayTeamId: r.away_team_id,
     venue: schedule?.venue ?? r.venue ?? null,
     result: isFinished ? scores : null,
-    liveScore: !isFinished && scores && r.status === 'in_play' ? scores : null,
-    liveMinute: r.status === 'in_play' ? r.live_minute ?? null : null,
+    liveScore: !isFinished && scores ? scores : null,
+    liveMinute:
+      !isFinished && (r.status === 'in_play' || scores) ? r.live_minute ?? null : null,
     status: r.status,
     broadcastChannel: r.broadcast_channel ?? r.channel ?? r.tv_channel ?? schedule?.channel ?? null,
   };
@@ -45,8 +46,9 @@ function rowToKnockout(r) {
     homeSource: r.home_source,
     awaySource: r.away_source,
     result: isFinished ? scores : null,
-    liveScore: !isFinished && scores && r.status === 'in_play' ? scores : null,
-    liveMinute: r.status === 'in_play' ? r.live_minute ?? null : null,
+    liveScore: !isFinished && scores ? scores : null,
+    liveMinute:
+      !isFinished && (r.status === 'in_play' || scores) ? r.live_minute ?? null : null,
     status: r.status,
   };
 }

@@ -52,6 +52,9 @@ uri = "pg-functions://postgres/public/hook_reject_signup_after_deadline"
 enabled = true
 policy = "per_worker"
 
-# Invoked by pg_cron via pg_net without a JWT; only upserts public RSS headlines.
+# Invoked by pg_cron via pg_net without a JWT.
 [functions.sync-news]
+verify_jwt = false
+
+[functions.sync-fixtures]
 verify_jwt = false

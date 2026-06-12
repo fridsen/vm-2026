@@ -126,7 +126,11 @@ async function upsertLiveScores(
       existing?.home_score != null && existing?.away_score != null;
     if (f.status === 'finished' && (hasIncomingScores || hasExistingScores)) {
       patch.status = 'finished';
-    } else if (f.status === 'in_play' && existing?.status !== 'finished') {
+    } else if (
+      existing?.status !== 'finished' &&
+      (f.status === 'in_play' || hasIncomingScores || hasExistingScores)
+    ) {
+      // football-data often returns TIMED/scheduled with scores during live play.
       patch.status = 'in_play';
     }
 

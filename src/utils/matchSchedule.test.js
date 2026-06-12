@@ -29,6 +29,20 @@ describe('match state', () => {
     );
   });
 
+  it('treats liveScore as live even when status is still scheduled', () => {
+    expect(
+      getMatchState(
+        {
+          kickoff: '2026-06-12T19:00:00+00:00',
+          status: 'scheduled',
+          liveScore: { home: 0, away: 1 },
+          result: null,
+        },
+        Date.now(),
+      ),
+    ).toBe(MATCH_STATE.LIVE);
+  });
+
   it('trusts football-data in_play status over kickoff window', () => {
     const beforeKickoff = new Date('2026-06-11T20:59:00+02:00').getTime();
     expect(

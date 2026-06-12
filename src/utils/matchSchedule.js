@@ -14,7 +14,7 @@ export function getMatchState(match, now) {
   if (match.status === 'finished' || match.result != null) {
     return MATCH_STATE.FINISHED;
   }
-  if (match.status === 'in_play') return MATCH_STATE.LIVE;
+  if (match.status === 'in_play' || match.liveScore != null) return MATCH_STATE.LIVE;
   if (match.status === 'postponed' || match.status === 'cancelled') {
     return MATCH_STATE.UPCOMING;
   }
