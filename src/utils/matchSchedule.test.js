@@ -65,6 +65,18 @@ describe('match state', () => {
     };
     expect(getMatchState(live, Date.now())).toBe(MATCH_STATE.LIVE);
   });
+
+  it('does not infer full time when sync is still scheduled without scores', () => {
+    const stale = {
+      kickoff: '2026-06-12T04:00:00+02:00',
+      status: 'scheduled',
+      result: null,
+      liveScore: null,
+    };
+    expect(getMatchState(stale, new Date('2026-06-12T08:00:00+02:00').getTime())).toBe(
+      MATCH_STATE.LIVE,
+    );
+  });
 });
 
 describe('schedule helpers', () => {

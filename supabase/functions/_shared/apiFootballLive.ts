@@ -64,14 +64,28 @@ function normalizeName(name: string): string {
     .trim();
 }
 
-/** api-football "Bosnia-H." vs DB "Bosnia and Herzegovina" etc. */
+/** Collapse provider/DB variants onto one key for fuzzy team pairing. */
+function canonicalTeamName(name: string): string {
+  const n = normalizeName(name);
+  if (!n) return n;
+  if (n === 'sydkorea' || (n.includes('korea') && !n.includes('north'))) {
+    return 'south korea';
+  }
+  if (n === 'tjeckien' || n.startsWith('czech')) return 'czechia';
+  if (n === 'sydafrika' || n === 'south africa') return 'south africa';
+  if (n === 'bosnia' || n.includes('bosnia')) return 'bosnia';
+  if (n === 'usa' || n === 'united states') return 'usa';
+  return n;
+}
+
+/** api-football "Korea Republic" vs DB "South Korea", "Czech Republic" vs "Czechia", etc. */
 function namesMatch(a: string, b: string): boolean {
-  const na = normalizeName(a);
-  const nb = normalizeName(b);
-  if (na === nb) return true;
-  if (na.startsWith(nb) || nb.startsWith(na)) return true;
-  const aFirst = na.split(/\s+/)[0];
-  const bFirst = nb.split(/\s+/)[0];
+  const ca = canonicalTeamName(a);
+  const cb = canonicalTeamName(b);
+  if (ca === cb) return true;
+  if (ca.startsWith(cb) || cb.startsWith(ca)) return true;
+  const aFirst = ca.split(/\s+/)[0];
+  const bFirst = cb.split(/\s+/)[0];
   return aFirst.length >= 4 && aFirst === bFirst;
 }
 

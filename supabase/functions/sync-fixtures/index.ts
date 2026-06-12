@@ -152,7 +152,10 @@ async function upsertLiveScores(
         patch.away_score = f.awayScore;
       }
     }
-    if (f.status === 'finished') {
+    const hasIncomingScores = f.homeScore != null && f.awayScore != null;
+    const hasExistingScores =
+      existing?.home_score != null && existing?.away_score != null;
+    if (f.status === 'finished' && (hasIncomingScores || hasExistingScores)) {
       patch.status = 'finished';
     } else if (f.status === 'in_play' && existing?.status !== 'finished') {
       patch.status = 'in_play';
@@ -217,7 +220,7 @@ async function syncLive(): Promise<SyncReport> {
   let liveUpdated = 0;
   const apiFootballKey = env.API_FOOTBALL_KEY?.trim();
 
-  // api-football is the reliable live source during matches.
+  // api-football is the primary live source during matches.
   if (apiFootballKey) {
     try {
       liveUpdated += await upsertApiFootballLiveScores(supabase, apiFootballKey);
@@ -229,9 +232,17 @@ async function syncLive(): Promise<SyncReport> {
     } catch (err) {
       console.error('[sync-fixtures] api-football today failed:', err);
     }
-  } else if (provider.fetchLiveFixtures) {
-    const fixtures = await provider.fetchLiveFixtures();
-    liveUpdated += await upsertLiveScores(supabase, fixtures);
+  }
+
+  // Always run football-data.org live too — it matches rows by external_id and
+  // catches FT results when api-football name matching misses (e.g. Korea Republic).
+  if (provider.fetchLiveFixtures) {
+    try {
+      const fixtures = await provider.fetchLiveFixtures();
+      liveUpdated += await upsertLiveScores(supabase, fixtures);
+    } catch (err) {
+      console.error('[sync-fixtures] football-data live failed:', err);
+    }
   }
 
   try {

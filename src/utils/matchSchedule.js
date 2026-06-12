@@ -21,6 +21,10 @@ export function getMatchState(match, now) {
   const kickoff = new Date(match.kickoff).getTime();
   if (now < kickoff) return MATCH_STATE.UPCOMING;
   if (now < kickoff + MATCH_DURATION_MS) return MATCH_STATE.LIVE;
+  // Sync lag: past the match window but DB still has no result — don't show FT.
+  if (match.status === 'scheduled' && match.result == null && match.liveScore == null) {
+    return MATCH_STATE.LIVE;
+  }
   return MATCH_STATE.FINISHED;
 }
 
