@@ -25,6 +25,7 @@ afterEach(() => {
 });
 
 const {
+  finishedMatchesSignature,
   latestFinishedMatchId,
   loadRankSnapshot,
   ranksFromEntries,
@@ -45,6 +46,18 @@ describe('leaderboardMovement', () => {
       { id: 'm3', kickoff: '2026-06-13T12:00:00Z', status: 'scheduled' },
     ]);
     expect(id).toBe('m2');
+  });
+
+  it('builds a signature across group and knockout finishes', () => {
+    const before = finishedMatchesSignature(
+      [{ id: 'm1', status: 'finished' }],
+      [],
+    );
+    const after = finishedMatchesSignature(
+      [{ id: 'm1', status: 'finished' }],
+      [{ id: 'qf1', status: 'finished' }],
+    );
+    expect(before).not.toBe(after);
   });
 
   it('returns no movement on first anchor', () => {

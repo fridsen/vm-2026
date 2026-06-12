@@ -36,6 +36,16 @@ import {
   sortFixtures,
   teamIdFor,
 } from '../_shared/idMap.ts';
+import {
+  scoreFieldsForFullSync,
+  type ExistingScoreRow,
+} from '../_shared/scoreFields.ts';
+import {
+  anyInLiveSyncWindow,
+  POST_MATCH_MS,
+  PRE_MATCH_MS,
+  type KickoffRow,
+} from '../_shared/liveSyncWindow.ts';
 
 interface SyncReport {
   ok: boolean;
@@ -48,62 +58,21 @@ interface SyncReport {
   topScorers: number;
   liveUpdated: number;
   durationMs: number;
+  skipped?: boolean;
+  skipReason?: string;
   error?: string;
 }
 
-type ExistingScoreRow = {
-  external_id: string;
-  home_score: number | null;
-  away_score: number | null;
-  status: string;
-};
-
-/** football-data often returns TIMED/scheduled with null scores during live games. */
-function scoreFieldsForFullSync(
-  f: ProviderFixture,
-  existing?: ExistingScoreRow,
-): { home_score: number | null; away_score: number | null; status: string } {
-  const hasScores = f.homeScore != null && f.awayScore != null;
-
-  if (f.status === 'finished' && hasScores) {
-    return {
-      home_score: f.homeScore!,
-      away_score: f.awayScore!,
-      status: 'finished',
-    };
+function groupLetterByTeamExternalId(
+  fixtures: ProviderFixture[],
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const f of fixtures) {
+    if (f.stage !== 'group' || !f.group) continue;
+    if (f.homeTeamExternalId) map.set(f.homeTeamExternalId, f.group);
+    if (f.awayTeamExternalId) map.set(f.awayTeamExternalId, f.group);
   }
-
-  if (hasScores && f.status === 'in_play') {
-    return {
-      home_score: f.homeScore!,
-      away_score: f.awayScore!,
-      status: 'in_play',
-    };
-  }
-
-  // Keep finished rows when football-data hasn't caught up yet.
-  if (existing?.status === 'finished') {
-    return {
-      home_score: hasScores ? f.homeScore! : existing.home_score,
-      away_score: hasScores ? f.awayScore! : existing.away_score,
-      status: 'finished',
-    };
-  }
-
-  // Keep in_play scores only while football-data still shows scheduled/null.
-  if (existing?.status === 'in_play' && f.status === 'scheduled' && !hasScores) {
-    return {
-      home_score: existing.home_score,
-      away_score: existing.away_score,
-      status: 'in_play',
-    };
-  }
-
-  return {
-    home_score: f.homeScore,
-    away_score: f.awayScore,
-    status: f.status,
-  };
+  return map;
 }
 
 async function loadExistingScores(
@@ -176,7 +145,8 @@ async function upsertLiveScores(
 async function finalizeStaleInPlayMatches(
   supabase: ReturnType<typeof createClient>,
 ): Promise<number> {
-  const staleBefore = new Date(Date.now() - 115 * 60 * 1000).toISOString();
+  // 135 min covers 90 + HT + 30 ET + stoppage before auto-finalizing.
+  const staleBefore = new Date(Date.now() - 135 * 60 * 1000).toISOString();
   let updated = 0;
 
   for (const table of ['matches', 'knockout_matches'] as const) {
@@ -199,6 +169,34 @@ async function finalizeStaleInPlayMatches(
   return updated;
 }
 
+async function loadKickoffRowsForLiveWindow(
+  supabase: ReturnType<typeof createClient>,
+  now = Date.now(),
+): Promise<KickoffRow[]> {
+  const windowStart = new Date(now - POST_MATCH_MS).toISOString();
+  const windowEnd = new Date(now + PRE_MATCH_MS).toISOString();
+  const rows: KickoffRow[] = [];
+
+  for (const table of ['matches', 'knockout_matches'] as const) {
+    const { data: inPlay, error: inPlayErr } = await supabase
+      .from(table)
+      .select('kickoff, status')
+      .eq('status', 'in_play');
+    if (inPlayErr) throw new Error(`${table} in_play: ${inPlayErr.message}`);
+
+    const { data: inWindow, error: windowErr } = await supabase
+      .from(table)
+      .select('kickoff, status')
+      .gte('kickoff', windowStart)
+      .lte('kickoff', windowEnd);
+    if (windowErr) throw new Error(`${table} window: ${windowErr.message}`);
+
+    rows.push(...(inPlay ?? []), ...(inWindow ?? []));
+  }
+
+  return rows;
+}
+
 async function syncLive(): Promise<SyncReport> {
   const start = Date.now();
   const env = Deno.env.toObject();
@@ -219,6 +217,33 @@ async function syncLive(): Promise<SyncReport> {
 
   let liveUpdated = 0;
   const apiFootballKey = env.API_FOOTBALL_KEY?.trim();
+  const kickoffRows = await loadKickoffRowsForLiveWindow(supabase);
+  const inWindow = anyInLiveSyncWindow(kickoffRows);
+
+  if (!inWindow) {
+    try {
+      liveUpdated += await finalizeStaleInPlayMatches(supabase);
+    } catch (err) {
+      console.error('[sync-fixtures] finalize stale matches failed:', err);
+    }
+
+    return {
+      ok: true,
+      mode: 'live',
+      provider: apiFootballKey
+        ? `${provider.name} + api-football live`
+        : provider.name,
+      teams: 0,
+      groupMatches: 0,
+      knockoutMatches: 0,
+      players: 0,
+      topScorers: 0,
+      liveUpdated,
+      skipped: true,
+      skipReason: 'no_match_in_live_window',
+      durationMs: Date.now() - start,
+    };
+  }
 
   // api-football is the primary live source during matches.
   if (apiFootballKey) {
@@ -279,14 +304,18 @@ async function syncFull(): Promise<SyncReport> {
     { auth: { persistSession: false } },
   );
 
-  // ── 1. Teams ────────────────────────────────────────────────────
+  // ── 1. Fixtures (fetch first — team groups live on fixtures, not team rows) ─
+  const fixtures = await provider.fetchFixtures();
+  const teamGroups = groupLetterByTeamExternalId(fixtures);
+
+  // ── 2. Teams ────────────────────────────────────────────────────
   const teams = await provider.fetchTeams();
   const teamRows = teams.map((t: ProviderTeam) => ({
     id: teamIdFor(t),
     name: t.name,
     code: t.shortCode ?? teamIdFor(t),
     flag: null,
-    group: t.group ?? '?',
+    group: t.group ?? teamGroups.get(t.externalId) ?? '?',
     external_id: t.externalId,
   }));
 
@@ -300,9 +329,6 @@ async function syncFull(): Promise<SyncReport> {
       .upsert(teamRows, { onConflict: 'external_id' });
     if (error) throw new Error(`teams upsert: ${error.message}`);
   }
-
-  // ── 2. Fixtures ─────────────────────────────────────────────────
-  const fixtures = await provider.fetchFixtures();
 
   const groupFixtures = fixtures.filter(
     (f: ProviderFixture) => f.stage === 'group' && f.group && f.groupRound,

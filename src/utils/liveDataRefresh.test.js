@@ -61,4 +61,14 @@ describe('liveDataPollIntervalMs', () => {
     const between = new Date(kickoff).getTime() + MATCH_DURATION_MS + 60_000;
     expect(liveDataPollIntervalMs([match()], between)).toBe(60_000);
   });
+
+  it('polls fast when a knockout match is in_play', () => {
+    const koLive = {
+      id: 'qf1',
+      kickoff: '2026-06-11T19:00:00.000Z',
+      status: 'in_play',
+      result: null,
+    };
+    expect(liveDataPollIntervalMs([], [koLive])).toBe(15_000);
+  });
 });

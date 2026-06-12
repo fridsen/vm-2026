@@ -1,5 +1,6 @@
--- Poll football-data.org for today's live scores every 2 minutes.
--- Uses sync-fixtures?mode=live (one API call: /matches?competitions=WC&dateFrom=…&dateTo=…).
+-- Invoke sync-fixtures?mode=live every 2 minutes. The function skips provider API
+-- calls outside kickoff windows (15 min before → 135 min after, incl. ET) and only
+-- hits football-data / api-football when a match could be live.
 -- Requires the same app.settings as vm2026_sync_fixtures (see 20260601000002_sync_cron.sql).
 
 do $$

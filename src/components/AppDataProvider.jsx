@@ -12,7 +12,10 @@ import {
 import { fetchLatestNews, getCachedNews, NEWS_ARTICLE_LIMIT } from '../services/newsService.js';
 import { interleaveNewsBySource } from '../utils/interleaveNewsBySource.js';
 import { liveDataPollIntervalMs } from '../utils/liveDataRefresh.js';
-import { latestFinishedMatchId } from '../utils/leaderboardMovement.js';
+import {
+  finishedMatchesSignature,
+  latestFinishedMatchId,
+} from '../utils/leaderboardMovement.js';
 import { NEWS_CACHE_TTL_MS, readNewsCache } from '../utils/newsCache.js';
 
 export default function AppDataProvider({ children }) {
@@ -36,7 +39,9 @@ export default function AppDataProvider({ children }) {
   const [newsLoading, setNewsLoading] = useState(() => getCachedNews(NEWS_ARTICLE_LIMIT) == null);
 
   const groupMatchesRef = useRef(groupMatches);
+  const knockoutMatchesRef = useRef(knockoutMatches);
   groupMatchesRef.current = groupMatches;
+  knockoutMatchesRef.current = knockoutMatches;
 
   const refreshMatches = useCallback(async () => {
     try {
@@ -61,15 +66,18 @@ export default function AppDataProvider({ children }) {
     }
   }, []);
 
-  /** Refresh match scores for live cards; leaderboard only when a match finishes. */
+  /** Refresh match scores for live cards; leaderboard when any match finishes. */
   const refreshLiveData = useCallback(async () => {
-    const prevAnchor = latestFinishedMatchId(groupMatchesRef.current);
+    const prevSignature = finishedMatchesSignature(
+      groupMatchesRef.current,
+      knockoutMatchesRef.current,
+    );
     try {
       const [group, knockout] = await Promise.all([fetchAllMatches(), fetchKnockoutMatches()]);
       setGroupMatches(group);
       setKnockoutMatches(knockout);
-      const nextAnchor = latestFinishedMatchId(group);
-      if (nextAnchor !== prevAnchor) {
+      const nextSignature = finishedMatchesSignature(group, knockout);
+      if (nextSignature !== prevSignature) {
         const data = await fetchLeaderboard();
         setEntries(data);
       }
@@ -175,7 +183,10 @@ export default function AppDataProvider({ children }) {
     let pollId = null;
 
     const syncPollInterval = () => {
-      const ms = liveDataPollIntervalMs(groupMatchesRef.current);
+      const ms = liveDataPollIntervalMs(
+        groupMatchesRef.current,
+        knockoutMatchesRef.current,
+      );
       if (!ms) {
         if (pollId) {
           clearInterval(pollId);

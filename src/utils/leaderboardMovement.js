@@ -8,6 +8,19 @@ export function latestFinishedMatchId(matches) {
   return finished[0]?.id ?? null;
 }
 
+/** Signature of all finished matches — changes when any group or KO match completes. */
+export function finishedMatchesSignature(groupMatches, knockoutMatches) {
+  const ids = [
+    ...(groupMatches ?? [])
+      .filter((m) => m.status === 'finished')
+      .map((m) => `g:${m.id}`),
+    ...(knockoutMatches ?? [])
+      .filter((m) => m.status === 'finished')
+      .map((m) => `k:${m.id}`),
+  ].sort();
+  return ids.join(',');
+}
+
 export function sortLeaderboardEntries(entries) {
   return [...(entries ?? [])].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;

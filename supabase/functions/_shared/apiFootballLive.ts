@@ -25,9 +25,11 @@ type ApiFixture = {
 type DbMatchRow = {
   id: string;
   kickoff: string;
-  home_team_id: string;
-  away_team_id: string;
+  home_team_id: string | null;
+  away_team_id: string | null;
 };
+
+type MatchTable = 'matches' | 'knockout_matches';
 
 function statusFromShort(s: string): string {
   switch (s) {
@@ -116,6 +118,24 @@ async function fetchApiFootball(
   );
 }
 
+async function loadTodayRows(
+  supabase: ReturnType<typeof createClient>,
+  table: MatchTable,
+) {
+  const dayStart = new Date();
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+
+  const { data, error } = await supabase
+    .from(table)
+    .select('id, kickoff, home_team_id, away_team_id')
+    .gte('kickoff', dayStart.toISOString())
+    .lt('kickoff', dayEnd.toISOString());
+  if (error) throw new Error(`${table} load: ${error.message}`);
+  return (data ?? []) as DbMatchRow[];
+}
+
 async function loadTodayMatchContext(supabase: ReturnType<typeof createClient>) {
   const { data: teams, error: teamsErr } = await supabase
     .from('teams')
@@ -123,20 +143,12 @@ async function loadTodayMatchContext(supabase: ReturnType<typeof createClient>) 
   if (teamsErr) throw new Error(`teams load: ${teamsErr.message}`);
 
   const teamNameById = new Map((teams ?? []).map((t) => [t.id, t.name]));
+  const [groupMatches, knockoutMatches] = await Promise.all([
+    loadTodayRows(supabase, 'matches'),
+    loadTodayRows(supabase, 'knockout_matches'),
+  ]);
 
-  const dayStart = new Date();
-  dayStart.setUTCHours(0, 0, 0, 0);
-  const dayEnd = new Date(dayStart);
-  dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
-
-  const { data: matches, error: matchErr } = await supabase
-    .from('matches')
-    .select('id, kickoff, home_team_id, away_team_id')
-    .gte('kickoff', dayStart.toISOString())
-    .lt('kickoff', dayEnd.toISOString());
-  if (matchErr) throw new Error(`matches load: ${matchErr.message}`);
-
-  return { teamNameById, matches: (matches ?? []) as DbMatchRow[] };
+  return { teamNameById, groupMatches, knockoutMatches };
 }
 
 function findDbMatch(
@@ -146,6 +158,7 @@ function findDbMatch(
 ): DbMatchRow | undefined {
   const kickoffMs = new Date(fixture.fixture.date).getTime();
   return matches.find((m) => {
+    if (!m.home_team_id || !m.away_team_id) return false;
     const home = teamNameById.get(m.home_team_id);
     const away = teamNameById.get(m.away_team_id);
     if (!home || !away) return false;
@@ -156,8 +169,9 @@ function findDbMatch(
   });
 }
 
-async function applyFixtureToMatch(
+async function applyFixtureToRow(
   supabase: ReturnType<typeof createClient>,
+  table: MatchTable,
   rowId: string,
   fixture: ApiFixture,
 ): Promise<boolean> {
@@ -172,7 +186,7 @@ async function applyFixtureToMatch(
     );
 
   const { data, error } = await supabase
-    .from('matches')
+    .from(table)
     .update({
       home_score: fixture.goals.home,
       away_score: fixture.goals.away,
@@ -182,7 +196,7 @@ async function applyFixtureToMatch(
     })
     .eq('id', rowId)
     .select('id');
-  if (error) throw new Error(`matches update: ${error.message}`);
+  if (error) throw new Error(`${table} update: ${error.message}`);
   return (data?.length ?? 0) > 0;
 }
 
@@ -192,12 +206,21 @@ async function upsertFixtures(
 ): Promise<number> {
   if (fixtures.length === 0) return 0;
 
-  const { teamNameById, matches } = await loadTodayMatchContext(supabase);
+  const { teamNameById, groupMatches, knockoutMatches } =
+    await loadTodayMatchContext(supabase);
   let updated = 0;
   for (const f of fixtures) {
-    const row = findDbMatch(matches, teamNameById, f);
-    if (!row) continue;
-    if (await applyFixtureToMatch(supabase, row.id, f)) updated += 1;
+    const groupRow = findDbMatch(groupMatches, teamNameById, f);
+    if (groupRow) {
+      if (await applyFixtureToRow(supabase, 'matches', groupRow.id, f)) {
+        updated += 1;
+      }
+      continue;
+    }
+    const koRow = findDbMatch(knockoutMatches, teamNameById, f);
+    if (koRow && await applyFixtureToRow(supabase, 'knockout_matches', koRow.id, f)) {
+      updated += 1;
+    }
   }
   return updated;
 }
