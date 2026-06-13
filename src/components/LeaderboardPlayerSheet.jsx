@@ -75,6 +75,7 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
                         match={match}
                         now={now}
                         prediction={predictions[match.id]}
+                        showTipWithPoints
                       />
                     ))}
                   </div>

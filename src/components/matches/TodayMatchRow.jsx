@@ -25,7 +25,13 @@ function TeamCode({ teamId, muted }) {
   );
 }
 
-export default function TodayMatchRow({ match, now, prediction }) {
+export default function TodayMatchRow({
+  match,
+  now,
+  prediction,
+  /** Leaderboard sheet: show tip pill alongside points for finished matches. */
+  showTipWithPoints = false,
+}) {
   const { getTeamById } = useTeams();
   const state = getMatchState(match, now);
   const kickoff = new Date(match.kickoff);
@@ -47,6 +53,9 @@ export default function TodayMatchRow({ match, now, prediction }) {
     : scoreLine != null
       ? `${scoreLine.home}-${scoreLine.away}`
       : '–';
+
+  const showPoints = isFinished && pointsEarned != null;
+  const showTip = Boolean(tipLabel) && (!isFinished || showTipWithPoints);
 
   return (
     <div className={clsx('today-match-row', isFinished && 'is-finished')}>
@@ -73,12 +82,13 @@ export default function TodayMatchRow({ match, now, prediction }) {
         </div>
 
         <div className="today-match-status">
-          {isFinished && pointsEarned != null ? (
-            <span className="today-match-badge today-match-badge--points">
-              {pointsEarned} Poäng
-            </span>
-          ) : tipLabel ? (
+          {showTip ? (
             <span className="today-match-badge today-match-badge--tip">{tipLabel}</span>
+          ) : null}
+          {showPoints ? (
+            <span className="today-match-badge today-match-badge--points">
+              {showTipWithPoints ? `${pointsEarned}P` : `${pointsEarned} Poäng`}
+            </span>
           ) : null}
         </div>
       </div>
