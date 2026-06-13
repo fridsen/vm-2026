@@ -6,24 +6,8 @@ import { useLockState } from '../hooks/useLockState.js';
 import { usePredictions } from '../hooks/usePredictions.js';
 import MatchCard from '../components/MatchCard.jsx';
 import PredictionSheet from '../components/PredictionSheet.jsx';
+import { buildMatchDays } from '../utils/matchDays.js';
 import { getMatchDayKey } from '../utils/matchSchedule.js';
-
-function buildMatchDays(matches) {
-  const byDay = new Map();
-  for (const match of matches) {
-    const dayKey = getMatchDayKey(match.kickoff);
-    if (!byDay.has(dayKey)) byDay.set(dayKey, []);
-    byDay.get(dayKey).push(match);
-  }
-
-  return [...byDay.entries()]
-    .map(([dayKey, dayMatches]) => ({
-      dayKey,
-      date: new Date(`${dayKey}T12:00:00`),
-      matches: [...dayMatches].sort((a, b) => a.kickoff.localeCompare(b.kickoff)),
-    }))
-    .sort((a, b) => a.dayKey.localeCompare(b.dayKey));
-}
 
 export default function MatchesPage() {
   const { matches, loading } = useAllMatches();

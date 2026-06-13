@@ -1,98 +1,36 @@
-import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
-import { useTeams } from '../hooks/useTeams.js';
-import { emblemForCode } from '../data/emblems.js';
-import { broadcastForMatch } from '../data/broadcastChannels.js';
-import { formatMatchPredictionLabel } from '../utils/matchPredictionDisplay.js';
-import {
-  MATCH_STATE,
-  displayScore,
-  getMatchState,
-  liveMatchMinute,
-} from '../utils/matchSchedule.js';
-
-function TeamBlock({ teamId }) {
-  const { getTeamById } = useTeams();
-  const team = getTeamById(teamId);
-  const emblem = team ? emblemForCode(team.code) : null;
-
-  if (!team) {
-    return (
-      <div className="match-card-team">
-        <div className="match-card-emblem">?</div>
-        <div className="match-card-team-name">TBD</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="match-card-team">
-      <div className="match-card-emblem">
-        {emblem ? <img src={emblem} alt="" /> : <span aria-hidden>{team.flag}</span>}
-      </div>
-      <div className="match-card-team-name">{team.name}</div>
-    </div>
-  );
-}
+import { useMemo } from 'react';
+import { scoreGroupMatch } from '../utils/scoring.js';
+import { MATCH_STATE, getMatchState } from '../utils/matchSchedule.js';
+import MatchHeroCard from './matches/MatchHeroCard.jsx';
 
 export default function MatchCard({ match, prediction, onPredict, now = Date.now() }) {
-  const kickoff = new Date(match.kickoff);
-  const channel = broadcastForMatch(match);
-  const predictionLabel = formatMatchPredictionLabel(prediction);
-  const dateLabel = format(kickoff, 'EEE d MMMM', { locale: sv }).toUpperCase();
   const state = getMatchState(match, now);
-  const scoreLine = displayScore(match);
-  const score = scoreLine != null ? `${scoreLine.home} - ${scoreLine.away}` : null;
+
+  const variant = useMemo(() => {
+    if (state === MATCH_STATE.LIVE) return 'live';
+    if (state === MATCH_STATE.UPCOMING) return 'upcoming';
+    return 'finished';
+  }, [state]);
+
+  const pointsEarned = useMemo(() => {
+    if (state !== MATCH_STATE.FINISHED || !match.result) return undefined;
+    return scoreGroupMatch(prediction, match.result).points;
+  }, [state, match.result, prediction]);
 
   return (
     <button
       type="button"
-      className={prediction ? 'match-card stagger-child has-prediction' : 'match-card stagger-child'}
+      className={prediction ? 'match-card has-prediction' : 'match-card'}
       onClick={onPredict}
       disabled={!onPredict}
     >
-      <div className="match-card-score">
-        <TeamBlock teamId={match.homeTeamId} />
-
-        <div className="match-card-center">
-          {state === MATCH_STATE.UPCOMING ? (
-            <>
-              <div className="match-card-group">Grupp {match.group}</div>
-              <div className="match-card-date">{dateLabel}</div>
-              <div className="match-card-time">{format(kickoff, 'HH:mm', { locale: sv })}</div>
-              {channel && (
-                <div
-                  className={`match-card-channel is-${channel.id}`}
-                  aria-label={`Sänds på ${channel.label}`}
-                >
-                  <img src={channel.logo} alt={channel.label} />
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="match-card-group">Grupp {match.group}</div>
-              <div className="match-card-scoreline">{score}</div>
-              {state === MATCH_STATE.LIVE ? (
-                <div className="match-card-badge match-card-badge--live">
-                  <span>LIVE</span>
-                  <span>{liveMatchMinute(match, now)}&apos;</span>
-                </div>
-              ) : (
-                <div className="match-card-badge match-card-badge--ft">FULLTID</div>
-              )}
-            </>
-          )}
-        </div>
-
-        <TeamBlock teamId={match.awayTeamId} />
-      </div>
-
-      {predictionLabel && (
-        <div className="match-card-prediction">
-          Din tippning {predictionLabel}
-        </div>
-      )}
+      <MatchHeroCard
+        match={match}
+        now={now}
+        variant={variant}
+        prediction={prediction}
+        pointsEarned={pointsEarned}
+      />
     </button>
   );
 }

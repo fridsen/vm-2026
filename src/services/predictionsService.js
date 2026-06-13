@@ -80,8 +80,21 @@ export async function fetchUserMatchPredictionsForDay(userId, dayKey) {
     homeTeamId: row.home_team_id,
     awayTeamId: row.away_team_id,
     kickoff: row.kickoff,
-    prediction: row.prediction,
+    prediction: normalizeMatchPrediction(row.prediction),
   }));
+}
+
+/** All match predictions for a user (leaderboard player sheet; bypasses RLS via RPC). */
+export async function fetchUserMatchPredictions(userId) {
+  const { data, error } = await supabase.rpc('fn_user_match_predictions', {
+    p_user_id: userId,
+  });
+  if (error) throw error;
+  const out = {};
+  for (const row of data ?? []) {
+    out[row.match_id] = normalizeMatchPrediction(row.prediction);
+  }
+  return out;
 }
 
 export async function saveMatchPrediction(

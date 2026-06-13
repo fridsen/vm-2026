@@ -1151,7 +1151,6 @@
     padding-bottom: var(--app-card-shadow-bleed);
   }
   /* Let carousels paint into app-main padding; app-main stays overflow-x clip so the page cannot pan sideways. */
-  .tab-slide-viewport:has(.live-matches),
   .tab-slide-viewport:has(.matches-date-carousel) {
     overflow-x: visible;
   }
@@ -1399,144 +1398,304 @@
   .matches-card-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
   }
   .match-card {
-    display: flex;
+    display: block;
     width: 100%;
-    min-height: 105px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.75);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.75);
-    padding: 16px 0 0;
-    text-align: center;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  }
-  .match-card.has-prediction {
-    min-height: 137px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-align: inherit;
+    cursor: pointer;
   }
   .match-card:disabled {
     cursor: default;
   }
-  .match-card-score {
-    display: grid;
-    width: 100%;
-    grid-template-columns: minmax(0, 1fr) 96px minmax(0, 1fr);
-    align-items: center;
-    padding: 0 16px;
-  }
-  .match-card-team {
+
+  /* ─── MATCH HERO CARD (dashboard + matches tab) ───────────── */
+  .match-hero-card {
     display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--color-white);
+    padding-top: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+  .match-hero-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 12px;
+  }
+  .match-hero-team {
+    display: flex;
+    flex: 1 1 0;
     min-width: 0;
     flex-direction: column;
     align-items: center;
     gap: 8px;
   }
-  .match-card-emblem {
+  .match-hero-team--home {
+    padding-right: 8px;
+  }
+  .match-hero-team--away {
+    padding-left: 8px;
+  }
+  .match-hero-emblem {
     display: flex;
-    height: 50px;
-    width: 50px;
+    width: 44px;
+    height: 44px;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 24px;
   }
-  .match-card-emblem img {
-    max-height: 100%;
+  .match-hero-emblem img {
     max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
   }
-  .match-card-team-name {
-    max-width: 100%;
+  .match-hero-team-name {
+    width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 16px;
+    text-align: center;
+    font-size: 14px;
     font-weight: 600;
-    line-height: 18px;
+    line-height: 16px;
     color: var(--text-primary);
   }
-  .match-card-center {
+  .match-hero-center {
     display: flex;
-    min-width: 0;
+    flex-shrink: 0;
     flex-direction: column;
     align-items: center;
+    gap: 10px;
+    text-align: center;
   }
-  .match-card-group,
-  .match-card-date {
-    font-size: 8px;
-    font-weight: 700;
-    line-height: 10px;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-  }
-  .match-card-date {
-    margin-top: 2px;
+  .match-hero-meta {
     font-size: 10px;
-    color: var(--text-secondary);
+    font-weight: 600;
+    line-height: 10px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
   }
-  .match-card-time {
-    margin-top: 3px;
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 24px;
-    color: var(--text-primary);
+  .match-hero-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--bg-container);
+    padding: 2px 12px 4px;
   }
-  .match-card-scoreline {
-    margin-top: 3px;
-    font-size: 32px;
+  .match-hero-pill-value {
+    font-size: 28px;
     font-weight: 700;
     line-height: normal;
     color: var(--text-primary);
+    white-space: nowrap;
   }
-  .match-card-badge {
+  .match-hero-pill--muted .match-hero-pill-value {
+    color: var(--text-secondary);
+  }
+  .match-hero-footer {
+    display: flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 8px 16px 10px;
+  }
+  .match-hero-prediction {
+    min-width: 0;
+    font-size: 12px;
+    line-height: 14px;
+    color: var(--text-secondary);
+  }
+  .match-hero-prediction span {
+    font-weight: 500;
+  }
+  .match-hero-prediction strong {
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .match-hero-footer-status {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .match-hero-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-top: 8px;
     border-radius: 100px;
-    padding: 3px 8px;
-    font-size: 9px;
+    white-space: nowrap;
+  }
+  .match-hero-badge--live {
+    padding: 4px 8px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 10px;
     text-transform: uppercase;
-  }
-  .match-card-badge--live {
-    gap: 4px;
     background: rgba(255, 45, 85, 0.12);
-    color: var(--colors-pink, #ff2d55);
+    color: #ff2d55;
   }
-  .match-card-badge--ft {
-    background: #f3f1f1;
-    color: #818181;
+  .match-hero-badge--points {
+    padding: 4px 8px 5px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 11px;
+    background: var(--bg-status-done);
+    color: var(--color-status-done);
   }
-  .match-card-channel {
+  .match-hero-channel {
     display: flex;
-    min-height: 16px;
     align-items: center;
     justify-content: center;
-    margin-top: 7px;
   }
-  .match-card-channel img {
-    max-height: 16px;
-    max-width: 42px;
+  .match-hero-channel img {
+    height: 14px;
+    max-width: 44px;
     object-fit: contain;
   }
-  .match-card-channel.is-svt img {
-    max-height: 12px;
-    max-width: 44px;
+  .match-hero-channel.is-svt img {
+    height: 14px;
+    width: auto;
   }
-  .match-card-prediction {
+
+  /* ─── LIVE HERO + TODAY MATCHES (dashboard) ───────────────── */
+  .live-hero-match {
     width: 100%;
-    border-top: 0.5px solid rgba(12, 22, 42, 0.08);
-    padding: 10px 16px;
+  }
+  .live-hero-match-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .today-matches-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--color-white);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  .today-matches-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 16px;
+    color: var(--text-primary);
+  }
+  .today-matches-header span:first-child {
+    font-weight: 600;
+  }
+  .today-matches-header span:last-child {
     font-size: 12px;
     font-weight: 500;
-    line-height: 12px;
-    color: var(--color-black);
+    line-height: 14px;
+    color: var(--text-secondary);
+  }
+  .today-matches-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .today-match-row {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 12px 0;
+  }
+  .today-match-row:last-child {
+    border-bottom: none;
+  }
+  .today-match-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 14px 0 16px;
+  }
+  .today-match-teams {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+  .today-match-team {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .today-match-team--away {
+    flex-direction: row;
+  }
+  .today-match-code {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 17px;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .today-match-code.is-muted,
+  .today-match-team.is-muted .today-match-code {
+    color: #a2aebc;
+  }
+  .today-match-flag {
+    font-size: 14px;
+    line-height: 1;
+  }
+  .today-match-flag.is-muted {
+    opacity: 0.5;
+  }
+  .today-match-center {
+    width: 36px;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 14px;
+    color: var(--text-primary);
+  }
+  .today-match-center.is-time {
+    color: var(--text-secondary);
+  }
+  .today-match-center.is-muted {
+    color: #a2aebc;
+  }
+  .today-match-status {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .today-match-badge {
+    display: inline-flex;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100px;
+    padding: 3px 8px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 11px;
+    white-space: nowrap;
+  }
+  .today-match-badge--points {
+    background: var(--bg-status-done);
+    color: var(--color-status-done);
+  }
+  .today-match-badge--tip {
+    background: #f5f5f5;
+    color: var(--text-secondary);
   }
 
   /* ─── DATE TICKER ─────────────────────────────────────────── */
@@ -2706,147 +2865,6 @@
   }
 
   /* ─── LIVE DASHBOARD ──────────────────────────────────────── */
-  .live-matches {
-    width: calc(100% + 2 * var(--app-inline-padding));
-    margin-inline: calc(-1 * var(--app-inline-padding));
-  }
-  .live-matches-scroll {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    scroll-padding-inline: var(--app-inline-padding);
-    padding: 0 var(--app-inline-padding) 2px;
-  }
-  .live-matches-scroll::-webkit-scrollbar {
-    display: none;
-  }
-  .live-matches-single {
-    display: flex;
-  }
-  .live-matches-empty {
-    padding: 24px 0;
-    text-align: center;
-    font-size: 14px;
-    color: var(--text-secondary);
-  }
-  .live-match-card {
-    display: block;
-    flex: 0 0 320px;
-    border-radius: 20px;
-    padding: 16px;
-    text-decoration: none;
-    color: inherit;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-    background: var(--color-white);
-  }
-  .live-match-card--single {
-    flex: 1 1 auto;
-    width: 100%;
-  }
-  .live-match-score {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .live-match-team {
-    display: flex;
-    flex: 1 1 0;
-    min-width: 0;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-  .live-match-emblem {
-    display: flex;
-    width: 50px;
-    height: 50px;
-    align-items: center;
-    justify-content: center;
-  }
-  .live-match-emblem img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-  .live-match-team-name {
-    width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: center;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: normal;
-    color: var(--text-primary);
-  }
-  .live-match-center {
-    display: flex;
-    flex: 1 1 0;
-    min-width: 0;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    text-align: center;
-  }
-  .live-match-meta {
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 10px;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-  }
-  .live-match-date {
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 10px;
-    color: var(--text-secondary);
-  }
-  .live-match-time {
-    font-size: 20px;
-    font-weight: 700;
-    line-height: normal;
-    color: var(--text-primary);
-  }
-  .live-match-scoreline {
-    font-size: 32px;
-    font-weight: 700;
-    line-height: normal;
-    color: var(--text-primary);
-  }
-  .live-match-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 100px;
-    padding: 3px 8px;
-    font-size: 9px;
-    font-weight: 700;
-    line-height: 10px;
-    text-transform: uppercase;
-  }
-  .live-match-badge--live {
-    gap: 4px;
-    background: rgba(255, 45, 85, 0.12);
-    color: var(--colors-pink, #ff2d55);
-  }
-  .live-match-badge--ft {
-    background: #f3f1f1;
-    color: #818181;
-  }
-  .live-match-channel {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .live-match-channel img {
-    width: 14px;
-    height: 14px;
-    object-fit: contain;
-  }
   .live-points-card {
     display: flex;
     gap: 24px;
@@ -3206,205 +3224,76 @@
     color: var(--color-black);
   }
 
-  .lb-row.is-selected {
-    opacity: 0;
+  /* ─── LEADERBOARD PLAYER SHEET ───────────────────────────── */
+  .lb-player-sheet {
+    max-height: min(86dvh, 686px);
   }
-  .lb-overlay-root {
-    position: fixed;
-    inset: 0;
-    z-index: 70;
-    pointer-events: none;
+  .lb-player-sheet > button[aria-label='Stäng'] span {
+    background: var(--bg-container);
   }
-  .phone-screen .lb-overlay-root {
-    position: absolute;
-  }
-  .lb-overlay-backdrop {
-    position: absolute;
-    inset: 0;
-    border: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    opacity: 0;
-    pointer-events: auto;
-    transition: opacity 360ms cubic-bezier(0.32, 0.72, 0, 1);
-  }
-  .lb-overlay-backdrop.is-open,
-  .lb-overlay-backdrop.is-entering {
-    opacity: 1;
-  }
-  .lb-overlay-backdrop.is-closing {
-    opacity: 0;
-  }
-  .lb-overlay-stage {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    pointer-events: none;
-  }
-  .lb-overlay-panel {
-    position: relative;
-    display: flex;
-    width: 100%;
-    max-height: min(80vh, 520px);
-    flex-direction: column;
-    overflow: hidden;
-    border-radius: 24px;
-    background: var(--color-white);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-    pointer-events: auto;
-    will-change: transform;
-  }
-  .lb-overlay-panel.is-closing {
-    max-height: none;
-    border-radius: 12px;
-    box-shadow: var(--shadow-card);
-  }
-  .lb-overlay-panel.is-closing .lb-overlay-header {
-    border-bottom: none;
-    padding: 10px 12px;
-  }
-  .lb-overlay-header {
+  .lb-sheet-header {
     display: flex;
     flex-shrink: 0;
-    width: 100%;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    border-bottom: 1px solid var(--border-subtle);
-    padding: 20px 16px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 12px 16px 16px;
   }
-  .lb-overlay-header .lb-row-left,
-  .lb-overlay-header .lb-row-right {
+  .lb-sheet-header-left {
     display: flex;
-    align-items: center;
-  }
-  .lb-overlay-header .lb-row-left {
     min-width: 0;
     flex: 1 1 auto;
+    align-items: center;
     gap: 12px;
   }
-  .lb-overlay-header .lb-row-right {
-    flex-shrink: 0;
-    gap: 10px;
+  .lb-sheet-rank {
+    width: 32px;
+    height: 32px;
   }
-  .lb-overlay-body-shell {
-    flex-shrink: 0;
+  .lb-sheet-name {
     overflow: hidden;
-    animation: lb-overlay-body-in 420ms cubic-bezier(0.32, 0.72, 0, 1) both;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--text-primary);
   }
-  @keyframes lb-overlay-body-in {
-    from {
-      max-height: 0;
-      opacity: 0;
-    }
-    to {
-      max-height: min(60vh, 420px);
-      opacity: 1;
-    }
-  }
-  .lb-overlay-body {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-  }
-  .lb-overlay-section-title {
+  .lb-sheet-points {
     flex-shrink: 0;
-    border-bottom: 1px solid var(--border-subtle);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 23px;
+    color: var(--color-black);
+  }
+  .lb-sheet-body {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 32px;
+  }
+  .lb-sheet-day {
+    border-top: 4px solid var(--bg-box);
+  }
+  .lb-sheet-day-title {
+    margin: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     padding: 16px 16px 12px;
     font-size: 14px;
     font-weight: 500;
-    line-height: 18px;
+    line-height: 16px;
     color: var(--text-secondary);
   }
-  .lb-overlay-matches {
-    overflow-y: auto;
-    overscroll-behavior: contain;
+  .lb-sheet-day-matches .today-match-row:last-child {
+    border-bottom: none;
   }
-  .lb-overlay-empty {
+  .lb-sheet-empty {
     padding: 24px 16px 28px;
     font-size: 14px;
     line-height: 20px;
     color: rgba(12, 22, 42, 0.55);
-  }
-  .lb-day-match {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    border-bottom: 1px solid var(--border-subtle);
-    padding: 12px 16px;
-  }
-  .lb-day-match:last-child {
-    border-bottom: none;
-  }
-  .lb-day-match-teams {
-    display: flex;
-    min-width: 0;
-    flex: 1 1 auto;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .lb-day-team {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-  }
-  .lb-day-team-color {
-    width: 2px;
-    height: 16px;
-    flex-shrink: 0;
-    border-radius: 100px;
-  }
-  .lb-day-team-flag {
-    display: flex;
-    width: 21px;
-    height: 14px;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border-radius: 2px;
-    font-size: 12px;
-    line-height: 1;
-  }
-  .lb-day-team-flag img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .lb-day-team-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 17px;
-    color: var(--text-primary);
-  }
-  .lb-day-match-picks {
-    display: flex;
-    flex-shrink: 0;
-    gap: 8px;
-    align-items: center;
-  }
-  .lb-day-pick {
-    display: inline-flex;
-    min-width: 36px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    background: var(--bg-container);
-    padding: 6px 12px 8px;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 14px;
-    color: var(--text-secondary);
-    text-align: center;
   }
   /* ─── PROFILE PAGE (Figma 203:83187) ─────────────────────── */
   .profile-page {

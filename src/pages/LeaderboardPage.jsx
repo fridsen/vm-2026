@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import LeaderboardRow from '../components/LeaderboardRow.jsx';
-import LeaderboardPlayerOverlay from '../components/LeaderboardPlayerOverlay.jsx';
+import LeaderboardPlayerSheet from '../components/LeaderboardPlayerSheet.jsx';
 import { useAllMatches } from '../hooks/useMatches.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
+import { useLockState } from '../hooks/useLockState.js';
 import {
   latestFinishedMatchId,
   ranksFromEntries,
@@ -22,19 +23,14 @@ function LeaderboardDivider() {
   );
 }
 
-function LeaderboardEntryRow({ entry, rank, movements, selected, rowRefs, openPlayer }) {
+function LeaderboardEntryRow({ entry, rank, movements, openPlayer }) {
   return (
     <LeaderboardRow
-      ref={(node) => {
-        if (node) rowRefs.current[entry.userId] = node;
-        else delete rowRefs.current[entry.userId];
-      }}
       rank={rank}
       name={entry.name}
       points={entry.points}
       movement={movements[entry.userId]}
       onPress={() => openPlayer(entry, rank)}
-      className={selected?.userId === entry.userId ? 'is-selected' : undefined}
     />
   );
 }
@@ -42,7 +38,7 @@ function LeaderboardEntryRow({ entry, rank, movements, selected, rowRefs, openPl
 export default function LeaderboardPage() {
   const { entries, loading } = useLeaderboard();
   const { matches } = useAllMatches();
-  const rowRefs = useRef({});
+  const { now } = useLockState();
   const [selected, setSelected] = useState(null);
 
   const sorted = useMemo(() => sortLeaderboardEntries(entries), [entries]);
@@ -57,15 +53,11 @@ export default function LeaderboardPage() {
   );
 
   function openPlayer(entry, rank) {
-    const node = rowRefs.current[entry.userId];
-    const anchorRect = node?.getBoundingClientRect() ?? null;
     setSelected({
       userId: entry.userId,
       name: entry.name,
       points: entry.points,
       rank,
-      movement: movements[entry.userId],
-      anchorRect,
     });
   }
 
@@ -83,8 +75,6 @@ export default function LeaderboardPage() {
               entry={entry}
               rank={ranks[entry.userId]}
               movements={movements}
-              selected={selected}
-              rowRefs={rowRefs}
               openPlayer={openPlayer}
             />
           ))}
@@ -97,8 +87,6 @@ export default function LeaderboardPage() {
                   entry={entry}
                   rank={ranks[entry.userId]}
                   movements={movements}
-                  selected={selected}
-                  rowRefs={rowRefs}
                   openPlayer={openPlayer}
                 />
               ))}
@@ -107,8 +95,10 @@ export default function LeaderboardPage() {
         </div>
       )}
 
-      <LeaderboardPlayerOverlay
+      <LeaderboardPlayerSheet
         player={selected}
+        matches={matches}
+        now={now}
         onClose={() => setSelected(null)}
       />
     </div>

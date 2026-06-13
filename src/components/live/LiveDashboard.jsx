@@ -7,7 +7,8 @@ import {
   sortLeaderboardEntries,
 } from '../../utils/leaderboardMovement.js';
 import { aggregateMatchPointsBreakdown } from '../../utils/matchPointsBreakdown.js';
-import LiveTodayMatches from './LiveTodayMatches.jsx';
+import LiveHeroMatch from './LiveHeroMatch.jsx';
+import TodayMatchesCard from '../matches/TodayMatchesCard.jsx';
 import LivePointsCard from './LivePointsCard.jsx';
 import LivePointsPerMatch from './LivePointsPerMatch.jsx';
 import LiveStatsRow from './LiveStatsRow.jsx';
@@ -43,7 +44,8 @@ export default function LiveDashboard({
 
   return (
     <div className="home-page">
-      <LiveTodayMatches matches={matches} now={now} />
+      <LiveHeroMatch matches={matches} now={now} predictions={predictions} />
+      <TodayMatchesCard matches={matches} now={now} predictions={predictions} />
       <LivePointsCard totalPoints={myEntry?.points ?? 0} rows={breakdown.totalRows} />
       <LiveStatsRow
         rank={myRank}
