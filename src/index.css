@@ -1,3 +1,5 @@
+@import './components/teletext/teletext.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1890,6 +1892,49 @@
     line-height: 22px;
     letter-spacing: -0.2px;
     color: var(--color-black);
+  }
+
+  .theme-switcher {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    border-radius: 100px;
+    background: var(--color-white);
+  }
+
+  .theme-switcher__option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-white);
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .theme-switcher__option.is-active {
+    background: var(--color-lime);
+  }
+
+  .theme-switcher__option img {
+    display: block;
+    height: 16px;
+    width: auto;
+    max-width: 11px;
+    object-fit: contain;
+    pointer-events: none;
+  }
+
+  .theme-switcher__teletext-icon {
+    display: block;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
   }
   .home-bell {
     display: flex;

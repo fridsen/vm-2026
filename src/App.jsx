@@ -15,6 +15,8 @@ import AdminPredictionHistoryPage from './pages/AdminPredictionHistoryPage.jsx';
 import AdminSyncPage from './pages/AdminSyncPage.jsx';
 import PortraitGate from './components/PortraitGate.jsx';
 import AppUpdatePrompt from './components/AppUpdatePrompt.jsx';
+import TeletextLayout from './components/teletext/TeletextLayout.jsx';
+import ThemeProvider from './components/teletext/ThemeProvider.jsx';
 
 export default function App() {
   return (
@@ -25,7 +27,9 @@ export default function App() {
           <PortraitGate />
           <AppDataProvider>
           <BrowserRouter>
+          <ThemeProvider>
           <Routes>
+            <Route path="/t/:page" element={<TeletextLayout />} />
             <Route path="/" element={<Layout />}>
               <Route index element={<DashboardPage />} />
               <Route path="matcher" element={<MatchesPage />} />
@@ -39,6 +43,7 @@ export default function App() {
               <Route path="admin/tipphistorik" element={<AdminPredictionHistoryPage />} />
             </Route>
           </Routes>
+          </ThemeProvider>
           </BrowserRouter>
           </AppDataProvider>
         </AuthGate>

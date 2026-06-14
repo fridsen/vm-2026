@@ -23,7 +23,7 @@ describe('selectHeroMatch', () => {
     expect(result).toEqual({ match: early, variant: HERO_VARIANT.LIVE });
   });
 
-  it('picks recently finished within 1 hour', () => {
+  it('picks recently finished within 1 hour when next kickoff is more than 30 min away', () => {
     const finishedAt = now - 30 * 60 * 1000;
     const kickoff = new Date(finishedAt - MATCH_DURATION_MS).toISOString();
     const recent = match('ft', kickoff, {
@@ -33,6 +33,18 @@ describe('selectHeroMatch', () => {
     const upcoming = match('up', '2026-06-15T22:00:00Z');
     const result = selectHeroMatch([upcoming, recent], now);
     expect(result).toEqual({ match: recent, variant: HERO_VARIANT.RECENT_FINISHED });
+  });
+
+  it('prefers upcoming within 30 minutes over recently finished', () => {
+    const finishedAt = now - 30 * 60 * 1000;
+    const kickoff = new Date(finishedAt - MATCH_DURATION_MS).toISOString();
+    const recent = match('ft', kickoff, {
+      status: 'finished',
+      result: { home: 2, away: 1 },
+    });
+    const upcoming = match('up', new Date(now + 30 * 60 * 1000).toISOString());
+    const result = selectHeroMatch([upcoming, recent], now);
+    expect(result).toEqual({ match: upcoming, variant: HERO_VARIANT.UPCOMING });
   });
 
   it('skips finished matches older than 1 hour', () => {

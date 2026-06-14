@@ -5,6 +5,7 @@ import {
 } from './matchSchedule.js';
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
+const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
 export const HERO_VARIANT = {
   LIVE: 'live',
@@ -41,22 +42,34 @@ function pickNextUpcoming(matches, now) {
     .sort((a, b) => a.kickoff.localeCompare(b.kickoff))[0];
 }
 
+function isKickoffWithin30Minutes(match, now) {
+  const kickoffMs = new Date(match.kickoff).getTime();
+  const untilKickoff = kickoffMs - now;
+  return untilKickoff >= 0 && untilKickoff <= THIRTY_MINUTES_MS;
+}
+
 /**
  * Select a single hero match for the dashboard.
- * Priority: live → finished within 1h → next upcoming.
+ * Priority: live → upcoming within 30m → finished within 1h → next upcoming.
  */
 export function selectHeroMatch(matches, now = Date.now()) {
-  const live = pickEarliestLive(matches ?? [], now);
+  const list = matches ?? [];
+
+  const live = pickEarliestLive(list, now);
   if (live) {
     return { match: live, variant: HERO_VARIANT.LIVE };
   }
 
-  const recentFinished = pickMostRecentFinished(matches ?? [], now);
+  const upcoming = pickNextUpcoming(list, now);
+  if (upcoming && isKickoffWithin30Minutes(upcoming, now)) {
+    return { match: upcoming, variant: HERO_VARIANT.UPCOMING };
+  }
+
+  const recentFinished = pickMostRecentFinished(list, now);
   if (recentFinished) {
     return { match: recentFinished, variant: HERO_VARIANT.RECENT_FINISHED };
   }
 
-  const upcoming = pickNextUpcoming(matches ?? [], now);
   if (upcoming) {
     return { match: upcoming, variant: HERO_VARIANT.UPCOMING };
   }

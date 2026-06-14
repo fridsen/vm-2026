@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { getTabHeaderMeta } from '../constants/navTabs.js';
 import RulesSheet from './RulesSheet.jsx';
+import { DefaultThemeToggle } from './teletext/ThemeToggle.jsx';
 import infoIcon from '../assets/info-icon.svg';
 
 export default function AppTabHeader() {
@@ -35,6 +36,7 @@ export default function AppTabHeader() {
             <div className="home-name">{firstName}</div>
           </div>
         </Link>
+        <DefaultThemeToggle />
       </header>
     );
   }
