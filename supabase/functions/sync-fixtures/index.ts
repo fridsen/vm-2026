@@ -40,6 +40,7 @@ import {
   scoreFieldsForFullSync,
   type ExistingScoreRow,
 } from '../_shared/scoreFields.ts';
+import { buildLiveScorePatch } from '../_shared/liveScorePatch.ts';
 import {
   anyInLiveSyncWindow,
   POST_MATCH_MS,
@@ -107,34 +108,17 @@ async function upsertLiveScores(
       .maybeSingle();
     if (loadErr) throw new Error(`${table} live lookup: ${loadErr.message}`);
 
+    const scorePatch = buildLiveScorePatch(existing, {
+      homeScore: f.homeScore,
+      awayScore: f.awayScore,
+      status: f.status,
+    });
+    if (!scorePatch) continue;
+
     const patch: Record<string, unknown> = {
+      ...scorePatch,
       updated_at: new Date().toISOString(),
     };
-
-    // Never wipe or downgrade live goals — football-data.org lags during WC.
-    if (f.homeScore != null && f.awayScore != null) {
-      const newTotal = f.homeScore + f.awayScore;
-      const existingTotal =
-        (existing?.home_score ?? 0) + (existing?.away_score ?? 0);
-      const wouldDowngrade =
-        existing?.status === 'in_play' && newTotal < existingTotal;
-      if (!wouldDowngrade) {
-        patch.home_score = f.homeScore;
-        patch.away_score = f.awayScore;
-      }
-    }
-    const hasIncomingScores = f.homeScore != null && f.awayScore != null;
-    const hasExistingScores =
-      existing?.home_score != null && existing?.away_score != null;
-    if (f.status === 'finished' && (hasIncomingScores || hasExistingScores)) {
-      patch.status = 'finished';
-    } else if (
-      existing?.status !== 'finished' &&
-      (f.status === 'in_play' || hasIncomingScores || hasExistingScores)
-    ) {
-      // football-data often returns TIMED/scheduled with scores during live play.
-      patch.status = 'in_play';
-    }
 
     const { data, error } = await supabase
       .from(table)
@@ -233,6 +217,17 @@ async function syncLive(): Promise<SyncReport> {
       console.error('[sync-fixtures] finalize stale matches failed:', err);
     }
 
+    // Reconcile recently finished matches even outside the live window — late
+    // goals or auto-finalize can leave wrong FT scores until the provider catches up.
+    if (provider.fetchRecentFixtures) {
+      try {
+        const recent = await provider.fetchRecentFixtures();
+        liveUpdated += await upsertLiveScores(supabase, recent);
+      } catch (err) {
+        console.error('[sync-fixtures] recent finished reconcile failed:', err);
+      }
+    }
+
     return {
       ok: true,
       mode: 'live',
@@ -280,6 +275,15 @@ async function syncLive(): Promise<SyncReport> {
     liveUpdated += await finalizeStaleInPlayMatches(supabase);
   } catch (err) {
     console.error('[sync-fixtures] finalize stale matches failed:', err);
+  }
+
+  if (provider.fetchRecentFixtures) {
+    try {
+      const recent = await provider.fetchRecentFixtures();
+      liveUpdated += await upsertLiveScores(supabase, recent);
+    } catch (err) {
+      console.error('[sync-fixtures] recent finished reconcile failed:', err);
+    }
   }
 
   return {

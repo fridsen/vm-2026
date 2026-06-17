@@ -97,8 +97,10 @@ function liveMinuteFromFixture(statusShort: string, elapsed: number | null): num
   return null;
 }
 
-function utcToday(): string {
-  return new Date().toISOString().slice(0, 10);
+function utcDateOffset(days: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 async function fetchApiFootball(
@@ -238,10 +240,14 @@ export async function upsertApiFootballTodayFixtures(
   supabase: ReturnType<typeof createClient>,
   apiKey: string,
 ): Promise<number> {
-  const today = utcToday();
-  const fixtures = await fetchApiFootball(
-    apiKey,
-    `/fixtures?date=${today}&league=${WC_LEAGUE_ID}&season=${WC_SEASON}`,
-  );
-  return upsertFixtures(supabase, fixtures);
+  const dates = [utcDateOffset(-1), utcDateOffset(0)];
+  let updated = 0;
+  for (const date of dates) {
+    const fixtures = await fetchApiFootball(
+      apiKey,
+      `/fixtures?date=${date}&league=${WC_LEAGUE_ID}&season=${WC_SEASON}`,
+    );
+    updated += await upsertFixtures(supabase, fixtures);
+  }
+  return updated;
 }

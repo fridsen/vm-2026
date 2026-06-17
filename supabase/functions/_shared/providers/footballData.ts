@@ -142,8 +142,21 @@ function mapMatch(m: ApiMatch): ProviderFixture {
   };
 }
 
-function utcToday(): string {
-  return new Date().toISOString().slice(0, 10);
+/** How far back to reconcile finished scores after auto-finalize / UTC day rollover. */
+const RECENT_FINISHED_MS = 48 * 60 * 60 * 1000;
+
+function isRecentKickoff(utcDate: string, now = Date.now()): boolean {
+  const kickoff = new Date(utcDate).getTime();
+  return !Number.isNaN(kickoff) && now - kickoff <= RECENT_FINISHED_MS;
+}
+
+function isLiveOrScoredMatch(m: ApiMatch): boolean {
+  return (
+    m.status === 'IN_PLAY' ||
+    m.status === 'PAUSED' ||
+    m.status === 'FINISHED' ||
+    scoresFromApi(m.score).homeScore != null
+  );
 }
 
 export class FootballDataProvider implements FootballProvider {
@@ -195,23 +208,30 @@ export class FootballDataProvider implements FootballProvider {
   }
 
   /**
-   * Today's WC matches from the competition list.
-   * The date-filtered /matches endpoint often returns empty for WC; filter
-   * client-side instead. Scores may still be null while TIMED — use
-   * api-football live sync as the primary live source when configured.
+   * WC matches in the live window plus recent kickoffs with scores.
+   * UTC "today" alone misses US evening games after midnight UTC.
    */
   async fetchLiveFixtures(): Promise<ProviderFixture[]> {
-    const today = utcToday();
+    const now = Date.now();
     const json = await this.get<MatchesResp>(
       `/competitions/${COMPETITION}/matches`,
     );
     return json.matches
-      .filter((m) => m.utcDate.startsWith(today))
+      .filter((m) => isRecentKickoff(m.utcDate, now) && isLiveOrScoredMatch(m))
+      .map(mapMatch);
+  }
+
+  /** Finished matches from the last 48h — used to correct wrong FT scores. */
+  async fetchRecentFixtures(): Promise<ProviderFixture[]> {
+    const now = Date.now();
+    const json = await this.get<MatchesResp>(
+      `/competitions/${COMPETITION}/matches`,
+    );
+    return json.matches
       .filter(
         (m) =>
-          m.status === 'IN_PLAY' ||
-          m.status === 'PAUSED' ||
-          m.status === 'FINISHED' ||
+          isRecentKickoff(m.utcDate, now) &&
+          m.status === 'FINISHED' &&
           scoresFromApi(m.score).homeScore != null,
       )
       .map(mapMatch);

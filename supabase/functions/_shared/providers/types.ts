@@ -43,5 +43,7 @@ export interface FootballProvider {
   fetchFixtures(): Promise<ProviderFixture[]>;
   /** Optional lightweight poll for today's live scores (football-data.org). */
   fetchLiveFixtures?(): Promise<ProviderFixture[]>;
+  /** Finished fixtures from the last ~48h — for correcting late FT scores. */
+  fetchRecentFixtures?(): Promise<ProviderFixture[]>;
   fetchTopScorers(): Promise<ProviderTopScorer[]>;
 }
