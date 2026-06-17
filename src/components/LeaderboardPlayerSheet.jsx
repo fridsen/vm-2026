@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import BottomSheet from './BottomSheet.jsx';
@@ -6,11 +6,18 @@ import TodayMatchRow from './matches/TodayMatchRow.jsx';
 import { RankBadge } from './LeaderboardRowFace.jsx';
 import { fetchUserMatchPredictions } from '../services/predictionsService.js';
 import { buildMatchDays } from '../utils/matchDays.js';
+import {
+  leaderboardSheetScrollDayKey,
+  scrollSectionToTop,
+} from '../utils/leaderboardSheetScroll.js';
 
 export default function LeaderboardPlayerSheet({ player, matches, now, onClose }) {
   const open = player != null;
   const [predictions, setPredictions] = useState({});
   const [loading, setLoading] = useState(false);
+  const [sheetPhase, setSheetPhase] = useState(null);
+  const bodyRef = useRef(null);
+  const dayRefs = useRef(new Map());
 
   useEffect(() => {
     if (!open || !player?.userId) return undefined;
@@ -36,11 +43,43 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
   }, [open, player?.userId]);
 
   const days = useMemo(() => buildMatchDays(matches), [matches]);
+  const scrollDayKey = useMemo(
+    () => leaderboardSheetScrollDayKey(days, now),
+    [days, now],
+  );
+
+  useLayoutEffect(() => {
+    if (!open || loading || sheetPhase !== 'idle' || !scrollDayKey) return undefined;
+
+    const container = bodyRef.current;
+    const section = dayRefs.current.get(scrollDayKey);
+    if (!container || !section) return undefined;
+
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        scrollSectionToTop(container, section);
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [open, loading, sheetPhase, scrollDayKey, player?.userId]);
+
+  useEffect(() => {
+    if (!open) {
+      dayRefs.current.clear();
+      if (bodyRef.current) bodyRef.current.scrollTop = 0;
+    }
+  }, [open]);
 
   return (
     <BottomSheet
       open={open}
       onClose={onClose}
+      onPhaseChange={setSheetPhase}
       labelledBy="lb-sheet-player-name"
       padded={false}
       className="lb-player-sheet"
@@ -57,14 +96,22 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
             <span className="lb-sheet-points">{player.points}</span>
           </header>
 
-          <div className="lb-sheet-body">
+          <div ref={bodyRef} className="lb-sheet-body">
             {loading ? (
               <p className="lb-sheet-empty">Laddar…</p>
             ) : days.length === 0 ? (
               <p className="lb-sheet-empty">Inga matcher att visa</p>
             ) : (
               days.map((day) => (
-                <section key={day.dayKey} className="lb-sheet-day">
+                <section
+                  key={day.dayKey}
+                  ref={(node) => {
+                    if (node) dayRefs.current.set(day.dayKey, node);
+                    else dayRefs.current.delete(day.dayKey);
+                  }}
+                  className="lb-sheet-day"
+                  data-day-key={day.dayKey}
+                >
                   <h3 className="lb-sheet-day-title">
                     {format(day.date, 'EEEE d MMMM', { locale: sv })}
                   </h3>

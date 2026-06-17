@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
+import { useAppData } from '../hooks/useAppData.js';
 import AnimatedTabOutlet from './AnimatedTabOutlet.jsx';
 import AddToHomeScreenPrompt from './AddToHomeScreenPrompt.jsx';
 import AppOnboarding, {
@@ -9,8 +10,10 @@ import AppOnboarding, {
 } from './AppOnboarding.jsx';
 import { DesktopNav, MobileBottomNav } from './NavBar.jsx';
 import { usePhoneFrame } from '../hooks/usePhoneFrame.js';
+import { usePullToRefresh } from '../hooks/usePullToRefresh.js';
 import { useVisualViewportFooter } from '../hooks/useVisualViewportFooter.js';
 import PaymentReminderToast from './PaymentReminderToast.jsx';
+import PullToRefreshIndicator from './PullToRefreshIndicator.jsx';
 
 function PhoneFrameToggle({ on, onToggle }) {
   return (
@@ -35,6 +38,21 @@ export default function Layout() {
   const [appOnboardingOpen, setAppOnboardingOpen] = useState(false);
   const isHome = location.pathname === '/';
   const userId = user?.id;
+  const { refreshLiveData, refreshNews, refreshPredictions } = useAppData();
+
+  const handlePullRefresh = useCallback(async () => {
+    await Promise.all([
+      refreshLiveData(),
+      refreshNews({ force: true }),
+      refreshPredictions(),
+    ]);
+  }, [refreshLiveData, refreshNews, refreshPredictions]);
+
+  const { pullDistance, refreshing, active: pullToRefreshActive } = usePullToRefresh({
+    onRefresh: handlePullRefresh,
+    enabled: !appOnboardingOpen,
+    scrollRootRef: phoneFrame ? mainRef : null,
+  });
 
   useVisualViewportFooter(!phoneFrame);
 
@@ -74,6 +92,11 @@ export default function Layout() {
       <div className="phone-frame-host">
         <div className="phone-bezel">
           <div className="phone-screen">
+            <PullToRefreshIndicator
+              pullDistance={pullDistance}
+              refreshing={refreshing}
+              active={pullToRefreshActive}
+            />
             <main ref={mainRef} className="app-main flex-1 overflow-x-clip overflow-y-auto px-4 pt-6">
               <AnimatedTabOutlet />
             </main>
@@ -95,6 +118,11 @@ export default function Layout() {
 
   return (
     <>
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        refreshing={refreshing}
+        active={pullToRefreshActive}
+      />
       <div className="app-layout flex w-full items-start md:min-h-screen">
         <DesktopNav />
         <div className="app-shell flex min-h-dvh w-full min-w-0 flex-1 flex-col md:min-h-screen">

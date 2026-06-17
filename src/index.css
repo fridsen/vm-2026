@@ -3520,6 +3520,71 @@
     .app-main {
       padding-bottom: var(--app-tab-bar-total);
     }
+
+    html.ptr-pulling .app-layout,
+    html.ptr-pulling .phone-screen {
+      transform: translateY(var(--ptr-pull, 0px));
+      transition: none;
+    }
+
+    html.ptr-releasing .app-layout,
+    html.ptr-releasing .phone-screen {
+      transform: translateY(0);
+      transition: transform 0.22s ease;
+    }
+  }
+
+  .ptr-indicator {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    left: 50%;
+    z-index: 70;
+    display: flex;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.94);
+    padding: 8px 14px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-8px);
+    box-shadow: 0 4px 16px rgba(12, 22, 42, 0.12);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .ptr-indicator--visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .ptr-indicator__spinner {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    border: 2px solid rgba(12, 22, 42, 0.12);
+    border-top-color: var(--color-lime);
+    border-radius: 50%;
+    transform: rotate(calc(var(--ptr-progress, 0) * 300deg));
+  }
+
+  .ptr-indicator--refreshing .ptr-indicator__spinner {
+    animation: ptr-spin 0.7s linear infinite;
+  }
+
+  .ptr-indicator__label {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  @keyframes ptr-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
   @media (min-width: 768px) {
     .app-main {
