@@ -31,6 +31,9 @@ export default function TodayMatchRow({
   prediction,
   /** Leaderboard sheet: show tip pill alongside points for finished matches. */
   showTipWithPoints = false,
+  revealPending = false,
+  onReveal,
+  onSkip,
 }) {
   const { getTeamById } = useTeams();
   const state = getMatchState(match, now);
@@ -38,6 +41,7 @@ export default function TodayMatchRow({
   const scoreLine = displayScore(match);
   const isFinished = state === MATCH_STATE.FINISHED;
   const isUpcoming = state === MATCH_STATE.UPCOMING;
+  const showReveal = revealPending && isFinished;
 
   const homeTeam = getTeamById(match.homeTeamId);
   const awayTeam = getTeamById(match.awayTeamId);
@@ -54,34 +58,63 @@ export default function TodayMatchRow({
       ? `${scoreLine.home}-${scoreLine.away}`
       : '–';
 
-  const showPoints = isFinished && pointsEarned != null;
+  const showPoints = isFinished && pointsEarned != null && !showReveal;
   const showTip = Boolean(tipLabel) && (!isFinished || showTipWithPoints);
 
   return (
     <div className={clsx('today-match-row', isFinished && 'is-finished')}>
       <div className="today-match-main">
         <div className="today-match-teams">
-          <TeamCode teamId={match.homeTeamId} muted={isFinished} />
-          <span
-            className={clsx(
-              'today-match-center',
-              isUpcoming && 'is-time',
-              isFinished && 'is-muted',
-            )}
-          >
-            {centerValue}
-          </span>
+          <TeamCode teamId={match.homeTeamId} muted={isFinished && !showReveal} />
+          {showReveal ? (
+            <button
+              type="button"
+              className="today-match-reveal-btn"
+              onClick={() => onReveal?.(match.id)}
+            >
+              <span className="today-match-reveal-dot" aria-hidden />
+              Visa resultat
+            </button>
+          ) : (
+            <span
+              className={clsx(
+                'today-match-center',
+                isUpcoming && 'is-time',
+                isFinished && 'is-muted',
+              )}
+            >
+              {centerValue}
+            </span>
+          )}
           <div className="today-match-team today-match-team--away">
-            <span className={clsx('today-match-flag', isFinished && 'is-muted')} aria-hidden>
+            <span
+              className={clsx('today-match-flag', isFinished && !showReveal && 'is-muted')}
+              aria-hidden
+            >
               {awayTeam?.flag ?? '?'}
             </span>
-            <span className={clsx('today-match-code', isFinished && 'is-muted')}>
+            <span
+              className={clsx('today-match-code', isFinished && !showReveal && 'is-muted')}
+            >
               {awayTeam?.code ?? '?'}
             </span>
           </div>
         </div>
 
         <div className="today-match-status">
+          {showReveal ? (
+            <>
+              <button
+                type="button"
+                className="today-match-skip-btn"
+                aria-label="Hoppa över"
+                onClick={() => onSkip?.(match.id)}
+              >
+                ⏭
+              </button>
+              <span className="today-match-badge today-match-badge--unseen">?</span>
+            </>
+          ) : null}
           {showTip ? (
             <span className="today-match-badge today-match-badge--tip">{tipLabel}</span>
           ) : null}

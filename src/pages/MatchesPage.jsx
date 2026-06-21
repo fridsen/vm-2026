@@ -6,6 +6,7 @@ import { useLockState } from '../hooks/useLockState.js';
 import { usePredictions } from '../hooks/usePredictions.js';
 import MatchCard from '../components/MatchCard.jsx';
 import PredictionSheet from '../components/PredictionSheet.jsx';
+import { useResultReveal } from '../hooks/useResultReveal.js';
 import { buildMatchDays } from '../utils/matchDays.js';
 import { getMatchDayKey } from '../utils/matchSchedule.js';
 
@@ -13,6 +14,7 @@ export default function MatchesPage() {
   const { matches, loading } = useAllMatches();
   const { now, groupLocked } = useLockState();
   const { predictions, updateMatch } = usePredictions();
+  const { isRevealPending, openReveal, skipReveal } = useResultReveal();
   const [predictMatch, setPredictMatch] = useState(null);
   const chipRefs = useRef(new Map());
 
@@ -98,6 +100,9 @@ export default function MatchesPage() {
               now={now}
               prediction={predictions?.matches?.[match.id]}
               onPredict={groupLocked ? undefined : () => setPredictMatch(match)}
+              revealPending={isRevealPending(match, now)}
+              onReveal={openReveal}
+              onSkip={skipReveal}
             />
           ))
         ) : (

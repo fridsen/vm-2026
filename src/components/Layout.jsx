@@ -14,6 +14,9 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh.js';
 import { useVisualViewportFooter } from '../hooks/useVisualViewportFooter.js';
 import PaymentReminderToast from './PaymentReminderToast.jsx';
 import PullToRefreshIndicator from './PullToRefreshIndicator.jsx';
+import ResultRevealProvider from './resultReveal/ResultRevealProvider.jsx';
+import ResultRevealDevTools from './resultReveal/ResultRevealDevTools.jsx';
+import { useResultReveal } from '../hooks/useResultReveal.js';
 
 function PhoneFrameToggle({ on, onToggle }) {
   return (
@@ -29,7 +32,7 @@ function PhoneFrameToggle({ on, onToggle }) {
   );
 }
 
-export default function Layout() {
+function LayoutShell() {
   const { phoneFrame, toggle } = usePhoneFrame();
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -39,6 +42,7 @@ export default function Layout() {
   const isHome = location.pathname === '/';
   const userId = user?.id;
   const { refreshLiveData, refreshNews, refreshPredictions } = useAppData();
+  const { isOverlayOpen } = useResultReveal();
 
   const handlePullRefresh = useCallback(async () => {
     await Promise.all([
@@ -50,14 +54,12 @@ export default function Layout() {
 
   const { pullDistance, refreshing, active: pullToRefreshActive } = usePullToRefresh({
     onRefresh: handlePullRefresh,
-    enabled: !appOnboardingOpen,
+    enabled: !appOnboardingOpen && !isOverlayOpen,
     scrollRootRef: phoneFrame ? mainRef : null,
   });
 
   useVisualViewportFooter(!phoneFrame);
 
-  // BrowserRouter is unmounted during auth onboarding, so the address bar can
-  // still point at /profile (or elsewhere). New users should start on Hem.
   useEffect(() => {
     if (!userId || !shouldShowAppOnboarding(userId, profile)) return;
     if (location.pathname !== '/') {
@@ -107,6 +109,7 @@ export default function Layout() {
           </div>
         </div>
         <PhoneFrameToggle on onToggle={toggle} />
+        <ResultRevealDevTools />
         <PaymentReminderToast />
         <AppOnboarding
           open={appOnboardingOpen}
@@ -139,11 +142,20 @@ export default function Layout() {
         <AddToHomeScreenPrompt />
         <MobileBottomNav />
       </div>
+      <ResultRevealDevTools />
       <PaymentReminderToast />
       <AppOnboarding
         open={appOnboardingOpen}
         onComplete={() => setAppOnboardingOpen(false)}
       />
     </>
+  );
+}
+
+export default function Layout() {
+  return (
+    <ResultRevealProvider>
+      <LayoutShell />
+    </ResultRevealProvider>
   );
 }

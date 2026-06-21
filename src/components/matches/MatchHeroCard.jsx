@@ -54,6 +54,9 @@ export default function MatchHeroCard({
   prediction,
   pointsEarned,
   className,
+  revealPending = false,
+  onReveal,
+  onSkip,
 }) {
   const { getTeamById } = useTeams();
   const state = getMatchState(match, now);
@@ -94,7 +97,9 @@ export default function MatchHeroCard({
 
   const showChannel = resolvedVariant === 'upcoming' && channel;
   const showFooterBadge =
-    resolvedVariant === 'live' || pointsEarned != null;
+    !revealPending && (resolvedVariant === 'live' || pointsEarned != null);
+
+  const showReveal = revealPending && resolvedVariant === 'finished';
 
   return (
     <div className={clsx('match-hero-card', className)}>
@@ -103,7 +108,32 @@ export default function MatchHeroCard({
 
         <div className="match-hero-center">
           <p className="match-hero-meta">{metaLabel}</p>
-          {pillValue != null && (
+          {showReveal ? (
+            <div className="match-hero-reveal">
+              <button
+                type="button"
+                className="match-hero-reveal-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReveal?.(match.id);
+                }}
+              >
+                <span className="today-match-reveal-dot" aria-hidden />
+                Visa resultat
+              </button>
+              <button
+                type="button"
+                className="match-hero-skip-btn"
+                aria-label="Hoppa över"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSkip?.(match.id);
+                }}
+              >
+                ⏭
+              </button>
+            </div>
+          ) : pillValue != null ? (
             <div
               className={clsx(
                 'match-hero-pill',
@@ -112,7 +142,7 @@ export default function MatchHeroCard({
             >
               <span className="match-hero-pill-value">{pillValue}</span>
             </div>
-          )}
+          ) : null}
         </div>
 
         <TeamBlock teamId={match.awayTeamId} className="match-hero-team--away" />
