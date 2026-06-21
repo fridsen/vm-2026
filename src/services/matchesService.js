@@ -3,6 +3,7 @@
 
 import { supabase, unwrap } from './supabaseClient.js';
 import { groupMatchScheduleForTeams } from '../data/groupMatchSchedule.js';
+import { correctedMatchResult } from '../data/scoreCorrections.js';
 
 export const KNOCKOUT_ROUNDS = ['R32', 'R16', 'QF', 'SF', 'BRONZE', 'FINAL'];
 
@@ -12,7 +13,8 @@ function scoresFromRow(r) {
 }
 
 function rowToMatch(r) {
-  const scores = scoresFromRow(r);
+  const rawScores = scoresFromRow(r);
+  const scores = rawScores ? correctedMatchResult(r.id, rawScores) : null;
   const isFinished = r.status === 'finished';
   const schedule = groupMatchScheduleForTeams(r.home_team_id, r.away_team_id);
 

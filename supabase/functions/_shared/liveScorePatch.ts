@@ -31,16 +31,11 @@ export function buildLiveScorePatch(
     existing?.home_score != null && existing?.away_score != null;
 
   if (hasIncomingScores) {
-    const newTotal = incoming.homeScore! + incoming.awayScore!;
-    const existingTotal =
-      (existing?.home_score ?? 0) + (existing?.away_score ?? 0);
-    const wouldDowngrade =
-      existing?.status === 'in_play' && newTotal < existingTotal;
     const scoresDiffer =
       existing?.home_score !== incoming.homeScore ||
       existing?.away_score !== incoming.awayScore;
 
-    if (!wouldDowngrade && scoresDiffer) {
+    if (scoresDiffer) {
       patch.home_score = incoming.homeScore!;
       patch.away_score = incoming.awayScore!;
     }

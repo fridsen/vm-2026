@@ -8,6 +8,7 @@ import { useAuth } from '../../hooks/useAuth.js';
 import { aggregateMatchPointsBreakdown } from '../../utils/matchPointsBreakdown.js';
 import { buildPerMatchPoints } from '../../utils/matchPointsPerGame.js';
 import {
+  finishedMatchResultsSignature,
   latestFinishedMatchId,
   rankForUser,
   resolveRankMovements,
@@ -71,10 +72,14 @@ export default function TeletextDashboardPage() {
 
   const sortedEntries = useMemo(() => sortLeaderboardEntries(entries), [entries]);
   const latestMatchId = useMemo(() => latestFinishedMatchId(matches), [matches]);
+  const resultsSignature = useMemo(
+    () => finishedMatchResultsSignature(matches),
+    [matches],
+  );
   const myMovement = useMemo(() => {
-    const movements = resolveRankMovements(sortedEntries, latestMatchId);
+    const movements = resolveRankMovements(sortedEntries, latestMatchId, resultsSignature);
     return user?.id ? movements[user.id] : undefined;
-  }, [sortedEntries, latestMatchId, user?.id]);
+  }, [sortedEntries, latestMatchId, resultsSignature, user?.id]);
   const latestMatchPoints = useMemo(() => {
     if (!latestMatchId) return null;
     const match = matches.find((m) => m.id === latestMatchId);

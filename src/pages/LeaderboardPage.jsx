@@ -5,6 +5,7 @@ import { useAllMatches } from '../hooks/useMatches.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import { useLockState } from '../hooks/useLockState.js';
 import {
+  finishedMatchResultsSignature,
   latestFinishedMatchId,
   ranksFromEntries,
   resolveRankMovements,
@@ -47,9 +48,14 @@ export default function LeaderboardPage() {
 
   const anchorMatchId = useMemo(() => latestFinishedMatchId(matches), [matches]);
 
+  const resultsSignature = useMemo(
+    () => finishedMatchResultsSignature(matches),
+    [matches],
+  );
+
   const movements = useMemo(
-    () => resolveRankMovements(sorted, anchorMatchId),
-    [sorted, anchorMatchId],
+    () => resolveRankMovements(sorted, anchorMatchId, resultsSignature),
+    [sorted, anchorMatchId, resultsSignature],
   );
 
   function openPlayer(entry, rank) {
