@@ -10,13 +10,14 @@ import {
   saveWorldCupTopThree,
 } from '../services/predictionsService.js';
 import { fetchLatestNews, getCachedNews, NEWS_ARTICLE_LIMIT } from '../services/newsService.js';
+import { fetchEventsForMatches } from '../services/matchEventsService.js';
 import { interleaveNewsBySource } from '../utils/interleaveNewsBySource.js';
 import { liveDataPollIntervalMs } from '../utils/liveDataRefresh.js';
 import { hasStaleLiveMatches } from '../utils/staleLiveMatches.js';
 import {
   finishedMatchesSignature,
-  latestFinishedMatchId,
 } from '../utils/leaderboardMovement.js';
+import { MATCH_STATE, getMatchState } from '../utils/matchSchedule.js';
 import { NEWS_CACHE_TTL_MS, readNewsCache } from '../utils/newsCache.js';
 
 export default function AppDataProvider({ children }) {
@@ -39,22 +40,41 @@ export default function AppDataProvider({ children }) {
   });
   const [newsLoading, setNewsLoading] = useState(() => getCachedNews(NEWS_ARTICLE_LIMIT) == null);
 
+  const [matchEventsById, setMatchEventsById] = useState({});
+
   const groupMatchesRef = useRef(groupMatches);
   const knockoutMatchesRef = useRef(knockoutMatches);
   groupMatchesRef.current = groupMatches;
   knockoutMatchesRef.current = knockoutMatches;
+
+  const refreshMatchEvents = useCallback(async (matches, now = Date.now()) => {
+    const finishedIds = (matches ?? [])
+      .filter((m) => getMatchState(m, now) === MATCH_STATE.FINISHED)
+      .map((m) => m.id);
+    if (finishedIds.length === 0) {
+      setMatchEventsById({});
+      return;
+    }
+    try {
+      const events = await fetchEventsForMatches(finishedIds);
+      setMatchEventsById(events);
+    } catch {
+      /* keep cached events on transient failures */
+    }
+  }, []);
 
   const refreshMatches = useCallback(async () => {
     try {
       const [group, knockout] = await Promise.all([fetchAllMatches(), fetchKnockoutMatches()]);
       setGroupMatches(group);
       setKnockoutMatches(knockout);
+      await refreshMatchEvents(group);
     } catch {
       /* keep cached data on transient failures */
     } finally {
       setMatchesLoading(false);
     }
-  }, []);
+  }, [refreshMatchEvents]);
 
   const refreshLeaderboard = useCallback(async () => {
     try {
@@ -77,6 +97,7 @@ export default function AppDataProvider({ children }) {
       const [group, knockout] = await Promise.all([fetchAllMatches(), fetchKnockoutMatches()]);
       setGroupMatches(group);
       setKnockoutMatches(knockout);
+      await refreshMatchEvents(group);
       const nextSignature = finishedMatchesSignature(group, knockout);
       if (nextSignature !== prevSignature) {
         const data = await fetchLeaderboard();
@@ -88,7 +109,7 @@ export default function AppDataProvider({ children }) {
       setMatchesLoading(false);
       setLeaderboardLoading(false);
     }
-  }, []);
+  }, [refreshMatchEvents]);
 
   const refreshNews = useCallback(async ({ force = false } = {}) => {
     try {
@@ -299,6 +320,7 @@ export default function AppDataProvider({ children }) {
       predictionsLoading,
       newsArticles,
       newsLoading,
+      matchEventsById,
       refreshMatches,
       refreshLeaderboard,
       refreshLiveData,
@@ -318,6 +340,7 @@ export default function AppDataProvider({ children }) {
       predictionsLoading,
       newsArticles,
       newsLoading,
+      matchEventsById,
       refreshMatches,
       refreshLeaderboard,
       refreshLiveData,

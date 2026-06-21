@@ -49,6 +49,7 @@ import {
 } from '../_shared/liveSyncWindow.ts';
 import { buildHealthCheck } from '../_shared/healthCheck.ts';
 import { recordSyncHealth } from '../_shared/syncHealth.ts';
+import { syncRecentFinishedMatchEvents } from '../_shared/matchEvents.ts';
 
 interface SyncReport {
   ok: boolean;
@@ -60,6 +61,7 @@ interface SyncReport {
   players: number;
   topScorers: number;
   liveUpdated: number;
+  eventsSynced?: number;
   durationMs: number;
   skipped?: boolean;
   skipReason?: string;
@@ -228,6 +230,15 @@ async function syncLive(): Promise<SyncReport> {
       }
     }
 
+    let eventsSynced = 0;
+    if (apiFootballKey) {
+      try {
+        eventsSynced = await syncRecentFinishedMatchEvents(supabase, apiFootballKey);
+      } catch (err) {
+        console.error('[sync-fixtures] match events sync failed:', err);
+      }
+    }
+
     return {
       ok: true,
       mode: 'live',
@@ -240,6 +251,7 @@ async function syncLive(): Promise<SyncReport> {
       players: 0,
       topScorers: 0,
       liveUpdated,
+      eventsSynced,
       skipped: true,
       skipReason: 'no_match_in_live_window',
       durationMs: Date.now() - start,
@@ -286,6 +298,15 @@ async function syncLive(): Promise<SyncReport> {
     }
   }
 
+  let eventsSynced = 0;
+  if (apiFootballKey) {
+    try {
+      eventsSynced = await syncRecentFinishedMatchEvents(supabase, apiFootballKey);
+    } catch (err) {
+      console.error('[sync-fixtures] match events sync failed:', err);
+    }
+  }
+
   return {
     ok: true,
     mode: 'live',
@@ -298,6 +319,7 @@ async function syncLive(): Promise<SyncReport> {
     players: 0,
     topScorers: 0,
     liveUpdated,
+    eventsSynced,
     durationMs: Date.now() - start,
   };
 }

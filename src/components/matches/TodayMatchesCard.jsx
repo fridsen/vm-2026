@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
 import { selectTodayMatches } from '../../utils/selectTodayMatches.js';
+import { useResultReveal } from '../../hooks/useResultReveal.js';
 import TodayMatchRow from './TodayMatchRow.jsx';
 
 export default function TodayMatchesCard({ matches, now, predictions }) {
   const todayMatches = useMemo(() => selectTodayMatches(matches, now), [matches, now]);
   const matchPreds = predictions?.matches ?? {};
+  const { isRevealPending, openReveal, skipReveal } = useResultReveal();
 
   if (todayMatches.length === 0) {
     return null;
@@ -23,6 +25,9 @@ export default function TodayMatchesCard({ matches, now, predictions }) {
             match={match}
             now={now}
             prediction={matchPreds[match.id]}
+            revealPending={isRevealPending(match, now)}
+            onReveal={openReveal}
+            onSkip={skipReveal}
           />
         ))}
       </div>
