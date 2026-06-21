@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import NewsFeedCard from '../NewsFeedCard.jsx';
 import {
+  finishedMatchResultsSignature,
   latestFinishedMatchId,
   rankForUser,
   resolveRankMovements,
@@ -28,9 +29,14 @@ export default function LiveDashboard({
 
   const anchorMatchId = useMemo(() => latestFinishedMatchId(matches), [matches]);
 
+  const resultsSignature = useMemo(
+    () => finishedMatchResultsSignature(matches),
+    [matches],
+  );
+
   const movements = useMemo(
-    () => resolveRankMovements(sortedEntries, anchorMatchId),
-    [sortedEntries, anchorMatchId],
+    () => resolveRankMovements(sortedEntries, anchorMatchId, resultsSignature),
+    [sortedEntries, anchorMatchId, resultsSignature],
   );
 
   const breakdown = useMemo(
