@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import MatchPointsBadge from '../MatchPointsBadge.jsx';
-import { matchPointsBadgeColors } from '../../utils/matchPointsBadge.js';
 import {
   BARS_IN_VIEW,
   buildPerMatchPoints,
@@ -29,7 +28,6 @@ function MatchBar({ item, active, onToggle, boundaryRef, scrollRef }) {
   const [tooltipAlign, setTooltipAlign] = useState('center');
   const fillPct = item.pending ? 0 : Math.min(100, (item.earned / item.max) * 100);
   const hasResult = !item.pending;
-  const fillColors = hasResult ? matchPointsBadgeColors(item.earned) : null;
 
   useLayoutEffect(() => {
     if (!active) return undefined;
@@ -79,11 +77,8 @@ function MatchBar({ item, active, onToggle, boundaryRef, scrollRef }) {
         <div className="live-ppm-bar" aria-hidden>
           {!item.pending && fillPct > 0 ? (
             <div
-              className="live-ppm-bar-fill"
-              style={{
-                height: `${fillPct}%`,
-                backgroundColor: fillColors?.bg,
-              }}
+              className={clsx('live-ppm-bar-fill', item.perfect && 'is-perfect')}
+              style={{ height: `${fillPct}%` }}
             />
           ) : null}
         </div>

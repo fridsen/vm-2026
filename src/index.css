@@ -3269,6 +3269,10 @@
     right: 0;
     bottom: 0;
     border-radius: 4px;
+    background: var(--color-black, #000);
+  }
+  .live-ppm-bar-fill.is-perfect {
+    background: var(--color-lime, #c7ff2e);
   }
   .live-ppm-label {
     font-size: 8px;
