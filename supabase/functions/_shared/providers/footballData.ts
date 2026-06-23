@@ -207,34 +207,42 @@ export class FootballDataProvider implements FootballProvider {
     return json.matches.map(mapMatch);
   }
 
+  /** One API call — live/scored + recently finished fixtures. */
+  async fetchLiveWindowFixtures(): Promise<{
+    live: ProviderFixture[];
+    recent: ProviderFixture[];
+  }> {
+    const now = Date.now();
+    const json = await this.get<MatchesResp>(
+      `/competitions/${COMPETITION}/matches`,
+    );
+    const recentKickoff = json.matches.filter((m) =>
+      isRecentKickoff(m.utcDate, now)
+    );
+    const live = recentKickoff
+      .filter(isLiveOrScoredMatch)
+      .map(mapMatch);
+    const recent = recentKickoff
+      .filter(
+        (m) =>
+          m.status === 'FINISHED' &&
+          scoresFromApi(m.score).homeScore != null,
+      )
+      .map(mapMatch);
+    return { live, recent };
+  }
+
   /**
    * WC matches in the live window plus recent kickoffs with scores.
    * UTC "today" alone misses US evening games after midnight UTC.
    */
   async fetchLiveFixtures(): Promise<ProviderFixture[]> {
-    const now = Date.now();
-    const json = await this.get<MatchesResp>(
-      `/competitions/${COMPETITION}/matches`,
-    );
-    return json.matches
-      .filter((m) => isRecentKickoff(m.utcDate, now) && isLiveOrScoredMatch(m))
-      .map(mapMatch);
+    return (await this.fetchLiveWindowFixtures()).live;
   }
 
   /** Finished matches from the last 48h — used to correct wrong FT scores. */
   async fetchRecentFixtures(): Promise<ProviderFixture[]> {
-    const now = Date.now();
-    const json = await this.get<MatchesResp>(
-      `/competitions/${COMPETITION}/matches`,
-    );
-    return json.matches
-      .filter(
-        (m) =>
-          isRecentKickoff(m.utcDate, now) &&
-          m.status === 'FINISHED' &&
-          scoresFromApi(m.score).homeScore != null,
-      )
-      .map(mapMatch);
+    return (await this.fetchLiveWindowFixtures()).recent;
   }
 
   async fetchTopScorers(): Promise<ProviderTopScorer[]> {

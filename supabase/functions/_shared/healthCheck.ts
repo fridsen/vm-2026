@@ -5,7 +5,7 @@ import {
   PRE_MATCH_MS,
 } from './liveSyncWindow.ts';
 
-const LIVE_CRON_MAX_AGE_MS = 6 * 60 * 1000;
+const LIVE_CRON_MAX_AGE_MS = 4 * 60 * 1000;
 const STALE_SCORE_GRACE_MS = 12 * 60 * 1000;
 
 type SyncHealthRow = {

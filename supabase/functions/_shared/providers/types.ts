@@ -1,7 +1,7 @@
 // Adapter interface for football data providers.
 //
 // Both the sync Edge Function and any future scripts depend on this shape;
-// the concrete implementations (football-data.org, api-football) translate
+// the concrete implementations translate their respective JSON into these neutral records before anything else
 // their respective JSON into these neutral records before anything else
 // touches the data.
 
@@ -37,10 +37,17 @@ export interface ProviderTopScorer {
   position: number | null; // ranking position, 1 = top scorer
 }
 
+export interface LiveWindowFixtures {
+  live: ProviderFixture[];
+  recent: ProviderFixture[];
+}
+
 export interface FootballProvider {
   readonly name: string;
   fetchTeams(): Promise<ProviderTeam[]>;
   fetchFixtures(): Promise<ProviderFixture[]>;
+  /** Single matches-list fetch for live + recent finished (football-data.org). */
+  fetchLiveWindowFixtures?(): Promise<LiveWindowFixtures>;
   /** Optional lightweight poll for today's live scores (football-data.org). */
   fetchLiveFixtures?(): Promise<ProviderFixture[]>;
   /** Finished fixtures from the last ~48h — for correcting late FT scores. */

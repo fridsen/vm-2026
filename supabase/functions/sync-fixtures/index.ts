@@ -11,9 +11,8 @@
 //                    -H "Authorization: Bearer $SUPABASE_ANON_KEY"`
 //
 // Secrets the function expects:
-//   FOOTBALL_PROVIDER          'football-data' | 'api-football'  (default 'football-data')
-//   FOOTBALL_DATA_API_KEY      required when provider = football-data
-//   API_FOOTBALL_KEY           required when provider = api-football
+//   FOOTBALL_PROVIDER          'football-data' (default)
+//   FOOTBALL_DATA_API_KEY      required
 //   SUPABASE_URL               injected by Supabase
 //   SUPABASE_SERVICE_ROLE_KEY  injected by Supabase
 
@@ -26,10 +25,6 @@ import {
   type ProviderTeam,
   type ProviderTopScorer,
 } from '../_shared/providers/index.ts';
-import {
-  upsertApiFootballLiveScores,
-  upsertApiFootballTodayFixtures,
-} from '../_shared/apiFootballLive.ts';
 import {
   groupFixtureId,
   knockoutFixtureId,
@@ -64,6 +59,72 @@ interface SyncReport {
   skipped?: boolean;
   skipReason?: string;
   error?: string;
+  todayFixturesSynced?: boolean;
+}
+
+/** Min gap between football-data recent-finished polls outside match windows. */
+const SLOW_RECONCILE_INTERVAL_MS = 6 * 60 * 1000;
+
+function mergeFixturesByExternalId(...lists: ProviderFixture[][]): ProviderFixture[] {
+  const map = new Map<string, ProviderFixture>();
+  for (const list of lists) {
+    for (const fixture of list) {
+      map.set(fixture.externalId, fixture);
+    }
+  }
+  return [...map.values()];
+}
+
+type SelectedProvider = ReturnType<typeof selectProvider>;
+
+async function upsertFootballDataLiveWindow(
+  supabase: ReturnType<typeof createClient>,
+  provider: SelectedProvider,
+): Promise<number> {
+  if (provider.fetchLiveWindowFixtures) {
+    const { live, recent } = await provider.fetchLiveWindowFixtures();
+    return upsertLiveScores(supabase, mergeFixturesByExternalId(live, recent));
+  }
+  let updated = 0;
+  if (provider.fetchLiveFixtures) {
+    updated += await upsertLiveScores(supabase, await provider.fetchLiveFixtures());
+  }
+  if (provider.fetchRecentFixtures) {
+    updated += await upsertLiveScores(supabase, await provider.fetchRecentFixtures());
+  }
+  return updated;
+}
+
+async function upsertFootballDataRecentOnly(
+  supabase: ReturnType<typeof createClient>,
+  provider: SelectedProvider,
+): Promise<number> {
+  if (provider.fetchLiveWindowFixtures) {
+    const { recent } = await provider.fetchLiveWindowFixtures();
+    return upsertLiveScores(supabase, recent);
+  }
+  if (provider.fetchRecentFixtures) {
+    return upsertLiveScores(supabase, await provider.fetchRecentFixtures());
+  }
+  return 0;
+}
+
+async function shouldRunSlowReconcile(
+  supabase: ReturnType<typeof createClient>,
+  now = Date.now(),
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('sync_health')
+    .select('last_today_fixtures_at')
+    .eq('mode', 'live')
+    .maybeSingle();
+  if (error) {
+    console.error('[sync-fixtures] slow reconcile lookup failed:', error.message);
+    return true;
+  }
+  const last = data?.last_today_fixtures_at;
+  if (!last) return true;
+  return now - new Date(last).getTime() >= SLOW_RECONCILE_INTERVAL_MS;
 }
 
 function groupLetterByTeamExternalId(
@@ -74,6 +135,21 @@ function groupLetterByTeamExternalId(
     if (f.stage !== 'group' || !f.group) continue;
     if (f.homeTeamExternalId) map.set(f.homeTeamExternalId, f.group);
     if (f.awayTeamExternalId) map.set(f.awayTeamExternalId, f.group);
+  }
+  return map;
+}
+
+async function loadTeamIdsByExternalId(
+  supabase: ReturnType<typeof createClient>,
+): Promise<Map<string, string>> {
+  const { data, error } = await supabase
+    .from('teams')
+    .select('id, external_id')
+    .not('external_id', 'is', null);
+  if (error) throw new Error(`teams lookup: ${error.message}`);
+  const map = new Map<string, string>();
+  for (const row of data ?? []) {
+    if (row.external_id) map.set(row.external_id, row.id);
   }
   return map;
 }
@@ -206,7 +282,7 @@ async function syncLive(): Promise<SyncReport> {
   );
 
   let liveUpdated = 0;
-  const apiFootballKey = env.API_FOOTBALL_KEY?.trim();
+  let slowReconcileSynced = false;
   const kickoffRows = await loadKickoffRowsForLiveWindow(supabase);
   const inWindow = anyInLiveSyncWindow(kickoffRows);
 
@@ -217,12 +293,10 @@ async function syncLive(): Promise<SyncReport> {
       console.error('[sync-fixtures] finalize stale matches failed:', err);
     }
 
-    // Reconcile recently finished matches even outside the live window — late
-    // goals or auto-finalize can leave wrong FT scores until the provider catches up.
-    if (provider.fetchRecentFixtures) {
+    if (await shouldRunSlowReconcile(supabase)) {
       try {
-        const recent = await provider.fetchRecentFixtures();
-        liveUpdated += await upsertLiveScores(supabase, recent);
+        liveUpdated += await upsertFootballDataRecentOnly(supabase, provider);
+        slowReconcileSynced = true;
       } catch (err) {
         console.error('[sync-fixtures] recent finished reconcile failed:', err);
       }
@@ -231,9 +305,7 @@ async function syncLive(): Promise<SyncReport> {
     return {
       ok: true,
       mode: 'live',
-      provider: apiFootballKey
-        ? `${provider.name} + api-football live`
-        : provider.name,
+      provider: provider.name,
       teams: 0,
       groupMatches: 0,
       knockoutMatches: 0,
@@ -242,33 +314,15 @@ async function syncLive(): Promise<SyncReport> {
       liveUpdated,
       skipped: true,
       skipReason: 'no_match_in_live_window',
+      todayFixturesSynced: slowReconcileSynced,
       durationMs: Date.now() - start,
     };
   }
 
-  // api-football is the primary live source during matches.
-  if (apiFootballKey) {
-    try {
-      liveUpdated += await upsertApiFootballLiveScores(supabase, apiFootballKey);
-    } catch (err) {
-      console.error('[sync-fixtures] api-football live failed:', err);
-    }
-    try {
-      liveUpdated += await upsertApiFootballTodayFixtures(supabase, apiFootballKey);
-    } catch (err) {
-      console.error('[sync-fixtures] api-football today failed:', err);
-    }
-  }
-
-  // Always run football-data.org live too — it matches rows by external_id and
-  // catches FT results when api-football name matching misses (e.g. Korea Republic).
-  if (provider.fetchLiveFixtures) {
-    try {
-      const fixtures = await provider.fetchLiveFixtures();
-      liveUpdated += await upsertLiveScores(supabase, fixtures);
-    } catch (err) {
-      console.error('[sync-fixtures] football-data live failed:', err);
-    }
+  try {
+    liveUpdated += await upsertFootballDataLiveWindow(supabase, provider);
+  } catch (err) {
+    console.error('[sync-fixtures] football-data live failed:', err);
   }
 
   try {
@@ -277,27 +331,17 @@ async function syncLive(): Promise<SyncReport> {
     console.error('[sync-fixtures] finalize stale matches failed:', err);
   }
 
-  if (provider.fetchRecentFixtures) {
-    try {
-      const recent = await provider.fetchRecentFixtures();
-      liveUpdated += await upsertLiveScores(supabase, recent);
-    } catch (err) {
-      console.error('[sync-fixtures] recent finished reconcile failed:', err);
-    }
-  }
-
   return {
     ok: true,
     mode: 'live',
-    provider: apiFootballKey
-      ? `${provider.name} + api-football live`
-      : provider.name,
+    provider: provider.name,
     teams: 0,
     groupMatches: 0,
     knockoutMatches: 0,
     players: 0,
     topScorers: 0,
     liveUpdated,
+    todayFixturesSynced: slowReconcileSynced,
     durationMs: Date.now() - start,
   };
 }
@@ -320,14 +364,18 @@ async function syncFull(): Promise<SyncReport> {
 
   // ── 2. Teams ────────────────────────────────────────────────────
   const teams = await provider.fetchTeams();
-  const teamRows = teams.map((t: ProviderTeam) => ({
-    id: teamIdFor(t),
-    name: t.name,
-    code: t.shortCode ?? teamIdFor(t),
-    flag: null,
-    group: t.group ?? teamGroups.get(t.externalId) ?? '?',
-    external_id: t.externalId,
-  }));
+  const existingTeamIds = await loadTeamIdsByExternalId(supabase);
+  const teamRows = teams.map((t: ProviderTeam) => {
+    const id = existingTeamIds.get(t.externalId) ?? teamIdFor(t);
+    return {
+      id,
+      name: t.name,
+      code: t.shortCode ?? id,
+      flag: null,
+      group: t.group ?? teamGroups.get(t.externalId) ?? '?',
+      external_id: t.externalId,
+    };
+  });
 
   // Build a lookup so we can resolve fixtures' externalId → internal team id.
   const externalToInternal = new Map<string, string>();

@@ -32,7 +32,7 @@ export function getMatchState(match, now) {
 const HALFTIME_BREAK_MS = 15 * 60 * 1000;
 const FIRST_HALF_MS = 45 * 60 * 1000;
 
-/** Live minute from api-football sync, or kickoff estimate with halftime pause. */
+/** Live minute from provider sync, or kickoff estimate with halftime pause. */
 export function liveMatchMinute(match, now = Date.now()) {
   if (match.liveMinute != null) {
     return Math.min(120, Math.max(1, match.liveMinute));
