@@ -1,36 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-function createStorage() {
-  const store = new Map();
-  return {
-    getItem: (key) => (store.has(key) ? store.get(key) : null),
-    setItem: (key, value) => {
-      store.set(key, String(value));
-    },
-    removeItem: (key) => {
-      store.delete(key);
-    },
-    clear: () => {
-      store.clear();
-    },
-  };
-}
-
-beforeEach(() => {
-  vi.stubGlobal('localStorage', createStorage());
-});
-
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
-
-const {
+import { describe, expect, it } from 'vitest';
+import {
   finishedMatchesSignature,
   latestFinishedMatchId,
-  loadRankSnapshot,
+  rankMovementsFromLatestMatch,
   ranksFromEntries,
-  resolveRankMovements,
-} = await import('./leaderboardMovement.js');
+} from './leaderboardMovement.js';
 
 describe('leaderboardMovement', () => {
   const entries = [
@@ -60,29 +34,21 @@ describe('leaderboardMovement', () => {
     expect(before).not.toBe(after);
   });
 
-  it('returns no movement on first anchor', () => {
-    const moves = resolveRankMovements(entries, 'm1');
-    expect(moves).toEqual({});
-    expect(loadRankSnapshot()).toEqual({
-      matchId: 'm1',
-      ranks: { a: 1, b: 2, c: 2 },
-      priorMatchId: null,
-      priorRanks: null,
+  it('derives movement from totals minus latest-match points', () => {
+    const current = [
+      { userId: 'a', name: 'Anna', points: 104 },
+      { userId: 'b', name: 'Bertil', points: 105 },
+      { userId: 'c', name: 'Cecilia', points: 102 },
+    ];
+    const latestPoints = { a: 4, b: 6, c: 4 };
+    expect(rankMovementsFromLatestMatch(current, latestPoints)).toEqual({
+      b: 1,
+      a: -1,
     });
   });
 
-  it('shows movement when a new match finishes and keeps it on revisit', () => {
-    resolveRankMovements(entries, 'm1');
-    const reshuffled = [
-      { userId: 'c', name: 'Cecilia', points: 12 },
-      { userId: 'a', name: 'Anna', points: 10 },
-      { userId: 'b', name: 'Bertil', points: 8 },
-    ];
-    const moves = resolveRankMovements(reshuffled, 'm2');
-    expect(moves).toEqual({ c: 1, a: -1, b: -1 });
-
-    const again = resolveRankMovements(reshuffled, 'm2');
-    expect(again).toEqual({ c: 1, a: -1, b: -1 });
+  it('returns no movement when latest-match points are zero for everyone', () => {
+    expect(rankMovementsFromLatestMatch(entries, { a: 0, b: 0, c: 0 })).toEqual({});
   });
 
   it('assigns the same competition rank to tied players', () => {

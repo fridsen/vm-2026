@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useAllMatches } from '../../hooks/useMatches.js';
+import { useLatestMatchPoints } from '../../hooks/useLatestMatchPoints.js';
 import { useLeaderboard } from '../../hooks/useLeaderboard.js';
 import { useLockState } from '../../hooks/useLockState.js';
 import { useNews } from '../../hooks/useNews.js';
@@ -8,14 +9,11 @@ import { useAuth } from '../../hooks/useAuth.js';
 import { aggregateMatchPointsBreakdown } from '../../utils/matchPointsBreakdown.js';
 import { buildPerMatchPoints } from '../../utils/matchPointsPerGame.js';
 import {
-  latestFinishedMatchId,
   rankForUser,
-  resolveRankMovements,
-  sortLeaderboardEntries,
+  rankMovementsFromLatestMatch,
 } from '../../utils/leaderboardMovement.js';
 import { selectHeroMatch, HERO_VARIANT } from '../../utils/selectHeroMatch.js';
 import { selectTodayMatches } from '../../utils/selectTodayMatches.js';
-import { scoreGroupMatch } from '../../utils/scoring.js';
 import { formatRankMovementPhrase } from '../../utils/teletextDisplay.js';
 import { useTeams } from '../../hooks/useTeams.js';
 import { abbreviateNewsSource } from '../../utils/newsSourceAbbrev.js';
@@ -69,18 +67,17 @@ export default function TeletextDashboardPage() {
   const totalPoints = myEntry?.points ?? breakdown.earnedTotal ?? 0;
   const participantCount = entries.length;
 
-  const sortedEntries = useMemo(() => sortLeaderboardEntries(entries), [entries]);
-  const latestMatchId = useMemo(() => latestFinishedMatchId(matches), [matches]);
+  const { anchorMatchId: latestMatchId, latestPoints, latestPointsReady } =
+    useLatestMatchPoints(matches);
   const myMovement = useMemo(() => {
-    const movements = resolveRankMovements(sortedEntries, latestMatchId);
-    return user?.id ? movements[user.id] : undefined;
-  }, [sortedEntries, latestMatchId, user?.id]);
+    if (!latestMatchId || !latestPointsReady || !user?.id) return undefined;
+    const movements = rankMovementsFromLatestMatch(entries, latestPoints);
+    return movements[user.id];
+  }, [entries, latestMatchId, latestPoints, latestPointsReady, user?.id]);
   const latestMatchPoints = useMemo(() => {
-    if (!latestMatchId) return null;
-    const match = matches.find((m) => m.id === latestMatchId);
-    if (!match?.result) return null;
-    return scoreGroupMatch(predictions?.matches?.[latestMatchId], match.result).points;
-  }, [latestMatchId, matches, predictions]);
+    if (!latestMatchId || !latestPointsReady || !user?.id) return null;
+    return latestPoints[user.id] ?? 0;
+  }, [latestMatchId, latestPoints, latestPointsReady, user?.id]);
 
   return (
     <>

@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import clsx from 'clsx';
+import MatchPointsBadge from '../MatchPointsBadge.jsx';
 import { useTeams } from '../../hooks/useTeams.js';
 import { emblemForCode } from '../../data/emblems.js';
 import { broadcastForMatch } from '../../data/broadcastChannels.js';
@@ -38,9 +39,7 @@ function FooterBadge({ variant, pointsEarned }) {
 
   if (pointsEarned != null) {
     return (
-      <span className="match-hero-badge match-hero-badge--points">
-        {pointsEarned} Poäng
-      </span>
+      <MatchPointsBadge points={pointsEarned} className="match-hero-badge match-hero-badge--points" />
     );
   }
 

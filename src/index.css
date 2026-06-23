@@ -1549,14 +1549,6 @@
     background: rgba(255, 45, 85, 0.12);
     color: #ff2d55;
   }
-  .match-hero-badge--points {
-    padding: 4px 8px 5px;
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 11px;
-    background: var(--bg-status-done);
-    color: var(--color-status-done);
-  }
   .match-hero-channel {
     display: flex;
     align-items: center;
@@ -1692,13 +1684,38 @@
     line-height: 11px;
     white-space: nowrap;
   }
-  .today-match-badge--points {
-    background: var(--bg-status-done);
-    color: var(--color-status-done);
-  }
   .today-match-badge--tip {
     background: #f5f5f5;
     color: var(--text-secondary);
+  }
+
+  /* ─── MATCH POINTS BADGE (per-game earned) ───────────────── */
+  .match-points-badge {
+    display: inline-flex;
+    box-sizing: border-box;
+    width: 40px;
+    height: 20px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100px;
+    background: var(--mpb-bg, #f1efe8);
+    padding: 3px 8px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 11px;
+    color: var(--mpb-text, #5f5e5a);
+    white-space: nowrap;
+  }
+  .match-points-badge.is-empty {
+    visibility: hidden;
+  }
+  .lb-latest-points.is-empty {
+    justify-self: center;
+  }
+  .match-hero-badge.match-points-badge {
+    width: auto;
+    min-width: 0;
   }
 
   /* ─── DATE TICKER ─────────────────────────────────────────── */
@@ -2743,6 +2760,53 @@
     width: 100%;
     padding: 0 0 var(--app-card-shadow-bleed);
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
+    --lb-latest-col-width: 40px;
+    --lb-total-col-width: 44px;
+    --lb-metrics-gap: 12px;
+  }
+  .lb-column-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 18px;
+    color: var(--text-secondary);
+  }
+  .lb-column-header-position {
+    flex-shrink: 0;
+  }
+  .lb-column-header-metrics {
+    display: grid;
+    grid-template-columns: var(--lb-latest-col-width) var(--lb-total-col-width);
+    gap: var(--lb-metrics-gap);
+    align-items: center;
+  }
+  .lb-column-header-metrics .lb-column-sort:first-child {
+    justify-self: center;
+  }
+  .lb-column-header-metrics .lb-column-sort:last-child {
+    justify-self: end;
+  }
+  .lb-column-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+  .lb-column-sort.is-active {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .lb-sort-indicator {
+    font-size: 11px;
+    line-height: 1;
   }
   .lb-list {
     display: flex;
@@ -2760,6 +2824,9 @@
     background: var(--color-white);
     padding: 10px 12px;
     box-shadow: var(--shadow-card);
+    text-align: left;
+    cursor: pointer;
+    overflow: visible;
   }
   .lb-row.is-top-five {
     border: 1px solid transparent;
@@ -2805,12 +2872,50 @@
     flex: 1 1 auto;
     align-items: center;
     gap: 12px;
+    overflow: visible;
   }
   .lb-row-right {
-    display: flex;
+    display: grid;
     flex-shrink: 0;
+    grid-template-columns: var(--lb-latest-col-width) var(--lb-total-col-width);
+    gap: var(--lb-metrics-gap);
     align-items: center;
-    gap: 10px;
+  }
+  .lb-row-right .match-points-badge {
+    justify-self: center;
+  }
+  .lb-row-right .lb-points {
+    justify-self: end;
+    min-width: 0;
+  }
+  .lb-rank-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .lb-rank-movement {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    display: flex;
+    width: 16px;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-white, #fff);
+    border-radius: 100px;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 11px;
+    text-align: center;
+    pointer-events: none;
+  }
+  .lb-rank-movement.is-up {
+    background: #e8f8ee;
+    color: #2a7b53;
+  }
+  .lb-rank-movement.is-down {
+    background: #f9e7e8;
+    color: #751d18;
   }
   .lb-rank {
     display: flex;
@@ -2823,6 +2928,10 @@
     font-size: 14px;
     line-height: 1;
     text-align: center;
+  }
+  .lb-rank.is-top-rank {
+    width: 28px;
+    height: 28px;
   }
   .lb-rank.is-gold {
     background: rgba(233, 185, 115, 0.3);
@@ -2854,22 +2963,19 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     line-height: normal;
     color: var(--text-primary);
   }
-  .lb-row.is-rank-1 .lb-name {
-    font-size: 16px;
-    font-weight: 500;
-  }
   .lb-points {
-    min-width: 2ch;
-    font-size: 22px;
+    min-width: 40px;
+    font-size: 24px;
     font-weight: 600;
     line-height: 23px;
     color: var(--color-black);
-    text-align: center;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
   }
   .lb-movement {
     display: flex;
@@ -3137,14 +3243,7 @@
     position: absolute;
     bottom: calc(100% + 6px);
     z-index: 2;
-    border-radius: 8px;
-    background: var(--text-primary, #0c162a);
-    padding: 4px 8px;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
-    color: var(--color-white, #fff);
-    white-space: nowrap;
+    padding: 0;
     pointer-events: none;
   }
   .live-ppm-tooltip.is-align-center {
@@ -3160,29 +3259,6 @@
     right: 0;
     transform: none;
   }
-  .live-ppm-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    width: 8px;
-    height: 8px;
-    margin-top: -4px;
-    transform: rotate(45deg);
-    background: var(--text-primary, #0c162a);
-  }
-  .live-ppm-tooltip.is-align-center::after {
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-  }
-  .live-ppm-tooltip.is-align-start::after {
-    left: 6px;
-    transform: translateX(-50%) rotate(45deg);
-  }
-  .live-ppm-tooltip.is-align-end::after {
-    left: auto;
-    right: 6px;
-    transform: translateX(50%) rotate(45deg);
-  }
   .live-ppm-bar {
     position: relative;
     width: 12px;
@@ -3197,10 +3273,6 @@
     right: 0;
     bottom: 0;
     border-radius: 4px;
-    background: var(--color-black, #000);
-  }
-  .live-ppm-bar-fill.is-perfect {
-    background: var(--color-lime, #c7ff2e);
   }
   .live-ppm-label {
     font-size: 8px;

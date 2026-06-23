@@ -1,5 +1,3 @@
-const STORAGE_KEY = 'vm2026:leaderboardRankSnapshot:v1';
-
 /** Latest finished group match id (kickoff order), or null. */
 export function latestFinishedMatchId(matches) {
   const finished = (matches ?? [])
@@ -47,26 +45,6 @@ export function rankForUser(entries, userId) {
   return ranksFromEntries(entries)[userId] ?? null;
 }
 
-export function loadRankSnapshot() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed?.matchId || !parsed?.ranks) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-export function saveRankSnapshot(snapshot) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
-  } catch {
-    /* ignore quota / private mode */
-  }
-}
-
 function movementsBetween(priorRanks, currentRanks) {
   const movements = {};
   if (!priorRanks) return movements;
@@ -79,41 +57,16 @@ function movementsBetween(priorRanks, currentRanks) {
 }
 
 /**
- * Movement since the previous finished match. Positive = moved up.
- * Persists across visits until another match finishes.
+ * Rank movement caused by the latest finished match. Positive = moved up.
+ * Derived from current totals minus per-player points on that match (no local storage).
  */
-export function resolveRankMovements(entries, latestMatchId) {
-  const currentRanks = ranksFromEntries(entries);
-  const snapshot = loadRankSnapshot();
+export function rankMovementsFromLatestMatch(entries, latestPointsByUser = {}) {
+  if (!entries?.length) return {};
 
-  if (!latestMatchId) {
-    return {};
-  }
+  const priorEntries = entries.map((entry) => ({
+    ...entry,
+    points: entry.points - (latestPointsByUser[entry.userId] ?? 0),
+  }));
 
-  if (!snapshot) {
-    saveRankSnapshot({
-      matchId: latestMatchId,
-      ranks: currentRanks,
-      priorMatchId: null,
-      priorRanks: null,
-    });
-    return {};
-  }
-
-  if (snapshot.matchId === latestMatchId) {
-    const movements = movementsBetween(snapshot.priorRanks, currentRanks);
-    if (JSON.stringify(snapshot.ranks) !== JSON.stringify(currentRanks)) {
-      saveRankSnapshot({ ...snapshot, ranks: currentRanks });
-    }
-    return movements;
-  }
-
-  const movements = movementsBetween(snapshot.ranks, currentRanks);
-  saveRankSnapshot({
-    matchId: latestMatchId,
-    ranks: currentRanks,
-    priorMatchId: snapshot.matchId,
-    priorRanks: snapshot.ranks,
-  });
-  return movements;
+  return movementsBetween(ranksFromEntries(priorEntries), ranksFromEntries(entries));
 }

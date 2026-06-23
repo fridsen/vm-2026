@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import MatchPointsBadge from './MatchPointsBadge.jsx';
 
 function rankTier(rank) {
   if (rank === 1) return 'gold';
@@ -8,14 +9,38 @@ function rankTier(rank) {
   return 'default';
 }
 
-export function RankBadge({ rank, className }) {
+export function RankBadge({ rank, movement, className }) {
+  const showMovement = movement != null && movement !== 0;
+
   return (
-    <div className={clsx('lb-rank', `is-${rankTier(rank)}`, className)} aria-hidden>
-      {rank}
+    <div className={clsx('lb-rank-wrap', className)}>
+      <div
+        className={clsx(
+          'lb-rank',
+          `is-${rankTier(rank)}`,
+          rank <= 5 && 'is-top-rank',
+        )}
+        aria-hidden
+      >
+        {rank}
+      </div>
+      {showMovement ? (
+        <span
+          className={clsx('lb-rank-movement', movement > 0 ? 'is-up' : 'is-down')}
+          aria-label={`Förflyttning ${movement > 0 ? 'upp' : 'ner'} ${Math.abs(movement)} platser`}
+        >
+          {movement > 0 ? `+${movement}` : movement}
+        </span>
+      ) : null}
     </div>
   );
 }
 
+function LatestPointsBadge({ points }) {
+  return <MatchPointsBadge points={points} className="lb-latest-points" empty />;
+}
+
+/** @deprecated Used by legacy list variant only */
 export function MovementBadge({ delta }) {
   if (!delta) return null;
   const up = delta > 0;
@@ -33,11 +58,29 @@ export default function LeaderboardRowFace({
   rank,
   name,
   points,
+  latestPoints,
   movement,
   showMovement = true,
   variant = 'list',
   nameId,
 }) {
+  if (variant === 'page') {
+    return (
+      <>
+        <div className="lb-row-left">
+          <RankBadge rank={rank} movement={showMovement ? movement : undefined} />
+          <span className="lb-name" id={nameId}>
+            {name}
+          </span>
+        </div>
+        <div className="lb-row-right">
+          <LatestPointsBadge points={latestPoints} />
+          <span className="lb-points">{points}</span>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="lb-row-left">

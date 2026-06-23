@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import NewsFeedCard from '../NewsFeedCard.jsx';
+import { useLatestMatchPoints } from '../../hooks/useLatestMatchPoints.js';
 import {
-  latestFinishedMatchId,
   rankForUser,
-  resolveRankMovements,
+  rankMovementsFromLatestMatch,
   sortLeaderboardEntries,
 } from '../../utils/leaderboardMovement.js';
 import { aggregateMatchPointsBreakdown } from '../../utils/matchPointsBreakdown.js';
@@ -26,12 +26,12 @@ export default function LiveDashboard({
 }) {
   const sortedEntries = useMemo(() => sortLeaderboardEntries(entries), [entries]);
 
-  const anchorMatchId = useMemo(() => latestFinishedMatchId(matches), [matches]);
+  const { anchorMatchId, latestPoints, latestPointsReady } = useLatestMatchPoints(matches);
 
-  const movements = useMemo(
-    () => resolveRankMovements(sortedEntries, anchorMatchId),
-    [sortedEntries, anchorMatchId],
-  );
+  const movements = useMemo(() => {
+    if (!anchorMatchId || !latestPointsReady) return {};
+    return rankMovementsFromLatestMatch(entries, latestPoints);
+  }, [entries, anchorMatchId, latestPoints, latestPointsReady]);
 
   const breakdown = useMemo(
     () => aggregateMatchPointsBreakdown(matches, predictions),

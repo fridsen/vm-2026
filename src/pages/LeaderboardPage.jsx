@@ -1,15 +1,16 @@
 import { useMemo, useState } from 'react';
+import clsx from 'clsx';
 import LeaderboardRow from '../components/LeaderboardRow.jsx';
 import LeaderboardPlayerSheet from '../components/LeaderboardPlayerSheet.jsx';
 import { useAllMatches } from '../hooks/useMatches.js';
+import { useLatestMatchPoints } from '../hooks/useLatestMatchPoints.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import { useLockState } from '../hooks/useLockState.js';
 import {
-  latestFinishedMatchId,
+  rankMovementsFromLatestMatch,
   ranksFromEntries,
-  resolveRankMovements,
-  sortLeaderboardEntries,
 } from '../utils/leaderboardMovement.js';
+import { nextLeaderboardSort, sortLeaderboardEntries } from '../utils/leaderboardSort.js';
 
 const TOP_FIVE_COUNT = 5;
 
@@ -23,12 +24,61 @@ function LeaderboardDivider() {
   );
 }
 
-function LeaderboardEntryRow({ entry, rank, movements, openPlayer }) {
+function SortIndicator({ active, dir }) {
+  if (!active) return null;
+  return (
+    <span className="lb-sort-indicator" aria-hidden>
+      {dir === 'desc' ? '↓' : '↑'}
+    </span>
+  );
+}
+
+function LeaderboardColumnHeader({ sort, onSort }) {
+  return (
+    <div className="lb-column-header" aria-hidden>
+      <span className="lb-column-header-position">Position</span>
+      <div className="lb-column-header-metrics">
+        <button
+          type="button"
+          className={clsx('lb-column-sort', sort.key === 'latest' && 'is-active')}
+          onClick={() => onSort('latest')}
+        >
+          Senast
+          <SortIndicator active={sort.key === 'latest'} dir={sort.dir} />
+        </button>
+        <button
+          type="button"
+          className={clsx('lb-column-sort', sort.key === 'total' && 'is-active')}
+          onClick={() => onSort('total')}
+        >
+          Total
+          <SortIndicator active={sort.key === 'total'} dir={sort.dir} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardEntryRow({
+  entry,
+  rank,
+  movements,
+  latestPoints,
+  latestPointsReady,
+  hasLatestMatch,
+  openPlayer,
+}) {
+  const latest =
+    hasLatestMatch && latestPointsReady
+      ? (latestPoints[entry.userId] ?? 0)
+      : null;
+
   return (
     <LeaderboardRow
       rank={rank}
       name={entry.name}
       points={entry.points}
+      latestPoints={latest}
       movement={movements[entry.userId]}
       onPress={() => openPlayer(entry, rank)}
     />
@@ -40,17 +90,20 @@ export default function LeaderboardPage() {
   const { matches } = useAllMatches();
   const { now } = useLockState();
   const [selected, setSelected] = useState(null);
+  const [sort, setSort] = useState({ key: 'total', dir: 'desc' });
+  const { anchorMatchId, latestPoints, latestPointsReady } = useLatestMatchPoints(matches);
 
-  const sorted = useMemo(() => sortLeaderboardEntries(entries), [entries]);
+  const sorted = useMemo(
+    () => sortLeaderboardEntries(entries, sort, latestPoints ?? {}),
+    [entries, sort, latestPoints],
+  );
 
   const ranks = useMemo(() => ranksFromEntries(sorted), [sorted]);
 
-  const anchorMatchId = useMemo(() => latestFinishedMatchId(matches), [matches]);
-
-  const movements = useMemo(
-    () => resolveRankMovements(sorted, anchorMatchId),
-    [sorted, anchorMatchId],
-  );
+  const movements = useMemo(() => {
+    if (!anchorMatchId || !latestPointsReady) return {};
+    return rankMovementsFromLatestMatch(entries, latestPoints);
+  }, [entries, anchorMatchId, latestPoints, latestPointsReady]);
 
   function openPlayer(entry, rank) {
     setSelected({
@@ -61,6 +114,16 @@ export default function LeaderboardPage() {
     });
   }
 
+  function handleSort(key) {
+    setSort((current) => nextLeaderboardSort(current, key));
+  }
+
+  const showTopFiveDivider = sort.key === 'total';
+  const topEntries = showTopFiveDivider
+    ? sorted.slice(0, TOP_FIVE_COUNT)
+    : sorted;
+  const restEntries = showTopFiveDivider ? sorted.slice(TOP_FIVE_COUNT) : [];
+
   return (
     <div className="leaderboard-page">
       {loading ? (
@@ -68,31 +131,40 @@ export default function LeaderboardPage() {
       ) : sorted.length === 0 ? (
         <div className="lb-empty">Inga deltagare ännu</div>
       ) : (
-        <div className="lb-list">
-          {sorted.slice(0, TOP_FIVE_COUNT).map((entry) => (
-            <LeaderboardEntryRow
-              key={entry.userId}
-              entry={entry}
-              rank={ranks[entry.userId]}
-              movements={movements}
-              openPlayer={openPlayer}
-            />
-          ))}
-          {sorted.length > TOP_FIVE_COUNT ? (
-            <>
-              <LeaderboardDivider />
-              {sorted.slice(TOP_FIVE_COUNT).map((entry) => (
-                <LeaderboardEntryRow
-                  key={entry.userId}
-                  entry={entry}
-                  rank={ranks[entry.userId]}
-                  movements={movements}
-                  openPlayer={openPlayer}
-                />
-              ))}
-            </>
-          ) : null}
-        </div>
+        <>
+          <LeaderboardColumnHeader sort={sort} onSort={handleSort} />
+          <div className="lb-list">
+            {topEntries.map((entry) => (
+              <LeaderboardEntryRow
+                key={entry.userId}
+                entry={entry}
+                rank={ranks[entry.userId]}
+                movements={movements}
+                latestPoints={latestPoints}
+                latestPointsReady={latestPointsReady}
+                hasLatestMatch={Boolean(anchorMatchId)}
+                openPlayer={openPlayer}
+              />
+            ))}
+            {restEntries.length > 0 ? (
+              <>
+                <LeaderboardDivider />
+                {restEntries.map((entry) => (
+                  <LeaderboardEntryRow
+                    key={entry.userId}
+                    entry={entry}
+                    rank={ranks[entry.userId]}
+                    movements={movements}
+                    latestPoints={latestPoints}
+                    latestPointsReady={latestPointsReady}
+                    hasLatestMatch={Boolean(anchorMatchId)}
+                    openPlayer={openPlayer}
+                  />
+                ))}
+              </>
+            ) : null}
+          </div>
+        </>
       )}
 
       <LeaderboardPlayerSheet

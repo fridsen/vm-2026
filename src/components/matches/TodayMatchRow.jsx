@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import clsx from 'clsx';
+import MatchPointsBadge from '../MatchPointsBadge.jsx';
 import { useTeams } from '../../hooks/useTeams.js';
 import { formatTipLabel } from '../../utils/matchPredictionDisplay.js';
 import { scoreGroupMatch } from '../../utils/scoring.js';
@@ -86,9 +87,7 @@ export default function TodayMatchRow({
             <span className="today-match-badge today-match-badge--tip">{tipLabel}</span>
           ) : null}
           {showPoints ? (
-            <span className="today-match-badge today-match-badge--points">
-              {showTipWithPoints ? `${pointsEarned}P` : `${pointsEarned} Poäng`}
-            </span>
+            <MatchPointsBadge points={pointsEarned} className="today-match-badge" />
           ) : null}
         </div>
       </div>
