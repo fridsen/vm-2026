@@ -24,15 +24,6 @@ function LeaderboardDivider() {
   );
 }
 
-function SortIndicator({ active, dir }) {
-  if (!active) return null;
-  return (
-    <span className="lb-sort-indicator" aria-hidden>
-      {dir === 'desc' ? '↓' : '↑'}
-    </span>
-  );
-}
-
 function LeaderboardColumnHeader({ sort, onSort }) {
   return (
     <div className="lb-column-header" aria-hidden>
@@ -42,17 +33,29 @@ function LeaderboardColumnHeader({ sort, onSort }) {
           type="button"
           className={clsx('lb-column-sort', sort.key === 'latest' && 'is-active')}
           onClick={() => onSort('latest')}
+          aria-sort={
+            sort.key === 'latest'
+              ? sort.dir === 'desc'
+                ? 'descending'
+                : 'ascending'
+              : 'none'
+          }
         >
           Senast
-          <SortIndicator active={sort.key === 'latest'} dir={sort.dir} />
         </button>
         <button
           type="button"
           className={clsx('lb-column-sort', sort.key === 'total' && 'is-active')}
           onClick={() => onSort('total')}
+          aria-sort={
+            sort.key === 'total'
+              ? sort.dir === 'desc'
+                ? 'descending'
+                : 'ascending'
+              : 'none'
+          }
         >
           Total
-          <SortIndicator active={sort.key === 'total'} dir={sort.dir} />
         </button>
       </div>
     </div>

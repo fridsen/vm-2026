@@ -2804,10 +2804,6 @@
     color: var(--text-primary);
     font-weight: 600;
   }
-  .lb-sort-indicator {
-    font-size: 11px;
-    line-height: 1;
-  }
   .lb-list {
     display: flex;
     flex-direction: column;
