@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HERO_VARIANT, selectHeroMatch } from './selectHeroMatch.js';
+import { HERO_VARIANT, selectHeroMatch, selectHeroMatches } from './selectHeroMatch.js';
 import { MATCH_DURATION_MS } from './matchSchedule.js';
 
 const now = new Date('2026-06-15T20:00:00Z').getTime();
@@ -68,5 +68,40 @@ describe('selectHeroMatch', () => {
 
   it('returns null when no matches', () => {
     expect(selectHeroMatch([], now)).toBeNull();
+  });
+});
+
+describe('selectHeroMatches', () => {
+  it('returns all live matches sharing the same kickoff', () => {
+    const kickoff = '2026-06-15T18:00:00Z';
+    const liveA = match('live-a', kickoff, {
+      group: 'A',
+      status: 'in_play',
+      liveScore: { home: 0, away: 0 },
+    });
+    const liveB = match('live-b', kickoff, {
+      group: 'B',
+      status: 'in_play',
+      liveScore: { home: 1, away: 1 },
+    });
+    const later = match('live-c', '2026-06-15T19:30:00Z', {
+      status: 'in_play',
+      liveScore: { home: 0, away: 0 },
+    });
+
+    const result = selectHeroMatches([later, liveB, liveA], now);
+    expect(result?.variant).toBe(HERO_VARIANT.LIVE);
+    expect(result?.matches.map((m) => m.id)).toEqual(['live-a', 'live-b']);
+  });
+
+  it('returns all upcoming matches sharing the same kickoff', () => {
+    const kickoff = '2026-06-16T18:00:00Z';
+    const upcomingA = match('up-a', kickoff, { group: 'A' });
+    const upcomingB = match('up-b', kickoff, { group: 'B' });
+    const later = match('up-c', '2026-06-17T18:00:00Z');
+
+    const result = selectHeroMatches([later, upcomingB, upcomingA], now);
+    expect(result?.variant).toBe(HERO_VARIANT.UPCOMING);
+    expect(result?.matches.map((m) => m.id)).toEqual(['up-a', 'up-b']);
   });
 });

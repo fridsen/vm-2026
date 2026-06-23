@@ -1,6 +1,7 @@
 import {
   MATCH_DURATION_MS,
   MATCH_STATE,
+  compareMatchesByKickoff,
   getMatchState,
 } from './matchSchedule.js';
 
@@ -27,7 +28,7 @@ function isRecentlyFinished(match, now) {
 function pickEarliestLive(matches, now) {
   return matches
     .filter((m) => getMatchState(m, now) === MATCH_STATE.LIVE)
-    .sort((a, b) => a.kickoff.localeCompare(b.kickoff))[0];
+    .sort(compareMatchesByKickoff)[0];
 }
 
 function pickMostRecentFinished(matches, now) {
@@ -39,7 +40,20 @@ function pickMostRecentFinished(matches, now) {
 function pickNextUpcoming(matches, now) {
   return matches
     .filter((m) => getMatchState(m, now) === MATCH_STATE.UPCOMING)
-    .sort((a, b) => a.kickoff.localeCompare(b.kickoff))[0];
+    .sort(compareMatchesByKickoff)[0];
+}
+
+function heroPeerFilter(variant, now) {
+  switch (variant) {
+    case HERO_VARIANT.LIVE:
+      return (m) => getMatchState(m, now) === MATCH_STATE.LIVE;
+    case HERO_VARIANT.UPCOMING:
+      return (m) => getMatchState(m, now) === MATCH_STATE.UPCOMING;
+    case HERO_VARIANT.RECENT_FINISHED:
+      return (m) => isRecentlyFinished(m, now);
+    default:
+      return () => false;
+  }
 }
 
 function isKickoffWithin30Minutes(match, now) {
@@ -75,4 +89,20 @@ export function selectHeroMatch(matches, now = Date.now()) {
   }
 
   return null;
+}
+
+/** Same priority as selectHeroMatch, but includes every match at that kickoff slot. */
+export function selectHeroMatches(matches, now = Date.now()) {
+  const primary = selectHeroMatch(matches, now);
+  if (!primary) return null;
+
+  const filter = heroPeerFilter(primary.variant, now);
+  const peers = (matches ?? [])
+    .filter((m) => m.kickoff === primary.match.kickoff && filter(m))
+    .sort(compareMatchesByKickoff);
+
+  return {
+    matches: peers.length > 0 ? peers : [primary.match],
+    variant: primary.variant,
+  };
 }

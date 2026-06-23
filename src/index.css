@@ -1565,6 +1565,12 @@
   }
 
   /* ─── LIVE HERO + TODAY MATCHES (dashboard) ───────────────── */
+  .live-hero-match-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
   .live-hero-match {
     width: 100%;
   }
