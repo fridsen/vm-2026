@@ -1,4 +1,4 @@
-import { MATCH_STATE, getMatchState } from './matchSchedule.js';
+import { MATCH_STATE, compareMatchesByKickoff, getMatchState } from './matchSchedule.js';
 
 const STATE_RANK = {
   [MATCH_STATE.LIVE]: 0,
@@ -11,6 +11,6 @@ export function sortMatchesByState(matches, now) {
     const rankA = STATE_RANK[getMatchState(a, now)];
     const rankB = STATE_RANK[getMatchState(b, now)];
     if (rankA !== rankB) return rankA - rankB;
-    return a.kickoff.localeCompare(b.kickoff);
+    return compareMatchesByKickoff(a, b);
   });
 }

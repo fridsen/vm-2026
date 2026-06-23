@@ -3,6 +3,7 @@
 
 import { supabase, unwrap } from './supabaseClient.js';
 import { groupMatchScheduleForTeams } from '../data/groupMatchSchedule.js';
+import { compareMatchesByKickoff } from '../utils/matchSchedule.js';
 
 export const KNOCKOUT_ROUNDS = ['R32', 'R16', 'QF', 'SF', 'BRONZE', 'FINAL'];
 
@@ -54,7 +55,7 @@ function rowToKnockout(r) {
 }
 
 function sortByKickoff(matches) {
-  return [...matches].sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+  return [...matches].sort(compareMatchesByKickoff);
 }
 
 export async function fetchAllMatches() {

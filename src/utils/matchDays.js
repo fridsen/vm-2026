@@ -1,4 +1,4 @@
-import { getMatchDayKey } from './matchSchedule.js';
+import { compareMatchesByKickoff, getMatchDayKey } from './matchSchedule.js';
 
 /** Group matches by calendar day, sorted earliest day first; kickoff order within day. */
 export function buildMatchDays(matches) {
@@ -13,7 +13,7 @@ export function buildMatchDays(matches) {
     .map(([dayKey, dayMatches]) => ({
       dayKey,
       date: new Date(`${dayKey}T12:00:00`),
-      matches: [...dayMatches].sort((a, b) => a.kickoff.localeCompare(b.kickoff)),
+      matches: [...dayMatches].sort(compareMatchesByKickoff),
     }))
     .sort((a, b) => a.dayKey.localeCompare(b.dayKey));
 }

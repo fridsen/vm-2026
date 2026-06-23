@@ -20,4 +20,17 @@ describe('selectTodayMatches', () => {
     const other = match('o', '2026-06-16T18:00:00Z');
     expect(selectTodayMatches([other], now)).toEqual([]);
   });
+
+  it('breaks kickoff ties stably by group then id', () => {
+    const groupB = { ...match('b-match', '2026-06-15T18:00:00Z'), group: 'B' };
+    const groupA = { ...match('a-match', '2026-06-15T18:00:00Z'), group: 'A' };
+    expect(selectTodayMatches([groupB, groupA], now).map((m) => m.id)).toEqual([
+      'a-match',
+      'b-match',
+    ]);
+    expect(selectTodayMatches([groupA, groupB], now).map((m) => m.id)).toEqual([
+      'a-match',
+      'b-match',
+    ]);
+  });
 });

@@ -64,6 +64,15 @@ export function getMatchDayKey(kickoffIso) {
   return format(new Date(kickoffIso), 'yyyy-MM-dd');
 }
 
+/** Stable kickoff order: time, then group, then id. */
+export function compareMatchesByKickoff(a, b) {
+  const byKickoff = a.kickoff.localeCompare(b.kickoff);
+  if (byKickoff !== 0) return byKickoff;
+  const byGroup = (a.group ?? '').localeCompare(b.group ?? '');
+  if (byGroup !== 0) return byGroup;
+  return a.id.localeCompare(b.id);
+}
+
 /**
  * Flatten matches in the same order they're shown in the group-by-group
  * lists (Dashboard PreWcView and MatchesPage): groups in alphabetical
@@ -77,7 +86,7 @@ export function flattenMatchesByGroup(matches) {
     if (byGroup.has(m.group)) byGroup.get(m.group).push(m);
   }
   for (const g of GROUPS) {
-    byGroup.get(g).sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+    byGroup.get(g).sort(compareMatchesByKickoff);
   }
   return GROUPS.flatMap((g) => byGroup.get(g) || []);
 }
@@ -99,7 +108,7 @@ export function computeGroupStandings(matches, teams) {
       form: [],
     });
   }
-  const sorted = [...matches].sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+  const sorted = [...matches].sort(compareMatchesByKickoff);
   for (const m of sorted) {
     if (!m.result) continue;
     const home = table.get(m.homeTeamId);
