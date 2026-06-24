@@ -371,7 +371,7 @@ function GroupRankCard({ group, matches, groupStandings, onToggleRank, tournamen
               onClick={() => onToggleRank(group, teamId, allTeams.map((t) => t.id))}
               className={clsx(
                 'mina-rank-row',
-                isRanked && RANK_COLORS[rankIdx],
+                rankIdx === 3 && 'rank-fourth',
               )}
             >
               <span

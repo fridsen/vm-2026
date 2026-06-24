@@ -9,9 +9,10 @@ const TIERS = {
   6: { bg: '#EAF3DE', text: '#3B6D11' },
 };
 
-/** Badge colors for earned match points (0–6). */
+/** Badge colors for earned match points (0–6; totals above 6 use the 6-pt tier). */
 export function matchPointsBadgeColors(points) {
-  const value = Math.max(0, Math.min(6, Math.round(Number(points) || 0)));
+  const raw = Math.max(0, Math.round(Number(points) || 0));
+  const value = Math.min(6, raw);
   if (value === 5) return TIERS[4];
   return TIERS[value] ?? TIERS[0];
 }
@@ -20,4 +21,20 @@ export function matchPointsBadgeColors(points) {
 export function formatMatchPointsLabel(points) {
   const value = Math.max(0, Math.round(Number(points) || 0));
   return value === 1 ? '1 pt' : `${value} pts`;
+}
+
+/** Compound label for same-kickoff matches, e.g. `4 + 2 pts`. */
+export function formatMatchPointsPartsLabel(parts) {
+  const values = (parts ?? []).map((p) => Math.max(0, Math.round(Number(p) || 0)));
+  if (values.length === 0) return '';
+  if (values.length === 1) return formatMatchPointsLabel(values[0]);
+  return `${values.join(' + ')} pts`;
+}
+
+/** Sum of per-match points in a same-kickoff slot. */
+export function matchPointsPartsTotal(parts) {
+  return (parts ?? []).reduce(
+    (sum, value) => sum + Math.max(0, Math.round(Number(value) || 0)),
+    0,
+  );
 }

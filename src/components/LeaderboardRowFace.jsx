@@ -36,8 +36,15 @@ export function RankBadge({ rank, movement, className }) {
   );
 }
 
-function LatestPointsBadge({ points }) {
-  return <MatchPointsBadge points={points} className="lb-latest-points" empty />;
+function LatestPointsBadge({ points, pointsParts }) {
+  return (
+    <MatchPointsBadge
+      points={points}
+      pointsParts={pointsParts}
+      className="lb-latest-points"
+      empty
+    />
+  );
 }
 
 /** @deprecated Used by legacy list variant only */
@@ -59,6 +66,7 @@ export default function LeaderboardRowFace({
   name,
   points,
   latestPoints,
+  latestPointsParts,
   movement,
   showMovement = true,
   variant = 'list',
@@ -74,7 +82,7 @@ export default function LeaderboardRowFace({
           </span>
         </div>
         <div className="lb-row-right">
-          <LatestPointsBadge points={latestPoints} />
+          <LatestPointsBadge points={latestPoints} pointsParts={latestPointsParts} />
           <span className="lb-points">{points}</span>
         </div>
       </>

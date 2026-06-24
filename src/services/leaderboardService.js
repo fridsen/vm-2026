@@ -43,16 +43,39 @@ export async function fetchUserEntry(userId) {
   return data ? rowToEntry(data) : null;
 }
 
-/** Points per player for one finished match (leaderboard Senast column). */
-export async function fetchLatestMatchPoints(matchId) {
-  if (!matchId) return {};
-  const { data, error } = await supabase.rpc('fn_match_points_for_leaderboard', {
-    p_match_id: matchId,
-  });
-  if (error) throw error;
-  const map = {};
-  for (const row of data ?? []) {
-    map[row.user_id] = row.points;
+/** Points per player for finished matches (leaderboard Senast column). */
+export async function fetchLatestMatchPoints(matchIds) {
+  const ids = (Array.isArray(matchIds) ? matchIds : [matchIds]).filter(Boolean);
+  if (!ids.length) return { totals: {}, breakdown: {} };
+
+  const maps = await Promise.all(
+    ids.map(async (matchId) => {
+      const { data, error } = await supabase.rpc('fn_match_points_for_leaderboard', {
+        p_match_id: matchId,
+      });
+      if (error) throw error;
+      const map = {};
+      for (const row of data ?? []) {
+        map[row.user_id] = row.points;
+      }
+      return map;
+    }),
+  );
+
+  const allUserIds = new Set();
+  for (const map of maps) {
+    for (const userId of Object.keys(map)) {
+      allUserIds.add(userId);
+    }
   }
-  return map;
+
+  const breakdown = {};
+  const totals = {};
+  for (const userId of allUserIds) {
+    const parts = maps.map((map) => map[userId] ?? 0);
+    breakdown[userId] = parts;
+    totals[userId] = parts.reduce((sum, points) => sum + points, 0);
+  }
+
+  return { totals, breakdown };
 }

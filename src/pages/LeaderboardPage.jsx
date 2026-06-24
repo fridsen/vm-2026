@@ -11,6 +11,7 @@ import {
   ranksFromEntries,
 } from '../utils/leaderboardMovement.js';
 import { nextLeaderboardSort, sortLeaderboardEntries } from '../utils/leaderboardSort.js';
+import { latestPointsDisplayForUser } from '../utils/latestMatchPointsDisplay.js';
 
 const TOP_FIVE_COUNT = 5;
 
@@ -67,21 +68,31 @@ function LeaderboardEntryRow({
   rank,
   movements,
   latestPoints,
+  latestPointsBreakdown,
   latestPointsReady,
+  latestMatchCount,
   hasLatestMatch,
   openPlayer,
 }) {
-  const latest =
+  const latestParts =
     hasLatestMatch && latestPointsReady
-      ? (latestPoints[entry.userId] ?? 0)
+      ? latestPointsDisplayForUser(
+          entry.userId,
+          latestPoints,
+          latestPointsBreakdown,
+          latestMatchCount,
+        )
       : null;
+  const latestTotal =
+    latestParts != null ? latestParts.reduce((sum, value) => sum + value, 0) : null;
 
   return (
     <LeaderboardRow
       rank={rank}
       name={entry.name}
       points={entry.points}
-      latestPoints={latest}
+      latestPoints={latestTotal}
+      latestPointsParts={latestParts}
       movement={movements[entry.userId]}
       onPress={() => openPlayer(entry, rank)}
     />
@@ -94,7 +105,8 @@ export default function LeaderboardPage() {
   const { now } = useLockState();
   const [selected, setSelected] = useState(null);
   const [sort, setSort] = useState({ key: 'total', dir: 'desc' });
-  const { anchorMatchId, latestPoints, latestPointsReady } = useLatestMatchPoints(matches);
+  const { anchorMatchId, anchorMatchIds, latestPoints, latestPointsBreakdown, latestPointsReady } =
+    useLatestMatchPoints(matches);
 
   const sorted = useMemo(
     () => sortLeaderboardEntries(entries, sort, latestPoints ?? {}),
@@ -128,7 +140,12 @@ export default function LeaderboardPage() {
   const restEntries = showTopFiveDivider ? sorted.slice(TOP_FIVE_COUNT) : [];
 
   return (
-    <div className="leaderboard-page">
+    <div
+      className={clsx(
+        'leaderboard-page',
+        anchorMatchIds.length > 1 && 'lb-has-split-latest',
+      )}
+    >
       {loading ? (
         <div className="lb-empty">Laddar…</div>
       ) : sorted.length === 0 ? (
@@ -144,7 +161,9 @@ export default function LeaderboardPage() {
                 rank={ranks[entry.userId]}
                 movements={movements}
                 latestPoints={latestPoints}
+                latestPointsBreakdown={latestPointsBreakdown}
                 latestPointsReady={latestPointsReady}
+                latestMatchCount={anchorMatchIds.length}
                 hasLatestMatch={Boolean(anchorMatchId)}
                 openPlayer={openPlayer}
               />
@@ -159,7 +178,9 @@ export default function LeaderboardPage() {
                     rank={ranks[entry.userId]}
                     movements={movements}
                     latestPoints={latestPoints}
+                    latestPointsBreakdown={latestPointsBreakdown}
                     latestPointsReady={latestPointsReady}
+                    latestMatchCount={anchorMatchIds.length}
                     hasLatestMatch={Boolean(anchorMatchId)}
                     openPlayer={openPlayer}
                   />

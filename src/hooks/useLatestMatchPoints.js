@@ -1,36 +1,44 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchLatestMatchPoints } from '../services/leaderboardService.js';
-import { latestFinishedMatchId } from '../utils/leaderboardMovement.js';
+import { latestFinishedMatches } from '../utils/leaderboardMovement.js';
 
-/** Points earned on the most recently finished group match (null while loading). */
+/** Points earned on the most recently finished kickoff slot (null while loading). */
 export function useLatestMatchPoints(matches) {
-  const anchorMatchId = useMemo(() => latestFinishedMatchId(matches), [matches]);
-  const [latestPoints, setLatestPoints] = useState(null);
+  const anchorMatches = useMemo(() => latestFinishedMatches(matches), [matches]);
+  const anchorMatchIds = useMemo(
+    () => anchorMatches.map((m) => m.id),
+    [anchorMatches],
+  );
+  const anchorMatchId = anchorMatchIds[0] ?? null;
+  const [latestData, setLatestData] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    if (!anchorMatchId) {
-      setLatestPoints(null);
+    if (!anchorMatchIds.length) {
+      setLatestData(null);
       return undefined;
     }
 
-    setLatestPoints(null);
-    fetchLatestMatchPoints(anchorMatchId)
+    setLatestData(null);
+    fetchLatestMatchPoints(anchorMatchIds)
       .then((data) => {
-        if (!cancelled) setLatestPoints(data);
+        if (!cancelled) setLatestData(data);
       })
       .catch(() => {
-        if (!cancelled) setLatestPoints({});
+        if (!cancelled) setLatestData({ totals: {}, breakdown: {} });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [anchorMatchId]);
+  }, [anchorMatchIds.join(',')]);
 
   return {
     anchorMatchId,
-    latestPoints,
-    latestPointsReady: latestPoints !== null,
+    anchorMatchIds,
+    anchorMatches,
+    latestPoints: latestData?.totals ?? null,
+    latestPointsBreakdown: latestData?.breakdown ?? null,
+    latestPointsReady: latestData !== null,
   };
 }

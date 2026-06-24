@@ -15,7 +15,6 @@ import { liveDataPollIntervalMs } from '../utils/liveDataRefresh.js';
 import { hasStaleLiveMatches } from '../utils/staleLiveMatches.js';
 import {
   finishedMatchesSignature,
-  latestFinishedMatchId,
 } from '../utils/leaderboardMovement.js';
 import { NEWS_CACHE_TTL_MS, readNewsCache } from '../utils/newsCache.js';
 

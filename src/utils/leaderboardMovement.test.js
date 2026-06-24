@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   finishedMatchesSignature,
   latestFinishedMatchId,
+  latestFinishedMatches,
   rankMovementsFromLatestMatch,
   ranksFromEntries,
 } from './leaderboardMovement.js';
@@ -15,11 +16,21 @@ describe('leaderboardMovement', () => {
 
   it('picks the most recent finished match', () => {
     const id = latestFinishedMatchId([
-      { id: 'm1', kickoff: '2026-06-11T12:00:00Z', status: 'finished' },
-      { id: 'm2', kickoff: '2026-06-12T12:00:00Z', status: 'finished' },
-      { id: 'm3', kickoff: '2026-06-13T12:00:00Z', status: 'scheduled' },
+      { id: 'm1', kickoff: '2026-06-11T12:00:00Z', status: 'finished', group: 'A' },
+      { id: 'm2', kickoff: '2026-06-12T12:00:00Z', status: 'finished', group: 'A' },
+      { id: 'm3', kickoff: '2026-06-13T12:00:00Z', status: 'scheduled', group: 'A' },
     ]);
     expect(id).toBe('m2');
+  });
+
+  it('returns every finished match at the latest kickoff slot', () => {
+    const kickoff = '2026-06-24T19:00:00Z';
+    const matches = latestFinishedMatches([
+      { id: 'sui-can', kickoff, status: 'finished', group: 'B' },
+      { id: 'bih-qat', kickoff, status: 'finished', group: 'A' },
+      { id: 'older', kickoff: '2026-06-23T19:00:00Z', status: 'finished', group: 'A' },
+    ]);
+    expect(matches.map((m) => m.id)).toEqual(['bih-qat', 'sui-can']);
   });
 
   it('builds a signature across group and knockout finishes', () => {

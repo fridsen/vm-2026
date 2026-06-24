@@ -15,6 +15,8 @@ import {
 import { selectHeroMatch, HERO_VARIANT } from '../../utils/selectHeroMatch.js';
 import { selectTodayMatches } from '../../utils/selectTodayMatches.js';
 import { formatRankMovementPhrase } from '../../utils/teletextDisplay.js';
+import { formatMatchPointsPartsLabel } from '../../utils/matchPointsBadge.js';
+import { latestPointsDisplayForUser } from '../../utils/latestMatchPointsDisplay.js';
 import { useTeams } from '../../hooks/useTeams.js';
 import { abbreviateNewsSource } from '../../utils/newsSourceAbbrev.js';
 import {
@@ -67,7 +69,7 @@ export default function TeletextDashboardPage() {
   const totalPoints = myEntry?.points ?? breakdown.earnedTotal ?? 0;
   const participantCount = entries.length;
 
-  const { anchorMatchId: latestMatchId, latestPoints, latestPointsReady } =
+  const { anchorMatchId: latestMatchId, anchorMatchIds, latestPoints, latestPointsBreakdown, latestPointsReady } =
     useLatestMatchPoints(matches);
   const myMovement = useMemo(() => {
     if (!latestMatchId || !latestPointsReady || !user?.id) return undefined;
@@ -76,8 +78,22 @@ export default function TeletextDashboardPage() {
   }, [entries, latestMatchId, latestPoints, latestPointsReady, user?.id]);
   const latestMatchPoints = useMemo(() => {
     if (!latestMatchId || !latestPointsReady || !user?.id) return null;
-    return latestPoints[user.id] ?? 0;
-  }, [latestMatchId, latestPoints, latestPointsReady, user?.id]);
+    const parts = latestPointsDisplayForUser(
+      user.id,
+      latestPoints,
+      latestPointsBreakdown,
+      anchorMatchIds.length,
+    );
+    if (!parts) return null;
+    return formatMatchPointsPartsLabel(parts);
+  }, [
+    latestMatchId,
+    latestPoints,
+    latestPointsBreakdown,
+    latestPointsReady,
+    anchorMatchIds.length,
+    user?.id,
+  ]);
 
   return (
     <>

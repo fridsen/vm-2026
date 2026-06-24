@@ -1,9 +1,20 @@
-/** Latest finished group match id (kickoff order), or null. */
+import { compareMatchesByKickoff } from './matchSchedule.js';
+
+/** Finished matches at the most recent kickoff slot (stable order). */
+export function latestFinishedMatches(matches) {
+  const finished = (matches ?? []).filter((m) => m.status === 'finished');
+  if (!finished.length) return [];
+
+  const sorted = [...finished].sort(compareMatchesByKickoff);
+  const latestKickoff = sorted[sorted.length - 1].kickoff;
+  return finished
+    .filter((m) => m.kickoff === latestKickoff)
+    .sort(compareMatchesByKickoff);
+}
+
+/** @deprecated Prefer latestFinishedMatches when multiple games share a kickoff. */
 export function latestFinishedMatchId(matches) {
-  const finished = (matches ?? [])
-    .filter((m) => m.status === 'finished')
-    .sort((a, b) => b.kickoff.localeCompare(a.kickoff));
-  return finished[0]?.id ?? null;
+  return latestFinishedMatches(matches)[0]?.id ?? null;
 }
 
 /** Signature of all finished matches — changes when any group or KO match completes. */

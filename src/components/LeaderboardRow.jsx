@@ -8,7 +8,7 @@ function rankRowClass(rank) {
 }
 
 const LeaderboardRow = forwardRef(function LeaderboardRow(
-  { rank, name, points, latestPoints, movement, onPress, className },
+  { rank, name, points, latestPoints, latestPointsParts, movement, onPress, className },
   ref,
 ) {
   return (
@@ -24,6 +24,7 @@ const LeaderboardRow = forwardRef(function LeaderboardRow(
         name={name}
         points={points}
         latestPoints={latestPoints}
+        latestPointsParts={latestPointsParts}
         movement={movement}
         variant="page"
       />

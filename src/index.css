@@ -611,14 +611,15 @@
     display: flex;
     width: 100%;
     align-items: center;
-    border-bottom: 1px solid var(--border-subtle);
     padding: 12px 16px;
     font-family: 'Barlow', 'DM Sans', system-ui, sans-serif;
     text-align: left;
+  }
+  .mina-match-row {
+    border-bottom: 1px solid var(--border-subtle);
     transition: background-color 0.16s ease;
   }
-  .mina-match-row:last-child,
-  .mina-rank-row:last-child {
+  .mina-match-row:last-child {
     border-bottom: 0;
   }
   .mina-match-row {
@@ -703,22 +704,7 @@
   .mina-rank-row {
     min-height: 44px;
     gap: 10px;
-    background: rgba(255, 255, 255, 0.75);
-    transition:
-      background-color 0.18s ease,
-      transform 0.18s ease;
-  }
-  .mina-rank-row.rank-gold {
-    background: rgba(212, 168, 67, 0.1);
-    animation: rankSlideIn 0.24s cubic-bezier(0.32, 0.72, 0, 1) both;
-  }
-  .mina-rank-row.rank-silver {
-    background: rgba(119, 119, 119, 0.1);
-    animation: rankSlideIn 0.24s cubic-bezier(0.32, 0.72, 0, 1) both;
-  }
-  .mina-rank-row.rank-bronze {
-    background: rgba(92, 184, 92, 0.1);
-    animation: rankSlideIn 0.24s cubic-bezier(0.32, 0.72, 0, 1) both;
+    background: transparent;
   }
   .mina-rank-row.rank-fourth .mina-rank-flag {
     opacity: 0.3;
@@ -730,28 +716,32 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    border-radius: 999px;
+    border-radius: 6px;
     background: var(--bg-box);
     font-size: 12px;
     font-weight: 600;
     line-height: 18px;
-    color: var(--text-primary);
+    color: var(--text-tertiary);
   }
   .mina-rank-badge.rank-gold {
-    background: #d4a843;
-    color: var(--text-primary);
+    background: #f5e9c4;
+    color: #7d5f14;
+    animation: rankSlideIn 0.24s cubic-bezier(0.32, 0.72, 0, 1) both;
   }
   .mina-rank-badge.rank-silver {
-    background: #777;
-    color: var(--color-white);
+    background: #e5e5e5;
+    color: #555;
+    animation: rankSlideIn 0.24s cubic-bezier(0.32, 0.72, 0, 1) both;
   }
   .mina-rank-badge.rank-bronze {
-    background: #5cb85c;
-    color: var(--color-white);
+    background: #d8afa0;
+    color: #712b13;
+    animation: rankSlideIn 0.24s cubic-bezier(0.32, 0.72, 0, 1) both;
   }
   .mina-rank-badge.rank-fourth {
     background: var(--bg-box);
     color: var(--text-tertiary);
+    animation: rankSlideIn 0.24s cubic-bezier(0.32, 0.72, 0, 1) both;
   }
   .mina-rank-flag {
     display: inline-flex;
@@ -1715,6 +1705,14 @@
   }
   .match-points-badge.is-empty {
     visibility: hidden;
+  }
+  .match-points-badge--wide {
+    width: auto;
+    min-width: 40px;
+    max-width: 76px;
+    padding: 3px 6px 4px;
+    font-size: 10px;
+    letter-spacing: -0.02em;
   }
   .lb-latest-points.is-empty {
     justify-self: center;
@@ -2770,6 +2768,9 @@
     --lb-total-col-width: 44px;
     --lb-metrics-gap: 12px;
   }
+  .leaderboard-page.lb-has-split-latest {
+    --lb-latest-col-width: 68px;
+  }
   .lb-column-header {
     display: flex;
     align-items: center;
@@ -2936,19 +2937,19 @@
     height: 28px;
   }
   .lb-rank.is-gold {
-    background: rgba(233, 185, 115, 0.3);
+    background: #f5e9c4;
     font-weight: 700;
-    color: #d9ab67;
+    color: #7d5f14;
   }
   .lb-rank.is-silver {
-    background: rgba(180, 180, 180, 0.3);
+    background: #e5e5e5;
     font-weight: 600;
-    color: #9196a9;
+    color: #555;
   }
   .lb-rank.is-bronze {
-    background: rgba(181, 91, 71, 0.3);
+    background: #d8afa0;
     font-weight: 600;
-    color: #b55b47;
+    color: #712b13;
   }
   .lb-rank.is-podium {
     background: rgba(200, 237, 0, 0.15);
