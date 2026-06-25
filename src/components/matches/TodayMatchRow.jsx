@@ -45,7 +45,7 @@ export default function TodayMatchRow({
   const tipLabel = formatTipLabel(prediction, { homeTeam, awayTeam }, { compact: true });
 
   const pointsEarned = useMemo(() => {
-    if (!isFinished || !match.result || !prediction) return null;
+    if (!isFinished || !match.result) return null;
     return scoreGroupMatch(prediction, match.result).points;
   }, [isFinished, match.result, prediction]);
 

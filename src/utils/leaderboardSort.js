@@ -1,12 +1,18 @@
 /** @typedef {'total' | 'latest'} LeaderboardSortKey */
 
 /**
- * Sort leaderboard rows. Default tie-breaker is total points, then name.
- * @param {Array<{ userId: string, name?: string, points: number }>} entries
+ * Sort leaderboard rows. Default tie-breaker is score column, then name.
+ * @param {Array<{ userId: string, name?: string, points: number, matchPoints?: number, groupPoints?: number }>} entries
  * @param {{ key: LeaderboardSortKey, dir: 'asc' | 'desc' }} sort
  * @param {Record<string, number>} [latestPointsByUser]
+ * @param {{ scoreKey?: 'points' | 'matchPoints' | 'groupPoints' }} [options]
  */
-export function sortLeaderboardEntries(entries, sort, latestPointsByUser = {}) {
+export function sortLeaderboardEntries(
+  entries,
+  sort,
+  latestPointsByUser = {},
+  { scoreKey = 'points' } = {},
+) {
   const factor = sort.dir === 'asc' ? 1 : -1;
 
   return [...(entries ?? [])].sort((a, b) => {
@@ -16,9 +22,11 @@ export function sortLeaderboardEntries(entries, sort, latestPointsByUser = {}) {
       if (latestA !== latestB) return factor * (latestA - latestB);
     }
 
-    if (a.points !== b.points) {
+    const scoreA = a[scoreKey] ?? 0;
+    const scoreB = b[scoreKey] ?? 0;
+    if (scoreA !== scoreB) {
       const totalFactor = sort.key === 'total' ? factor : -1;
-      return totalFactor * (a.points - b.points);
+      return totalFactor * (scoreA - scoreB);
     }
 
     return (a.name ?? '').localeCompare(b.name ?? '', 'sv');

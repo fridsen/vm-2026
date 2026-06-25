@@ -97,6 +97,19 @@ export async function fetchUserMatchPredictions(userId) {
   return out;
 }
 
+/** Group-standing predictions for a user (leaderboard player sheet; bypasses RLS via RPC). */
+export async function fetchUserGroupStandings(userId) {
+  const { data, error } = await supabase.rpc('fn_user_group_standings', {
+    p_user_id: userId,
+  });
+  if (error) throw error;
+  const out = {};
+  for (const row of data ?? []) {
+    out[row.group_key] = row.prediction;
+  }
+  return out;
+}
+
 export async function saveMatchPrediction(
   userId,
   matchId,

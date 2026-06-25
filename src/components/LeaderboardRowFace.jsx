@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import MatchPointsBadge from './MatchPointsBadge.jsx';
+import GroupPointsBadge from './GroupPointsBadge.jsx';
 
 function rankTier(rank) {
   if (rank === 1) return 'gold';
@@ -36,7 +37,7 @@ export function RankBadge({ rank, movement, className }) {
   );
 }
 
-function LatestPointsBadge({ points, pointsParts }) {
+function LatestMatchPointsBadge({ points, pointsParts }) {
   return (
     <MatchPointsBadge
       points={points}
@@ -65,10 +66,15 @@ export default function LeaderboardRowFace({
   rank,
   name,
   points,
+  matchPoints,
+  groupPoints,
   latestPoints,
   latestPointsParts,
+  latestGroup,
+  latestGroupPoints,
   movement,
   showMovement = true,
+  view = 'matcher',
   variant = 'list',
   nameId,
 }) {
@@ -81,10 +87,30 @@ export default function LeaderboardRowFace({
             {name}
           </span>
         </div>
-        <div className="lb-row-right">
-          <LatestPointsBadge points={latestPoints} pointsParts={latestPointsParts} />
-          <span className="lb-points">{points}</span>
-        </div>
+        {view === 'totalt' ? (
+          <div className="lb-row-right lb-row-right--totalt">
+            <span className="lb-split-metric">{matchPoints ?? 0}</span>
+            <span className="lb-split-metric">{groupPoints ?? 0}</span>
+            <span className="lb-points">{points}</span>
+          </div>
+        ) : null}
+        {view === 'matcher' ? (
+          <div className="lb-row-right">
+            <LatestMatchPointsBadge points={latestPoints} pointsParts={latestPointsParts} />
+            <span className="lb-points">{matchPoints ?? 0}</span>
+          </div>
+        ) : null}
+        {view === 'grupper' ? (
+          <div className="lb-row-right lb-row-right--groups">
+            <GroupPointsBadge
+              group={latestGroup}
+              points={latestGroupPoints}
+              className="lb-latest-points"
+              empty
+            />
+            <span className="lb-points">{groupPoints ?? 0}</span>
+          </div>
+        ) : null}
       </>
     );
   }

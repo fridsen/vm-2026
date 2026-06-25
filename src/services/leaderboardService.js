@@ -79,3 +79,17 @@ export async function fetchLatestMatchPoints(matchIds) {
 
   return { totals, breakdown };
 }
+
+/** Points per player for one finalized group (leaderboard Grupper Senast column). */
+export async function fetchLatestGroupPoints(group) {
+  if (!group) return {};
+  const { data, error } = await supabase.rpc('fn_group_points_for_leaderboard', {
+    p_group: group,
+  });
+  if (error) throw error;
+  const map = {};
+  for (const row of data ?? []) {
+    map[row.user_id] = row.points;
+  }
+  return map;
+}

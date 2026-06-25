@@ -14,11 +14,12 @@ export const BREAKDOWN_ROWS = [
   { key: 'exact', label: 'Bonus' },
 ];
 
-/** Dashboard total-points categories (Figma). */
+/** Dashboard total-points categories (Figma 513:12933). */
 export const TOTAL_POINTS_ROWS = [
   { key: 'sign', label: 'Rätt tecken', dotClass: 'is-dark' },
   { key: 'goals', label: 'Rätt antal mål', dotClass: 'is-mid' },
   { key: 'exact', label: 'Bonuspoäng', dotClass: 'is-light' },
+  { key: 'groups', label: 'Poäng grupper', dotClass: 'is-faint' },
 ];
 
 function emptyBreakdown() {
@@ -30,7 +31,7 @@ function emptyBreakdown() {
  * `possible` counts max points per dimension for every finished match;
  * `earned` sums the user's breakdown from scoreGroupMatch.
  */
-export function aggregateMatchPointsBreakdown(matches, predictions) {
+export function aggregateMatchPointsBreakdown(matches, predictions, groupPointsEarned = 0) {
   const earned = emptyBreakdown();
   const possible = emptyBreakdown();
   const matchPreds = predictions?.matches ?? {};
@@ -63,7 +64,13 @@ export function aggregateMatchPointsBreakdown(matches, predictions) {
     label,
     dotClass,
     earned:
-      key === 'goals' ? goalsEarned : key === 'sign' ? earned.sign : earned.exact,
+      key === 'groups'
+        ? Math.max(0, Math.round(Number(groupPointsEarned) || 0))
+        : key === 'goals'
+          ? goalsEarned
+          : key === 'sign'
+            ? earned.sign
+            : earned.exact,
   }));
 
   const earnedTotal = Object.values(earned).reduce((sum, n) => sum + n, 0);

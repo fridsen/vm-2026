@@ -1,40 +1,65 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
+import { useEffect, useRef, useState } from 'react';
 import BottomSheet from './BottomSheet.jsx';
-import TodayMatchRow from './matches/TodayMatchRow.jsx';
 import { RankBadge } from './LeaderboardRowFace.jsx';
-import { fetchUserMatchPredictions } from '../services/predictionsService.js';
-import { buildMatchDays } from '../utils/matchDays.js';
+import LeaderboardPlayerSheetGroups from './LeaderboardPlayerSheetGroups.jsx';
+import LeaderboardPlayerSheetMatches from './LeaderboardPlayerSheetMatches.jsx';
+import LeaderboardPlayerSheetTabs from './LeaderboardPlayerSheetTabs.jsx';
+import LeaderboardPlayerSheetTopThree from './LeaderboardPlayerSheetTopThree.jsx';
 import {
-  leaderboardSheetScrollDayKey,
-  scrollSectionToTop,
-} from '../utils/leaderboardSheetScroll.js';
+  fetchUserGroupStandings,
+  fetchUserMatchPredictions,
+} from '../services/predictionsService.js';
 
 export default function LeaderboardPlayerSheet({ player, matches, now, onClose }) {
   const open = player != null;
-  const [predictions, setPredictions] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState('matcher');
+  const [matchPredictions, setMatchPredictions] = useState({});
+  const [groupStandings, setGroupStandings] = useState({});
+  const [matchLoading, setMatchLoading] = useState(false);
+  const [groupLoading, setGroupLoading] = useState(false);
   const [sheetPhase, setSheetPhase] = useState(null);
   const bodyRef = useRef(null);
   const dayRefs = useRef(new Map());
 
   useEffect(() => {
+    if (!open) {
+      setTab('matcher');
+      return undefined;
+    }
+    setTab('matcher');
+  }, [open, player?.userId]);
+
+  useEffect(() => {
+    if (!player?.userId) return;
+    setMatchPredictions({});
+    setGroupStandings({});
+  }, [player?.userId]);
+
+  useEffect(() => {
     if (!open || !player?.userId) return undefined;
 
-    setPredictions({});
-    setLoading(true);
+    setMatchLoading(true);
+    setGroupLoading(true);
     let cancelled = false;
 
-    fetchUserMatchPredictions(player.userId)
-      .then((rows) => {
-        if (!cancelled) setPredictions(rows ?? {});
-      })
-      .catch(() => {
-        if (!cancelled) setPredictions({});
+    Promise.allSettled([
+      fetchUserMatchPredictions(player.userId),
+      fetchUserGroupStandings(player.userId),
+    ])
+      .then(([matchResult, groupResult]) => {
+        if (cancelled) return;
+        setMatchPredictions(
+          matchResult.status === 'fulfilled' ? (matchResult.value ?? {}) : {},
+        );
+        setGroupStandings(
+          groupResult.status === 'fulfilled' ? (groupResult.value ?? {}) : {},
+        );
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setMatchLoading(false);
+          setGroupLoading(false);
+        }
       });
 
     return () => {
@@ -42,38 +67,16 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
     };
   }, [open, player?.userId]);
 
-  const days = useMemo(() => buildMatchDays(matches), [matches]);
-  const scrollDayKey = useMemo(
-    () => leaderboardSheetScrollDayKey(days, now),
-    [days, now],
-  );
-
-  useLayoutEffect(() => {
-    if (!open || loading || sheetPhase !== 'idle' || !scrollDayKey) return undefined;
-
-    const container = bodyRef.current;
-    const section = dayRefs.current.get(scrollDayKey);
-    if (!container || !section) return undefined;
-
-    let raf2 = 0;
-    const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => {
-        scrollSectionToTop(container, section);
-      });
-    });
-
-    return () => {
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
-    };
-  }, [open, loading, sheetPhase, scrollDayKey, player?.userId]);
-
   useEffect(() => {
     if (!open) {
       dayRefs.current.clear();
       if (bodyRef.current) bodyRef.current.scrollTop = 0;
     }
   }, [open]);
+
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.scrollTop = 0;
+  }, [tab]);
 
   return (
     <BottomSheet
@@ -96,39 +99,28 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
             <span className="lb-sheet-points">{player.points}</span>
           </header>
 
+          <LeaderboardPlayerSheetTabs value={tab} onChange={setTab} />
+
           <div ref={bodyRef} className="lb-sheet-body">
-            {loading ? (
-              <p className="lb-sheet-empty">Laddar…</p>
-            ) : days.length === 0 ? (
-              <p className="lb-sheet-empty">Inga matcher att visa</p>
-            ) : (
-              days.map((day) => (
-                <section
-                  key={day.dayKey}
-                  ref={(node) => {
-                    if (node) dayRefs.current.set(day.dayKey, node);
-                    else dayRefs.current.delete(day.dayKey);
-                  }}
-                  className="lb-sheet-day"
-                  data-day-key={day.dayKey}
-                >
-                  <h3 className="lb-sheet-day-title">
-                    {format(day.date, 'EEEE d MMMM', { locale: sv })}
-                  </h3>
-                  <div className="lb-sheet-day-matches">
-                    {day.matches.map((match) => (
-                      <TodayMatchRow
-                        key={match.id}
-                        match={match}
-                        now={now}
-                        prediction={predictions[match.id]}
-                        showTipWithPoints
-                      />
-                    ))}
-                  </div>
-                </section>
-              ))
-            )}
+            {tab === 'matcher' ? (
+              <LeaderboardPlayerSheetMatches
+                matches={matches}
+                now={now}
+                predictions={matchPredictions}
+                loading={matchLoading}
+                sheetPhase={sheetPhase}
+                bodyRef={bodyRef}
+                dayRefs={dayRefs}
+              />
+            ) : null}
+            {tab === 'grupper' ? (
+              <LeaderboardPlayerSheetGroups
+                matches={matches}
+                groupStandings={groupStandings}
+                loading={groupLoading}
+              />
+            ) : null}
+            {tab === 'topp3' ? <LeaderboardPlayerSheetTopThree /> : null}
           </div>
         </>
       ) : null}

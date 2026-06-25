@@ -56,6 +56,20 @@ export function rankForUser(entries, userId) {
   return ranksFromEntries(entries)[userId] ?? null;
 }
 
+/** Competition ranks for a list already sorted by the active score column. */
+export function ranksFromOrderedEntries(entries, scoreKey = 'points') {
+  const ranks = {};
+  let rank = 1;
+  for (let i = 0; i < (entries ?? []).length; i += 1) {
+    const score = entries[i][scoreKey] ?? 0;
+    if (i > 0 && score < (entries[i - 1][scoreKey] ?? 0)) {
+      rank = i + 1;
+    }
+    ranks[entries[i].userId] = rank;
+  }
+  return ranks;
+}
+
 function movementsBetween(priorRanks, currentRanks) {
   const movements = {};
   if (!priorRanks) return movements;

@@ -8,7 +8,22 @@ function rankRowClass(rank) {
 }
 
 const LeaderboardRow = forwardRef(function LeaderboardRow(
-  { rank, name, points, latestPoints, latestPointsParts, movement, onPress, className },
+  {
+    rank,
+    name,
+    points,
+    matchPoints,
+    groupPoints,
+    latestPoints,
+    latestPointsParts,
+    latestGroup,
+    latestGroupPoints,
+    movement,
+    showMovement,
+    view,
+    onPress,
+    className,
+  },
   ref,
 ) {
   return (
@@ -23,9 +38,15 @@ const LeaderboardRow = forwardRef(function LeaderboardRow(
         rank={rank}
         name={name}
         points={points}
+        matchPoints={matchPoints}
+        groupPoints={groupPoints}
         latestPoints={latestPoints}
         latestPointsParts={latestPointsParts}
+        latestGroup={latestGroup}
+        latestGroupPoints={latestGroupPoints}
         movement={movement}
+        showMovement={showMovement}
+        view={view}
         variant="page"
       />
     </button>

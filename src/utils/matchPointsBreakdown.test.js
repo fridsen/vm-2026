@@ -85,7 +85,23 @@ describe('aggregateMatchPointsBreakdown', () => {
       { key: 'sign', label: 'Rätt tecken', dotClass: 'is-dark', earned: 3 },
       { key: 'goals', label: 'Rätt antal mål', dotClass: 'is-mid', earned: 2 },
       { key: 'exact', label: 'Bonuspoäng', dotClass: 'is-light', earned: 1 },
+      { key: 'groups', label: 'Poäng grupper', dotClass: 'is-faint', earned: 0 },
     ]);
+  });
+
+  it('includes group points in dashboard total rows', () => {
+    const result = aggregateMatchPointsBreakdown(
+      [match('m1', { home: 2, away: 1 })],
+      { matches: { m1: { home: 2, away: 1, outcome: '1' } } },
+      16,
+    );
+
+    expect(result.totalRows.find((r) => r.key === 'groups')).toEqual({
+      key: 'groups',
+      label: 'Poäng grupper',
+      dotClass: 'is-faint',
+      earned: 16,
+    });
   });
 
   it('awards max 6 points for a perfect single match', () => {
