@@ -34,12 +34,8 @@ export default function LiveDashboard({
   }, [entries, anchorMatchId, latestPoints, latestPointsReady]);
 
   const breakdown = useMemo(
-    () => aggregateMatchPointsBreakdown(matches, predictions),
-    [matches, predictions],
-  );
-  const totalPointRows = useMemo(
-    () => breakdown.totalRows.filter((row) => row.key !== 'groups'),
-    [breakdown.totalRows],
+    () => aggregateMatchPointsBreakdown(matches, predictions, myEntry?.groupPoints ?? 0),
+    [matches, predictions, myEntry?.groupPoints],
   );
 
   const myMovement = myUserId ? movements[myUserId] : undefined;
@@ -50,7 +46,7 @@ export default function LiveDashboard({
     <div className="home-page">
       <LiveHeroMatch matches={matches} now={now} predictions={predictions} />
       <TodayMatchesCard matches={matches} now={now} predictions={predictions} />
-      <LivePointsCard totalPoints={myEntry?.points ?? 0} rows={totalPointRows} />
+      <LivePointsCard totalPoints={myEntry?.points ?? 0} rows={breakdown.totalRows} />
       <LiveStatsRow
         rank={myRank}
         totalPlayers={entries.length}

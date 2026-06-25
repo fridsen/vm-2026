@@ -155,7 +155,7 @@ export default function LeaderboardPage() {
   const { matches } = useAllMatches();
   const { now } = useLockState();
   const [selected, setSelected] = useState(null);
-  const [view, setView] = useState('matcher');
+  const [view, setView] = useState('totalt');
   const [sort, setSort] = useState({ key: 'total', dir: 'desc' });
 
   const { anchorMatchId, anchorMatchIds, latestPoints, latestPointsBreakdown, latestPointsReady } =

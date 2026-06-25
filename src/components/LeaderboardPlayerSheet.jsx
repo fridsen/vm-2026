@@ -118,6 +118,7 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
                 matches={matches}
                 groupStandings={groupStandings}
                 loading={groupLoading}
+                showPoints
               />
             ) : null}
             {tab === 'topp3' ? <LeaderboardPlayerSheetTopThree /> : null}
