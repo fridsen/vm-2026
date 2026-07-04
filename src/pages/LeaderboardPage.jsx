@@ -4,7 +4,7 @@ import LeaderboardRow from '../components/LeaderboardRow.jsx';
 import LeaderboardPlayerSheet from '../components/LeaderboardPlayerSheet.jsx';
 import LeaderboardSegmentedControl from '../components/LeaderboardSegmentedControl.jsx';
 import LeaderboardTopThreePlaceholder from '../components/LeaderboardTopThreePlaceholder.jsx';
-import { useAllMatches } from '../hooks/useMatches.js';
+import { useTournamentMatches } from '../hooks/useMatches.js';
 import { useLatestGroupPoints } from '../hooks/useLatestGroupPoints.js';
 import { useLatestMatchPoints } from '../hooks/useLatestMatchPoints.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
@@ -152,7 +152,7 @@ function LeaderboardEntryRow({
 
 export default function LeaderboardPage() {
   const { entries, loading } = useLeaderboard();
-  const { matches } = useAllMatches();
+  const { matches } = useTournamentMatches();
   const { now } = useLockState();
   const [selected, setSelected] = useState(null);
   const [view, setView] = useState('totalt');

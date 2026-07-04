@@ -33,4 +33,16 @@ describe('selectTodayMatches', () => {
       'b-match',
     ]);
   });
+
+  it('includes knockout matches on the same day', () => {
+    const group = match('g', '2026-06-15T18:00:00Z');
+    const knockout = {
+      id: 'ko',
+      kickoff: '2026-06-15T21:00:00Z',
+      homeTeamId: 'a',
+      awayTeamId: 'b',
+      round: 'R16',
+    };
+    expect(selectTodayMatches([knockout, group], now).map((m) => m.id)).toEqual(['g', 'ko']);
+  });
 });

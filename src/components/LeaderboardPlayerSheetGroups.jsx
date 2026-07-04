@@ -2,11 +2,7 @@ import clsx from 'clsx';
 import { flagImageForCode } from '../data/flagImages.js';
 import { GROUPS } from '../data/teams.js';
 import { useTeams } from '../hooks/useTeams.js';
-import { formatMatchPointsLabel } from '../utils/matchPointsBadge.js';
-import {
-  groupRowPointsBadgeColors,
-  groupTotalPointsBadgeColors,
-} from '../utils/groupPointsBadge.js';
+import LeaderboardPlayerSheetPointsBadge from './LeaderboardPlayerSheetPointsBadge.jsx';
 import {
   actualGroupTeamIds,
   groupRankPointsAtIndex,
@@ -16,23 +12,6 @@ import {
 } from '../utils/groupStandingSheet.js';
 
 const RANK_BADGE_CLASS = ['rank-gold', 'rank-silver', 'rank-bronze', 'rank-fourth'];
-
-function SheetPointsBadge({ points, variant = 'row', finalized }) {
-  const value = Math.max(0, Math.round(Number(points) || 0));
-  const colors =
-    variant === 'total'
-      ? groupTotalPointsBadgeColors(value, finalized)
-      : groupRowPointsBadgeColors(value, finalized);
-
-  return (
-    <span
-      className={clsx('lb-sheet-points-badge', variant === 'total' && 'is-total')}
-      style={{ '--mpb-bg': colors.bg, '--mpb-text': colors.text }}
-    >
-      {formatMatchPointsLabel(value)}
-    </span>
-  );
-}
 
 function GroupSection({ group, matches, groupStandings, showPoints }) {
   const { getTeamsInGroup, getTeamById } = useTeams();
@@ -74,7 +53,11 @@ function GroupSection({ group, matches, groupStandings, showPoints }) {
               <span className="lb-sheet-group-code">{team.code || team.id}</span>
             </div>
             {showPoints && points != null ? (
-              <SheetPointsBadge points={points} variant="row" finalized={finalized} />
+              <LeaderboardPlayerSheetPointsBadge
+                points={points}
+                variant="row"
+                finalized={finalized}
+              />
             ) : null}
           </div>
         );
@@ -82,7 +65,11 @@ function GroupSection({ group, matches, groupStandings, showPoints }) {
       {showPoints ? (
         <footer className="lb-sheet-group-footer">
           <span>Totalpoäng</span>
-          <SheetPointsBadge points={totalPoints} variant="total" finalized={finalized} />
+          <LeaderboardPlayerSheetPointsBadge
+            points={totalPoints}
+            variant="total"
+            finalized={finalized}
+          />
         </footer>
       ) : null}
     </section>

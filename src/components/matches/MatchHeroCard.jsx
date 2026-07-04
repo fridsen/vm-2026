@@ -11,6 +11,7 @@ import {
   MATCH_STATE,
   displayScore,
   getMatchState,
+  isKnockoutMatch,
 } from '../../utils/matchSchedule.js';
 
 function TeamBlock({ teamId, className }) {
@@ -92,11 +93,14 @@ export default function MatchHeroCard({
     resolvedVariant === 'finished' || resolvedVariant === 'recent-finished';
 
   const showChannel = resolvedVariant === 'upcoming' && channel;
+  const hidePredictionFooter = isKnockoutMatch(match) && !prediction && resolvedVariant !== 'live';
   const showFooterBadge =
-    resolvedVariant === 'live' || pointsEarned != null;
+    !hidePredictionFooter && (resolvedVariant === 'live' || pointsEarned != null);
+  const showFooter =
+    !hidePredictionFooter && (tipLabel || showFooterBadge || showChannel);
 
   return (
-    <div className={clsx('match-hero-card', className)}>
+    <div className={clsx('match-hero-card', !showFooter && 'match-hero-card--no-footer', className)}>
       <div className="match-hero-body">
         <TeamBlock teamId={match.homeTeamId} className="match-hero-team--home" />
 
@@ -117,7 +121,7 @@ export default function MatchHeroCard({
         <TeamBlock teamId={match.awayTeamId} className="match-hero-team--away" />
       </div>
 
-      {(tipLabel || showFooterBadge || showChannel) && (
+      {showFooter && (
         <div className="match-hero-footer">
           {tipLabel ? (
             <p className="match-hero-prediction">

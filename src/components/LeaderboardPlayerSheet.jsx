@@ -8,6 +8,7 @@ import LeaderboardPlayerSheetTopThree from './LeaderboardPlayerSheetTopThree.jsx
 import {
   fetchUserGroupStandings,
   fetchUserMatchPredictions,
+  fetchUserTopThree,
 } from '../services/predictionsService.js';
 
 export default function LeaderboardPlayerSheet({ player, matches, now, onClose }) {
@@ -15,8 +16,10 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
   const [tab, setTab] = useState('matcher');
   const [matchPredictions, setMatchPredictions] = useState({});
   const [groupStandings, setGroupStandings] = useState({});
+  const [topThree, setTopThree] = useState(null);
   const [matchLoading, setMatchLoading] = useState(false);
   const [groupLoading, setGroupLoading] = useState(false);
+  const [topThreeLoading, setTopThreeLoading] = useState(false);
   const [sheetPhase, setSheetPhase] = useState(null);
   const bodyRef = useRef(null);
   const dayRefs = useRef(new Map());
@@ -33,6 +36,7 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
     if (!player?.userId) return;
     setMatchPredictions({});
     setGroupStandings({});
+    setTopThree(null);
   }, [player?.userId]);
 
   useEffect(() => {
@@ -40,13 +44,15 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
 
     setMatchLoading(true);
     setGroupLoading(true);
+    setTopThreeLoading(true);
     let cancelled = false;
 
     Promise.allSettled([
       fetchUserMatchPredictions(player.userId),
       fetchUserGroupStandings(player.userId),
+      fetchUserTopThree(player.userId),
     ])
-      .then(([matchResult, groupResult]) => {
+      .then(([matchResult, groupResult, topThreeResult]) => {
         if (cancelled) return;
         setMatchPredictions(
           matchResult.status === 'fulfilled' ? (matchResult.value ?? {}) : {},
@@ -54,11 +60,15 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
         setGroupStandings(
           groupResult.status === 'fulfilled' ? (groupResult.value ?? {}) : {},
         );
+        setTopThree(
+          topThreeResult.status === 'fulfilled' ? (topThreeResult.value ?? null) : null,
+        );
       })
       .finally(() => {
         if (!cancelled) {
           setMatchLoading(false);
           setGroupLoading(false);
+          setTopThreeLoading(false);
         }
       });
 
@@ -121,7 +131,14 @@ export default function LeaderboardPlayerSheet({ player, matches, now, onClose }
                 showPoints
               />
             ) : null}
-            {tab === 'topp3' ? <LeaderboardPlayerSheetTopThree /> : null}
+            {tab === 'topp3' ? (
+              <LeaderboardPlayerSheetTopThree
+                matches={matches}
+                topThree={topThree}
+                loading={topThreeLoading}
+                showPoints
+              />
+            ) : null}
           </div>
         </>
       ) : null}

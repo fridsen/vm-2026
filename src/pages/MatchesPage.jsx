@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { useAllMatches } from '../hooks/useMatches.js';
+import { useTournamentMatches } from '../hooks/useMatches.js';
 import { useLockState } from '../hooks/useLockState.js';
 import { usePredictions } from '../hooks/usePredictions.js';
 import MatchCard from '../components/MatchCard.jsx';
 import PredictionSheet from '../components/PredictionSheet.jsx';
 import { buildMatchDays } from '../utils/matchDays.js';
-import { getMatchDayKey } from '../utils/matchSchedule.js';
+import { getMatchDayKey, isKnockoutMatch } from '../utils/matchSchedule.js';
 
 export default function MatchesPage() {
-  const { matches, loading } = useAllMatches();
+  const { matches, loading } = useTournamentMatches();
   const { now, groupLocked } = useLockState();
   const { predictions, updateMatch } = usePredictions();
   const [predictMatch, setPredictMatch] = useState(null);
@@ -42,13 +42,17 @@ export default function MatchesPage() {
     () => days.flatMap((day) => day.matches),
     [days],
   );
+  const predictableMatches = useMemo(
+    () => orderedMatches.filter((match) => !isKnockoutMatch(match)),
+    [orderedMatches],
+  );
   const sheetIndex = predictMatch
-    ? orderedMatches.findIndex((m) => m.id === predictMatch.id)
+    ? predictableMatches.findIndex((m) => m.id === predictMatch.id)
     : -1;
-  const prevMatch = sheetIndex > 0 ? orderedMatches[sheetIndex - 1] : null;
+  const prevMatch = sheetIndex > 0 ? predictableMatches[sheetIndex - 1] : null;
   const nextMatch =
-    sheetIndex >= 0 && sheetIndex < orderedMatches.length - 1
-      ? orderedMatches[sheetIndex + 1]
+    sheetIndex >= 0 && sheetIndex < predictableMatches.length - 1
+      ? predictableMatches[sheetIndex + 1]
       : null;
 
   if (loading) {
@@ -97,7 +101,11 @@ export default function MatchesPage() {
               match={match}
               now={now}
               prediction={predictions?.matches?.[match.id]}
-              onPredict={groupLocked ? undefined : () => setPredictMatch(match)}
+              onPredict={
+                groupLocked || isKnockoutMatch(match)
+                  ? undefined
+                  : () => setPredictMatch(match)
+              }
             />
           ))
         ) : (

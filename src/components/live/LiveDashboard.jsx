@@ -7,6 +7,7 @@ import {
   sortLeaderboardEntries,
 } from '../../utils/leaderboardMovement.js';
 import { aggregateMatchPointsBreakdown } from '../../utils/matchPointsBreakdown.js';
+import { useTournamentMatches } from '../../hooks/useMatches.js';
 import LiveHeroMatch from './LiveHeroMatch.jsx';
 import TodayMatchesCard from '../matches/TodayMatchesCard.jsx';
 import LivePointsCard from './LivePointsCard.jsx';
@@ -24,6 +25,7 @@ export default function LiveDashboard({
   newsArticles,
   newsLoading,
 }) {
+  const { matches: tournamentMatches } = useTournamentMatches();
   const sortedEntries = useMemo(() => sortLeaderboardEntries(entries), [entries]);
 
   const { anchorMatchId, latestPoints, latestPointsReady } = useLatestMatchPoints(matches);
@@ -44,8 +46,8 @@ export default function LiveDashboard({
 
   return (
     <div className="home-page">
-      <LiveHeroMatch matches={matches} now={now} predictions={predictions} />
-      <TodayMatchesCard matches={matches} now={now} predictions={predictions} />
+      <LiveHeroMatch matches={tournamentMatches} now={now} predictions={predictions} />
+      <TodayMatchesCard matches={tournamentMatches} now={now} predictions={predictions} />
       <LivePointsCard totalPoints={myEntry?.points ?? 0} rows={breakdown.totalRows} />
       <LiveStatsRow
         rank={myRank}

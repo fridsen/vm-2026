@@ -69,6 +69,15 @@ describe('selectHeroMatch', () => {
   it('returns null when no matches', () => {
     expect(selectHeroMatch([], now)).toBeNull();
   });
+
+  it('can pick an upcoming knockout match', () => {
+    const knockout = match('ko', new Date(now + 30 * 60 * 1000).toISOString(), {
+      group: undefined,
+      round: 'R16',
+    });
+    const result = selectHeroMatch([knockout], now);
+    expect(result).toEqual({ match: knockout, variant: HERO_VARIANT.UPCOMING });
+  });
 });
 
 describe('selectHeroMatches', () => {

@@ -5,6 +5,7 @@ import {
   flattenMatchesByGroup,
   getMatchDayKey,
   getMatchState,
+  isKnockoutMatch,
   liveMatchMinute,
 } from './matchSchedule.js';
 
@@ -143,5 +144,12 @@ describe('computeGroupStandings', () => {
 
     expect(standings.map((row) => row.team.id)).toEqual(['B', 'A', 'C']);
     expect(standings[0]).toMatchObject({ points: 3, gd: 1, gf: 3 });
+  });
+});
+
+describe('isKnockoutMatch', () => {
+  it('detects knockout fixtures by text round id', () => {
+    expect(isKnockoutMatch({ round: 'R16' })).toBe(true);
+    expect(isKnockoutMatch({ group: 'A', round: 2 })).toBe(false);
   });
 });

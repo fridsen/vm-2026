@@ -10,6 +10,7 @@ import {
   MATCH_STATE,
   displayScore,
   getMatchState,
+  isKnockoutMatch,
 } from '../../utils/matchSchedule.js';
 
 function TeamCode({ teamId, muted }) {
@@ -55,8 +56,14 @@ export default function TodayMatchRow({
       ? `${scoreLine.home}-${scoreLine.away}`
       : '–';
 
-  const showPoints = isFinished && pointsEarned != null;
-  const showTip = Boolean(tipLabel) && (!isFinished || showTipWithPoints);
+  const isKnockout = isKnockoutMatch(match);
+  const showPoints =
+    isFinished && pointsEarned != null && !(isKnockout && !prediction);
+  const showTip =
+    Boolean(tipLabel) &&
+    (!isFinished || showTipWithPoints) &&
+    !(isKnockout && !prediction);
+  const showStatus = showTip || showPoints;
 
   return (
     <div className={clsx('today-match-row', isFinished && 'is-finished')}>
@@ -82,14 +89,16 @@ export default function TodayMatchRow({
           </div>
         </div>
 
-        <div className="today-match-status">
-          {showTip ? (
-            <span className="today-match-badge today-match-badge--tip">{tipLabel}</span>
-          ) : null}
-          {showPoints ? (
-            <MatchPointsBadge points={pointsEarned} className="today-match-badge" />
-          ) : null}
-        </div>
+        {showStatus ? (
+          <div className="today-match-status">
+            {showTip ? (
+              <span className="today-match-badge today-match-badge--tip">{tipLabel}</span>
+            ) : null}
+            {showPoints ? (
+              <MatchPointsBadge points={pointsEarned} className="today-match-badge" />
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

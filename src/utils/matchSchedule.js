@@ -73,6 +73,13 @@ export function compareMatchesByKickoff(a, b) {
   return a.id.localeCompare(b.id);
 }
 
+const KNOCKOUT_ROUNDS = new Set(['R32', 'R16', 'QF', 'SF', 'BRONZE', 'FINAL']);
+
+/** Knockout/playoff fixtures from `knockout_matches` (round is text, not group-stage int). */
+export function isKnockoutMatch(match) {
+  return typeof match?.round === 'string' && KNOCKOUT_ROUNDS.has(match.round);
+}
+
 /**
  * Flatten matches in the same order they're shown in the group-by-group
  * lists (Dashboard PreWcView and MatchesPage): groups in alphabetical

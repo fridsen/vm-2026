@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { HERO_VARIANT, selectHeroMatches } from '../../utils/selectHeroMatch.js';
+import { isKnockoutMatch } from '../../utils/matchSchedule.js';
 import { scoreGroupMatch } from '../../utils/scoring.js';
 import MatchHeroCard from '../matches/MatchHeroCard.jsx';
 
@@ -20,7 +21,9 @@ export default function LiveHeroMatch({ matches, now, predictions }) {
       {heroMatches.map((match) => {
         const prediction = matchPreds[match.id];
         const pointsEarned =
-          variant === HERO_VARIANT.RECENT_FINISHED && match.result
+          variant === HERO_VARIANT.RECENT_FINISHED &&
+          match.result &&
+          !isKnockoutMatch(match)
             ? scoreGroupMatch(prediction, match.result).points
             : undefined;
 

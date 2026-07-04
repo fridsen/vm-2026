@@ -72,6 +72,36 @@ export const RULE_SECTIONS = [
           { color: 'lime', content: 'Rätt tvåa', points: '1P' },
           { color: 'lime', content: 'Rätt trea', points: '1P' },
           { color: 'cyan', content: 'Bonus: Hela gruppen i rätt ordning', points: '3P' },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Topp 3 i VM',
+    cards: [
+      {
+        title: 'Tippa prispallen',
+        meta: '3 lag',
+        items: [
+          { color: 'lime', content: 'Tippa vilka lag som tar guld, silver och brons i VM' },
+          {
+            color: 'lime',
+            content: 'Du kan ändra ditt tips hur många gånger du vill innan första avsparken i gruppspelet',
+          },
+          {
+            color: 'orange',
+            content: 'Om du inte tippar innan avspark registreras automatiskt ordningen som den är innan VM',
+          },
+          {
+            color: 'red',
+            content: 'Deadline: Ditt tips låses när först matchen i gruppspelet startar (avsparkstid). Efter avspark kan du inte längre ändra eller lägga ett nytt tips.',
+          },
+        ],
+      },
+      {
+        title: 'Poängsättning',
+        meta: 'Max 30 poäng',
+        items: [
           { color: 'lime', content: <strong>Rätt VM-guld (1:a)</strong>, points: '15P' },
           { color: 'lime', content: <strong>Rätt VM-silver (2:a)</strong>, points: '10P' },
           { color: 'lime', content: <strong>Rätt VM-brons (3:e)</strong>, points: '5P' },

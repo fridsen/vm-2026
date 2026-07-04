@@ -110,6 +110,15 @@ export async function fetchUserGroupStandings(userId) {
   return out;
 }
 
+/** VM top-3 prediction for a user (leaderboard player sheet; bypasses RLS via RPC). */
+export async function fetchUserTopThree(userId) {
+  const { data, error } = await supabase.rpc('fn_user_top_three', {
+    p_user_id: userId,
+  });
+  if (error) throw error;
+  return data ?? null;
+}
+
 export async function saveMatchPrediction(
   userId,
   matchId,
