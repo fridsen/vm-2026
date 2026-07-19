@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import NewsFeedCard from '../NewsFeedCard.jsx';
 import { useLatestMatchPoints } from '../../hooks/useLatestMatchPoints.js';
+import { useLatestPodiumPoints } from '../../hooks/useLatestPodiumPoints.js';
 import {
   rankForUser,
-  rankMovementsFromLatestMatch,
+  rankMovementsForTotalt,
   sortLeaderboardEntries,
 } from '../../utils/leaderboardMovement.js';
 import { aggregateMatchPointsBreakdown } from '../../utils/matchPointsBreakdown.js';
@@ -28,12 +29,36 @@ export default function LiveDashboard({
   const { matches: tournamentMatches } = useTournamentMatches();
   const sortedEntries = useMemo(() => sortLeaderboardEntries(entries), [entries]);
 
-  const { anchorMatchId, latestPoints, latestPointsReady } = useLatestMatchPoints(matches);
+  const {
+    anchorMatches,
+    latestPoints,
+    latestPointsReady,
+  } = useLatestMatchPoints(matches);
+  const {
+    latestPodiumKickoff,
+    latestPodiumPoints,
+    latestPodiumPointsReady,
+  } = useLatestPodiumPoints(tournamentMatches);
 
   const movements = useMemo(() => {
-    if (!anchorMatchId || !latestPointsReady) return {};
-    return rankMovementsFromLatestMatch(entries, latestPoints);
-  }, [entries, anchorMatchId, latestPoints, latestPointsReady]);
+    if (!latestPointsReady && !latestPodiumPointsReady) return {};
+    return rankMovementsForTotalt(entries, {
+      matches: tournamentMatches,
+      latestMatchPoints: latestPointsReady ? latestPoints : {},
+      latestMatchKickoff: anchorMatches[0]?.kickoff ?? null,
+      latestPodiumPoints: latestPodiumPointsReady ? latestPodiumPoints : {},
+      latestPodiumKickoff,
+    });
+  }, [
+    entries,
+    tournamentMatches,
+    anchorMatches,
+    latestPoints,
+    latestPointsReady,
+    latestPodiumKickoff,
+    latestPodiumPoints,
+    latestPodiumPointsReady,
+  ]);
 
   const breakdown = useMemo(
     () => aggregateMatchPointsBreakdown(matches, predictions, myEntry?.groupPoints ?? 0),
