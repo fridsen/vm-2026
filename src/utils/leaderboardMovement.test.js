@@ -3,7 +3,9 @@ import {
   finishedMatchesSignature,
   latestFinishedMatchId,
   latestFinishedMatches,
+  rankMovementsForTotalt,
   rankMovementsFromLatestMatch,
+  rankMovementsFromScoreDelta,
   ranksFromEntries,
 } from './leaderboardMovement.js';
 
@@ -81,5 +83,49 @@ describe('leaderboardMovement', () => {
         { userId: 'c', name: 'Cecilia', points: 8 },
       ]),
     ).toEqual({ b: 1, c: 1 });
+  });
+});
+
+describe('rankMovementsForTotalt', () => {
+  it('uses podium points when the bronze match is newer than the last group match', () => {
+    const current = [
+      { userId: 'a', name: 'Anna', points: 105, knockoutPoints: 5 },
+      { userId: 'b', name: 'Bertil', points: 104, knockoutPoints: 0 },
+    ];
+    expect(
+      rankMovementsForTotalt(current, {
+        latestMatchPoints: { a: 2, b: 2 },
+        latestMatchKickoff: '2026-07-10T18:00:00Z',
+        latestPodiumPoints: { a: 5, b: 0 },
+        latestPodiumKickoff: '2026-07-18T21:00:00Z',
+      }),
+    ).toEqual({ a: 1, b: -1 });
+  });
+
+  it('uses match points when the group match is newer', () => {
+    const current = [
+      { userId: 'a', name: 'Anna', points: 104 },
+      { userId: 'b', name: 'Bertil', points: 105 },
+    ];
+    expect(
+      rankMovementsForTotalt(current, {
+        latestMatchPoints: { a: 4, b: 6 },
+        latestMatchKickoff: '2026-07-19T12:00:00Z',
+        latestPodiumPoints: { a: 5, b: 0 },
+        latestPodiumKickoff: '2026-07-18T21:00:00Z',
+      }),
+    ).toEqual({ b: 1, a: -1 });
+  });
+});
+
+describe('rankMovementsFromScoreDelta', () => {
+  it('moves players on the knockout column after bronze points', () => {
+    const current = [
+      { userId: 'a', name: 'Anna', knockoutPoints: 5 },
+      { userId: 'b', name: 'Bertil', knockoutPoints: 0 },
+    ];
+    expect(
+      rankMovementsFromScoreDelta(current, { a: 5, b: 0 }, 'knockoutPoints'),
+    ).toEqual({ a: 1, b: -1 });
   });
 });

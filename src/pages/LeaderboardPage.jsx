@@ -6,14 +6,18 @@ import LeaderboardSegmentedControl from '../components/LeaderboardSegmentedContr
 import { useTournamentMatches } from '../hooks/useMatches.js';
 import { useLatestGroupPoints } from '../hooks/useLatestGroupPoints.js';
 import { useLatestMatchPoints } from '../hooks/useLatestMatchPoints.js';
+import { useLatestPodiumPoints } from '../hooks/useLatestPodiumPoints.js';
 import { useLeaderboard } from '../hooks/useLeaderboard.js';
 import { useLockState } from '../hooks/useLockState.js';
 import {
+  rankMovementsForTotalt,
   rankMovementsFromLatestMatch,
+  rankMovementsFromScoreDelta,
   ranksFromOrderedEntries,
 } from '../utils/leaderboardMovement.js';
 import { nextLeaderboardSort, sortLeaderboardEntries } from '../utils/leaderboardSort.js';
 import { latestPointsDisplayForUser } from '../utils/latestMatchPointsDisplay.js';
+import { isKnockoutMatch } from '../utils/matchSchedule.js';
 
 const TOP_FIVE_COUNT = 5;
 
@@ -150,7 +154,7 @@ function LeaderboardEntryRow({
       ? (latestGroupPoints[entry.userId] ?? 0)
       : null;
 
-  const showMovement = view === 'totalt' || view === 'matcher';
+  const showMovement = view === 'totalt' || view === 'matcher' || view === 'topp3';
 
   return (
     <LeaderboardRow
@@ -180,10 +184,26 @@ export default function LeaderboardPage() {
   const [view, setView] = useState('totalt');
   const [sort, setSort] = useState({ key: 'total', dir: 'desc' });
 
-  const { anchorMatchId, anchorMatchIds, latestPoints, latestPointsBreakdown, latestPointsReady } =
-    useLatestMatchPoints(matches);
+  const groupMatches = useMemo(
+    () => (matches ?? []).filter((m) => !isKnockoutMatch(m)),
+    [matches],
+  );
+
+  const {
+    anchorMatchId,
+    anchorMatchIds,
+    anchorMatches,
+    latestPoints,
+    latestPointsBreakdown,
+    latestPointsReady,
+  } = useLatestMatchPoints(groupMatches);
   const { anchorGroup, latestPoints: latestGroupPoints, latestPointsReady: latestGroupPointsReady } =
     useLatestGroupPoints(matches);
+  const {
+    latestPodiumKickoff,
+    latestPodiumPoints,
+    latestPodiumPointsReady,
+  } = useLatestPodiumPoints(matches);
 
   const scoreKey = SCORE_KEY_BY_VIEW[view] ?? 'points';
 
@@ -209,10 +229,41 @@ export default function LeaderboardPage() {
   );
 
   const movements = useMemo(() => {
-    if (view !== 'matcher' && view !== 'totalt') return {};
-    if (!anchorMatchId || !latestPointsReady) return {};
-    return rankMovementsFromLatestMatch(entries, latestPoints);
-  }, [entries, anchorMatchId, latestPoints, latestPointsReady, view]);
+    if (view === 'matcher') {
+      if (!anchorMatchId || !latestPointsReady) return {};
+      return rankMovementsFromLatestMatch(entries, latestPoints);
+    }
+    if (view === 'topp3') {
+      if (!latestPodiumPointsReady) return {};
+      return rankMovementsFromScoreDelta(
+        entries,
+        latestPodiumPoints ?? {},
+        'knockoutPoints',
+      );
+    }
+    if (view === 'totalt') {
+      if (!latestPointsReady && !latestPodiumPointsReady) return {};
+      return rankMovementsForTotalt(entries, {
+        matches,
+        latestMatchPoints: latestPointsReady ? latestPoints : {},
+        latestMatchKickoff: anchorMatches[0]?.kickoff ?? null,
+        latestPodiumPoints: latestPodiumPointsReady ? latestPodiumPoints : {},
+        latestPodiumKickoff,
+      });
+    }
+    return {};
+  }, [
+    view,
+    entries,
+    matches,
+    anchorMatchId,
+    anchorMatches,
+    latestPoints,
+    latestPointsReady,
+    latestPodiumKickoff,
+    latestPodiumPoints,
+    latestPodiumPointsReady,
+  ]);
 
   function openPlayer(entry, rank) {
     setSelected({

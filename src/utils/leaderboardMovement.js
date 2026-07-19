@@ -1,4 +1,4 @@
-import { compareMatchesByKickoff } from './matchSchedule.js';
+import { compareMatchesByKickoff, isKnockoutMatch } from './matchSchedule.js';
 
 /** Finished matches at the most recent kickoff slot (stable order). */
 export function latestFinishedMatches(matches) {
@@ -33,6 +33,15 @@ export function finishedMatchesSignature(groupMatches, knockoutMatches) {
 export function sortLeaderboardEntries(entries) {
   return [...(entries ?? [])].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
+    return (a.name ?? '').localeCompare(b.name ?? '', 'sv');
+  });
+}
+
+function sortEntriesByScore(entries, scoreKey) {
+  return [...(entries ?? [])].sort((a, b) => {
+    const scoreA = a[scoreKey] ?? 0;
+    const scoreB = b[scoreKey] ?? 0;
+    if (scoreA !== scoreB) return scoreB - scoreA;
     return (a.name ?? '').localeCompare(b.name ?? '', 'sv');
   });
 }
@@ -82,16 +91,66 @@ function movementsBetween(priorRanks, currentRanks) {
 }
 
 /**
- * Rank movement caused by the latest finished match. Positive = moved up.
- * Derived from current totals minus per-player points on that match (no local storage).
+ * Rank movement from a per-user score delta on `scoreKey`. Positive = moved up.
  */
-export function rankMovementsFromLatestMatch(entries, latestPointsByUser = {}) {
+export function rankMovementsFromScoreDelta(
+  entries,
+  deltaByUser = {},
+  scoreKey = 'points',
+) {
   if (!entries?.length) return {};
 
   const priorEntries = entries.map((entry) => ({
     ...entry,
-    points: entry.points - (latestPointsByUser[entry.userId] ?? 0),
+    [scoreKey]: (entry[scoreKey] ?? 0) - (deltaByUser[entry.userId] ?? 0),
   }));
 
-  return movementsBetween(ranksFromEntries(priorEntries), ranksFromEntries(entries));
+  return movementsBetween(
+    ranksFromOrderedEntries(sortEntriesByScore(priorEntries, scoreKey), scoreKey),
+    ranksFromOrderedEntries(sortEntriesByScore(entries, scoreKey), scoreKey),
+  );
+}
+
+/**
+ * Rank movement caused by the latest finished match. Positive = moved up.
+ * Derived from current totals minus per-player points on that match (no local storage).
+ */
+export function rankMovementsFromLatestMatch(entries, latestPointsByUser = {}) {
+  return rankMovementsFromScoreDelta(entries, latestPointsByUser, 'points');
+}
+
+/**
+ * Totalt movement from whichever scoring event is newest: group match or podium slot.
+ * `latestPodiumPoints` is only the points from the most recently finished podium match.
+ */
+export function rankMovementsForTotalt(
+  entries,
+  {
+    matches,
+    latestMatchPoints,
+    latestMatchKickoff,
+    latestPodiumPoints,
+    latestPodiumKickoff,
+  } = {},
+) {
+  const matchKickoff = latestMatchKickoff ?? null;
+  const podiumKickoff = latestPodiumKickoff ?? null;
+  const podiumIsNewer =
+    podiumKickoff != null &&
+    (matchKickoff == null || podiumKickoff.localeCompare(matchKickoff) > 0);
+
+  if (podiumIsNewer) {
+    return rankMovementsFromScoreDelta(entries, latestPodiumPoints ?? {}, 'points');
+  }
+
+  if (matchKickoff != null) {
+    return rankMovementsFromScoreDelta(entries, latestMatchPoints ?? {}, 'points');
+  }
+
+  const knockouts = (matches ?? []).filter(isKnockoutMatch);
+  if (latestFinishedMatches(knockouts).length > 0 && latestPodiumPoints) {
+    return rankMovementsFromScoreDelta(entries, latestPodiumPoints, 'points');
+  }
+
+  return {};
 }

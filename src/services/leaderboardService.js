@@ -93,3 +93,14 @@ export async function fetchLatestGroupPoints(group) {
   }
   return map;
 }
+
+/** Points from the most recently finished podium match (bronze or final slots). */
+export async function fetchLatestPodiumPoints() {
+  const { data, error } = await supabase.rpc('fn_latest_podium_points_for_leaderboard');
+  if (error) throw error;
+  const map = {};
+  for (const row of data ?? []) {
+    map[row.user_id] = row.points;
+  }
+  return map;
+}
