@@ -124,8 +124,9 @@ describe('rankMovementsFromScoreDelta', () => {
       { userId: 'a', name: 'Anna', knockoutPoints: 5 },
       { userId: 'b', name: 'Bertil', knockoutPoints: 0 },
     ];
+    // Prior: both at 0 → tied for 1st. After: Anna stays 1st, Bertil drops to 2nd.
     expect(
       rankMovementsFromScoreDelta(current, { a: 5, b: 0 }, 'knockoutPoints'),
-    ).toEqual({ a: 1, b: -1 });
+    ).toEqual({ b: -1 });
   });
 });
