@@ -4,7 +4,8 @@ import { useTeams } from '../hooks/useTeams.js';
 import LeaderboardPlayerSheetPointsBadge from './LeaderboardPlayerSheetPointsBadge.jsx';
 import {
   actualTopThreeTeamIds,
-  isPodiumFinalized,
+  isBronzeDecided,
+  isPodiumSlotDecided,
   knockoutMatchesFromList,
   topThreeRankPointsAtIndex,
   topThreeSheetTotalPoints,
@@ -21,10 +22,10 @@ export default function LeaderboardPlayerSheetTopThree({
 }) {
   const { getTeamById } = useTeams();
   const knockoutMatches = knockoutMatchesFromList(matches);
-  const finalized = isPodiumFinalized(knockoutMatches);
   const actual = actualTopThreeTeamIds(knockoutMatches);
   const pred = normalizeTopThree(topThree);
-  const totalPoints = topThreeSheetTotalPoints(pred, actual, finalized);
+  const totalPoints = topThreeSheetTotalPoints(pred, actual, knockoutMatches);
+  const bronzeDecided = isBronzeDecided(knockoutMatches);
   const hasData = pred.some(Boolean);
 
   if (loading && !hasData) {
@@ -48,7 +49,8 @@ export default function LeaderboardPlayerSheetTopThree({
         if (!teamId) return null;
         const team = getTeamById(teamId);
         if (!team) return null;
-        const points = topThreeRankPointsAtIndex(rankIndex, pred, actual, finalized);
+        const slotDecided = isPodiumSlotDecided(rankIndex, knockoutMatches);
+        const points = topThreeRankPointsAtIndex(rankIndex, pred, actual, slotDecided);
         const flagImage = flagImageForCode(team.code || team.id);
 
         return (
@@ -66,7 +68,7 @@ export default function LeaderboardPlayerSheetTopThree({
               <LeaderboardPlayerSheetPointsBadge
                 points={points}
                 variant="row"
-                finalized={finalized}
+                finalized={slotDecided}
               />
             ) : null}
           </div>
@@ -78,7 +80,7 @@ export default function LeaderboardPlayerSheetTopThree({
           <LeaderboardPlayerSheetPointsBadge
             points={totalPoints}
             variant="total"
-            finalized={finalized}
+            finalized={bronzeDecided}
           />
         </footer>
       ) : null}

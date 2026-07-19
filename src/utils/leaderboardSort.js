@@ -5,7 +5,7 @@
  * @param {Array<{ userId: string, name?: string, points: number, matchPoints?: number, groupPoints?: number }>} entries
  * @param {{ key: LeaderboardSortKey, dir: 'asc' | 'desc' }} sort
  * @param {Record<string, number>} [latestPointsByUser]
- * @param {{ scoreKey?: 'points' | 'matchPoints' | 'groupPoints' }} [options]
+ * @param {{ scoreKey?: 'points' | 'matchPoints' | 'groupPoints' | 'knockoutPoints' }} [options]
  */
 export function sortLeaderboardEntries(
   entries,

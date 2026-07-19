@@ -14,6 +14,7 @@ const LeaderboardRow = forwardRef(function LeaderboardRow(
     points,
     matchPoints,
     groupPoints,
+    knockoutPoints,
     latestPoints,
     latestPointsParts,
     latestGroup,
@@ -40,6 +41,7 @@ const LeaderboardRow = forwardRef(function LeaderboardRow(
         points={points}
         matchPoints={matchPoints}
         groupPoints={groupPoints}
+        knockoutPoints={knockoutPoints}
         latestPoints={latestPoints}
         latestPointsParts={latestPointsParts}
         latestGroup={latestGroup}

@@ -2780,8 +2780,15 @@
   .leaderboard-page.lb-view-totalt {
     --lb-ma-col-width: 28px;
     --lb-gr-col-width: 28px;
+    --lb-t3-col-width: 28px;
     --lb-total-col-width: 44px;
     --lb-metrics-gap: 8px;
+  }
+  .leaderboard-page.lb-view-topp3 .lb-column-header-metrics {
+    grid-template-columns: var(--lb-total-col-width);
+  }
+  .leaderboard-page.lb-view-topp3 .lb-row-right {
+    grid-template-columns: var(--lb-total-col-width);
   }
   .lb-segmented {
     margin-bottom: 16px;
@@ -2817,7 +2824,9 @@
   }
   .lb-column-header--totalt .lb-column-header-metrics--totalt {
     display: grid;
-    grid-template-columns: var(--lb-ma-col-width) var(--lb-gr-col-width) var(--lb-total-col-width);
+    grid-template-columns:
+      var(--lb-ma-col-width) var(--lb-gr-col-width) var(--lb-t3-col-width)
+      var(--lb-total-col-width);
     gap: var(--lb-metrics-gap);
     align-items: center;
   }
@@ -2924,7 +2933,9 @@
     min-width: 0;
   }
   .lb-row-right--totalt {
-    grid-template-columns: var(--lb-ma-col-width) var(--lb-gr-col-width) var(--lb-total-col-width);
+    grid-template-columns:
+      var(--lb-ma-col-width) var(--lb-gr-col-width) var(--lb-t3-col-width)
+      var(--lb-total-col-width);
   }
   .lb-split-metric {
     font-size: 14px;

@@ -1,4 +1,3 @@
-import { scoreTopThree } from './scoring.js';
 import { isKnockoutMatch } from './matchSchedule.js';
 import { normalizeTopThree } from './topThree.js';
 
@@ -18,39 +17,65 @@ function knockoutRunnerUp(match) {
   return home > away ? match.awayTeamId : match.homeTeamId;
 }
 
+function decidedKnockoutMatch(knockoutMatches, round) {
+  return (knockoutMatches ?? []).find(
+    (m) =>
+      m.round === round &&
+      m.status === 'finished' &&
+      knockoutWinner(m),
+  );
+}
+
+export function isFinalDecided(knockoutMatches) {
+  return Boolean(decidedKnockoutMatch(knockoutMatches, 'FINAL'));
+}
+
+export function isBronzeDecided(knockoutMatches) {
+  return Boolean(decidedKnockoutMatch(knockoutMatches, 'BRONZE'));
+}
+
+/** Full podium (gold + silver + bronze) is known. */
 export function isPodiumFinalized(knockoutMatches) {
-  const finals = (knockoutMatches ?? []).filter((m) => m.round === 'FINAL');
-  const bronzes = (knockoutMatches ?? []).filter((m) => m.round === 'BRONZE');
-  const finalWinner = finals.map(knockoutWinner).find(Boolean);
-  const bronzeWinner = bronzes.map(knockoutWinner).find(Boolean);
-  return Boolean(finalWinner && bronzeWinner);
+  return isFinalDecided(knockoutMatches) && isBronzeDecided(knockoutMatches);
 }
 
+/** Whether this podium slot can be scored (0=gold, 1=silver, 2=bronze). */
+export function isPodiumSlotDecided(rankIndex, knockoutMatches) {
+  if (rankIndex === 2) return isBronzeDecided(knockoutMatches);
+  if (rankIndex === 0 || rankIndex === 1) return isFinalDecided(knockoutMatches);
+  return false;
+}
+
+/**
+ * Actual podium team ids. Unknown slots are null until that match is finished.
+ * Order: [gold, silver, bronze].
+ */
 export function actualTopThreeTeamIds(knockoutMatches) {
-  if (!isPodiumFinalized(knockoutMatches)) return [];
-  const finalMatch = (knockoutMatches ?? []).find((m) => m.round === 'FINAL' && knockoutWinner(m));
-  const bronzeMatch = (knockoutMatches ?? []).find((m) => m.round === 'BRONZE' && knockoutWinner(m));
-  if (!finalMatch || !bronzeMatch) return [];
+  const finalMatch = decidedKnockoutMatch(knockoutMatches, 'FINAL');
+  const bronzeMatch = decidedKnockoutMatch(knockoutMatches, 'BRONZE');
   return [
-    knockoutWinner(finalMatch),
-    knockoutRunnerUp(finalMatch),
-    knockoutWinner(bronzeMatch),
-  ].filter(Boolean);
+    finalMatch ? knockoutWinner(finalMatch) : null,
+    finalMatch ? knockoutRunnerUp(finalMatch) : null,
+    bronzeMatch ? knockoutWinner(bronzeMatch) : null,
+  ];
 }
 
-export function topThreeRankPointsAtIndex(rankIndex, pred, actual, finalized) {
+export function topThreeRankPointsAtIndex(rankIndex, pred, actual, slotDecided) {
   const max = PODIUM_POINTS[rankIndex];
   if (max == null) return null;
-  if (!finalized) return 0;
+  if (!slotDecided) return 0;
   const p = normalizeTopThree(pred);
   const a = normalizeTopThree(actual);
-  if (!p[rankIndex]) return 0;
+  if (!p[rankIndex] || !a[rankIndex]) return 0;
   return p[rankIndex] === a[rankIndex] ? max : 0;
 }
 
-export function topThreeSheetTotalPoints(pred, actual, finalized) {
-  if (!finalized) return 0;
-  return scoreTopThree(pred, actual).points;
+/** Sum of points for slots that are already decided. */
+export function topThreeSheetTotalPoints(pred, actual, knockoutMatches) {
+  return [0, 1, 2].reduce((sum, rankIndex) => {
+    const decided = isPodiumSlotDecided(rankIndex, knockoutMatches);
+    return sum + (topThreeRankPointsAtIndex(rankIndex, pred, actual, decided) ?? 0);
+  }, 0);
 }
 
 export function knockoutMatchesFromList(matches) {

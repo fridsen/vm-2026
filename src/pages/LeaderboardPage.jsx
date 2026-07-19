@@ -3,7 +3,6 @@ import clsx from 'clsx';
 import LeaderboardRow from '../components/LeaderboardRow.jsx';
 import LeaderboardPlayerSheet from '../components/LeaderboardPlayerSheet.jsx';
 import LeaderboardSegmentedControl from '../components/LeaderboardSegmentedControl.jsx';
-import LeaderboardTopThreePlaceholder from '../components/LeaderboardTopThreePlaceholder.jsx';
 import { useTournamentMatches } from '../hooks/useMatches.js';
 import { useLatestGroupPoints } from '../hooks/useLatestGroupPoints.js';
 import { useLatestMatchPoints } from '../hooks/useLatestMatchPoints.js';
@@ -22,6 +21,7 @@ const SCORE_KEY_BY_VIEW = {
   totalt: 'points',
   matcher: 'matchPoints',
   grupper: 'groupPoints',
+  topp3: 'knockoutPoints',
 };
 
 function LeaderboardDivider() {
@@ -42,6 +42,7 @@ function LeaderboardColumnHeader({ view, sort, onSort }) {
         <div className="lb-column-header-metrics lb-column-header-metrics--totalt">
           <span>Ma</span>
           <span>Gr</span>
+          <span>T3</span>
           <span className="lb-column-header-tot">Tot</span>
         </div>
       </div>
@@ -49,7 +50,27 @@ function LeaderboardColumnHeader({ view, sort, onSort }) {
   }
 
   if (view === 'topp3') {
-    return null;
+    return (
+      <div className="lb-column-header" aria-hidden>
+        <span className="lb-column-header-position">Position</span>
+        <div className="lb-column-header-metrics">
+          <button
+            type="button"
+            className={clsx('lb-column-sort', sort.key === 'total' && 'is-active')}
+            onClick={() => onSort('total')}
+            aria-sort={
+              sort.key === 'total'
+                ? sort.dir === 'desc'
+                  ? 'descending'
+                  : 'ascending'
+                : 'none'
+            }
+          >
+            Poäng
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const scoreLabel = view === 'grupper' ? 'Poäng' : 'Total';
@@ -138,6 +159,7 @@ function LeaderboardEntryRow({
       points={entry.points}
       matchPoints={entry.matchPoints}
       groupPoints={entry.groupPoints}
+      knockoutPoints={entry.knockoutPoints}
       latestPoints={latestTotal}
       latestPointsParts={latestParts}
       latestGroup={anchorGroup}
@@ -214,7 +236,8 @@ export default function LeaderboardPage() {
   const topEntries = showTopFiveDivider ? sorted.slice(0, TOP_FIVE_COUNT) : sorted;
   const restEntries = showTopFiveDivider ? sorted.slice(TOP_FIVE_COUNT) : [];
 
-  const listView = view === 'totalt' || view === 'matcher' || view === 'grupper';
+  const listView =
+    view === 'totalt' || view === 'matcher' || view === 'grupper' || view === 'topp3';
 
   return (
     <div
@@ -223,14 +246,13 @@ export default function LeaderboardPage() {
         view === 'totalt' && 'lb-view-totalt',
         view === 'matcher' && anchorMatchIds.length > 1 && 'lb-has-split-latest',
         view === 'grupper' && anchorGroup && 'lb-has-group-latest',
+        view === 'topp3' && 'lb-view-topp3',
       )}
     >
       <LeaderboardSegmentedControl value={view} onChange={handleViewChange} />
 
       {loading ? (
         <div className="lb-empty">Laddar…</div>
-      ) : view === 'topp3' ? (
-        <LeaderboardTopThreePlaceholder />
       ) : sorted.length === 0 ? (
         <div className="lb-empty">Inga deltagare ännu</div>
       ) : listView ? (

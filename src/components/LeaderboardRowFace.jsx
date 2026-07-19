@@ -68,6 +68,7 @@ export default function LeaderboardRowFace({
   points,
   matchPoints,
   groupPoints,
+  knockoutPoints,
   latestPoints,
   latestPointsParts,
   latestGroup,
@@ -91,6 +92,7 @@ export default function LeaderboardRowFace({
           <div className="lb-row-right lb-row-right--totalt">
             <span className="lb-split-metric">{matchPoints ?? 0}</span>
             <span className="lb-split-metric">{groupPoints ?? 0}</span>
+            <span className="lb-split-metric">{knockoutPoints ?? 0}</span>
             <span className="lb-points">{points}</span>
           </div>
         ) : null}
@@ -109,6 +111,11 @@ export default function LeaderboardRowFace({
               empty
             />
             <span className="lb-points">{groupPoints ?? 0}</span>
+          </div>
+        ) : null}
+        {view === 'topp3' ? (
+          <div className="lb-row-right">
+            <span className="lb-points">{knockoutPoints ?? 0}</span>
           </div>
         ) : null}
       </>
